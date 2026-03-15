@@ -311,20 +311,20 @@ type FloatingPosition = {
 const fieldClassName = `
 w-full rounded-[20px]
 border border-white/12
-bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]
+bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.045))]
 px-4 py-3 text-white outline-none
 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
 backdrop-blur-xl transition duration-200
 placeholder:text-zinc-400
-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.05))]
-focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.055))]
-focus:shadow-[0_0_0_1px_rgba(95,122,255,0.45),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
+hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.055))]
+focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))]
+focus:shadow-[0_0_0_1px_rgba(95,122,255,0.5),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
 `
 
 const popupClassName = `
 overflow-hidden rounded-[24px]
 border border-white/[0.08]
-bg-[linear-gradient(180deg,rgba(22,26,40,0.98),rgba(12,15,26,0.99))]
+bg-[linear-gradient(180deg,rgba(18,24,44,0.98),rgba(9,12,24,0.99))]
 shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.06)_inset]
 backdrop-blur-[28px]
 `
@@ -431,7 +431,7 @@ function CustomSelect<T extends string>({
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-500"}>
+        <span className={value ? "text-white" : "text-zinc-400"}>
           {value || placeholder || "Выбрать"}
         </span>
 
@@ -535,7 +535,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-500"}>
+        <span className={value ? "text-white" : "text-zinc-400"}>
           {value ? formatDisplayDate(value) : "xx.xx.xxxx"}
         </span>
 
@@ -879,7 +879,7 @@ export default function App() {
         },
       },
       tooltip: {
-        backgroundColor: "rgba(18,18,20,0.96)",
+        backgroundColor: "rgba(15,15,19,0.96)",
         borderColor: "rgba(255,255,255,0.08)",
         borderWidth: 1,
         titleColor: "#fff",
@@ -1335,7 +1335,7 @@ export default function App() {
       <div className="noise-overlay pointer-events-none" />
 
       <div className="relative z-[1] flex min-h-screen">
-        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.025),0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-[26px]">
+        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.025),0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-[26px]">
           <div className="mb-8">
             <div className="w-[86px] shrink-0">
               <img
@@ -1348,21 +1348,21 @@ export default function App() {
 
           <button
             onClick={openCreateModal}
-            className="w-full rounded-[20px] bg-[linear-gradient(180deg,#4b4b52,#2d2d33)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(0,0,0,0.32),0_1px_0_rgba(255,255,255,0.14)_inset] transition duration-200 hover:-translate-y-[1px] hover:brightness-110 active:scale-[0.99]"
+            className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6f85ff,#4d62f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]"
           >
             + Добавить операцию
           </button>
 
           <button
             onClick={() => void createNewMonth()}
-            className="mt-3 w-full rounded-[20px] bg-white/[0.055] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]"
+            className="mt-3 w-full rounded-[20px] bg-[linear-gradient(180deg,rgba(95,122,255,0.18),rgba(70,90,190,0.14))] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]"
           >
             + Новый месяц
           </button>
 
           <button
             onClick={() => void deleteSelectedMonth()}
-            className="mt-3 w-full rounded-[20px] bg-red-500/10 px-4 py-4 text-base font-semibold text-red-300 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]"
+            className="mt-3 w-full rounded-[20px] bg-[linear-gradient(180deg,rgba(170,65,125,0.22),rgba(112,58,130,0.18))] px-4 py-4 text-base font-semibold text-red-200 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]"
           >
             − Удалить месяц
           </button>
@@ -1662,9 +1662,9 @@ export default function App() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,7,0.74)] p-4 backdrop-blur-[12px]">
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(44,40,36,0.98),rgba(15,15,18,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
+            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(20,26,44,0.98),rgba(10,12,22,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
           >
             <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
@@ -1865,7 +1865,7 @@ export default function App() {
                 </div>
               )}
 
-              <div className="sticky bottom-0 mt-6 flex items-center justify-between border-t border-white/10 bg-[rgba(16,16,18,0.96)] py-4 backdrop-blur-md">
+              <div className="sticky bottom-0 mt-6 flex items-center justify-between border-t border-white/10 bg-[rgba(10,12,20,0.96)] py-4 backdrop-blur-md">
                 <div>
                   <p className="text-sm text-zinc-400">Фактически получено</p>
                   <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
