@@ -310,8 +310,16 @@ type FloatingPosition = {
 
 const fieldClassName = `
 w-full rounded-[20px]
-border border-white/6
-bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.055))]
+border border-white/12
+bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))]
+px-4 py-3 text-white outline-none
+shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
+backdrop-blur-xl transition duration-200
+placeholder:text-zinc-400
+hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.05))]
+focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.055))]
+focus:shadow-[0_0_0_1px_rgba(95,122,255,0.45),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
+`
 px-4 py-3 text-white outline-none
 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
 backdrop-blur-xl transition duration-200
@@ -324,7 +332,7 @@ focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.06)_in
 const popupClassName = `
 overflow-hidden rounded-[24px]
 border border-white/[0.08]
-bg-[linear-gradient(180deg,rgba(40,37,34,0.98),rgba(18,17,19,0.99))]
+bg-[linear-gradient(180deg,rgba(22,26,40,0.98),rgba(12,15,26,0.99))]
 shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.06)_inset]
 backdrop-blur-[28px]
 `
