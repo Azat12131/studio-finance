@@ -1,5 +1,6 @@
 import { supabase } from "./supabase"
 import React from "react"
+import { createPortal } from "react-dom"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -301,9 +302,108 @@ type CustomSelectProps<T extends string> = {
   placeholder?: string
 }
 
-const fieldClassName = `w-full ${CONTROL_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.07))] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.07)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_28px_rgba(0,0,0,0.22)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-400 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.13),rgba(255,255,255,0.08))] focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.09))] focus:shadow-[0_0_0_1px_rgba(95,122,255,0.55),0_1px_0_rgba(255,255,255,0.07)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_32px_rgba(0,0,0,0.26)]`
+type FloatingPosition = {
+  top: number
+  left: number
+  width: number
+}
 
-const popupSurfaceClassName = `absolute left-0 top-[calc(100%+12px)] z-[9999] overflow-hidden ${SURFACE_RADIUS} border border-white/[0.08] bg-[linear-gradient(180deg,rgba(22,26,40,0.98),rgba(12,15,26,0.99))] shadow-[0_36px_90px_rgba(0,0,0,0.78),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[26px]`
+const fieldClassName = `
+w-full rounded-[20px]
+border border-white/6
+bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.055))]
+px-4 py-3 text-white outline-none
+shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
+backdrop-blur-xl transition duration-200
+placeholder:text-zinc-500
+hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.065))]
+focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.13),rgba(255,255,255,0.07))]
+focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
+`
+
+const popupClassName = `
+overflow-hidden rounded-[24px]
+border border-white/[0.08]
+bg-[linear-gradient(180deg,rgba(40,37,34,0.98),rgba(18,17,19,0.99))]
+shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.06)_inset]
+backdrop-blur-[28px]
+`
+
+function useFloatingPosition(
+  open: boolean,
+  anchorRef: React.RefObject<HTMLElement | null>
+) {
+  const [position, setPosition] = React.useState<FloatingPosition>({
+    top: 0,
+    left: 0,
+    width: 0,
+  })
+
+  const updatePosition = React.useCallback(() => {
+    const element = anchorRef.current
+    if (!element) return
+
+    const rect = element.getBoundingClientRect()
+    setPosition({
+      top: rect.bottom + window.scrollY + 12,
+      left: rect.left + window.scrollX,
+      width: rect.width,
+    })
+  }, [anchorRef])
+
+  React.useEffect(() => {
+    if (!open) return
+
+    updatePosition()
+
+    window.addEventListener("resize", updatePosition)
+    window.addEventListener("scroll", updatePosition, true)
+
+    return () => {
+      window.removeEventListener("resize", updatePosition)
+      window.removeEventListener("scroll", updatePosition, true)
+    }
+  }, [open, updatePosition])
+
+  return position
+}
+
+function PortalDropdown({
+  open,
+  anchorRef,
+  children,
+  width,
+}: {
+  open: boolean
+  anchorRef: React.RefObject<HTMLElement | null>
+  children: React.ReactNode
+  width?: number
+}) {
+  const position = useFloatingPosition(open, anchorRef)
+
+  if (!open) return null
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999]"
+      style={{ pointerEvents: "none" }}
+    >
+      <div
+        className={popupClassName}
+        style={{
+          position: "absolute",
+          top: position.top,
+          left: position.left,
+          width: width ?? position.width,
+          pointerEvents: "auto",
+        }}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body
+  )
+}
 
 function CustomSelect<T extends string>({
   value,
@@ -313,13 +413,13 @@ function CustomSelect<T extends string>({
 }: CustomSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
+  const buttonRef = React.useRef<HTMLButtonElement | null>(null)
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!wrapperRef.current) return
-      if (!wrapperRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
+      const target = event.target as Node
+      if (wrapperRef.current?.contains(target)) return
+      setOpen(false)
     }
 
     document.addEventListener("mousedown", handleClickOutside)
@@ -327,15 +427,17 @@ function CustomSelect<T extends string>({
   }, [])
 
   return (
-    <div ref={wrapperRef} className="relative z-[9999]">
+    <div ref={wrapperRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-400"}>
+        <span className={value ? "text-white" : "text-zinc-500"}>
           {value || placeholder || "Выбрать"}
         </span>
+
         <span
           className={`text-zinc-400 transition duration-200 ${
             open ? "rotate-180" : ""
@@ -345,9 +447,9 @@ function CustomSelect<T extends string>({
         </span>
       </button>
 
-      {open && (
-        <div className={`${popupSurfaceClassName} w-full p-2`}>
-          <div className="relative z-[1] space-y-1">
+      <PortalDropdown open={open} anchorRef={buttonRef}>
+        <div className="p-2">
+          <div className="space-y-1">
             {options.map((option) => {
               const isActive = option === value
 
@@ -359,10 +461,10 @@ function CustomSelect<T extends string>({
                     onChange(option)
                     setOpen(false)
                   }}
-                  className={`w-full ${SMALL_RADIUS} px-4 py-3 text-left text-sm transition ${
+                  className={`w-full rounded-[16px] px-4 py-3 text-left text-sm transition ${
                     isActive
-                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.18)]"
-                      : "bg-[rgba(255,255,255,0.04)] text-white hover:bg-[rgba(255,255,255,0.08)]"
+                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.16)]"
+                      : "bg-white/[0.04] text-white hover:bg-white/[0.08]"
                   }`}
                 >
                   {option}
@@ -371,7 +473,7 @@ function CustomSelect<T extends string>({
             })}
           </div>
         </div>
-      )}
+      </PortalDropdown>
     </div>
   )
 }
@@ -383,13 +485,13 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
   )
 
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
+  const buttonRef = React.useRef<HTMLButtonElement | null>(null)
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (!wrapperRef.current) return
-      if (!wrapperRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
+      const target = event.target as Node
+      if (wrapperRef.current?.contains(target)) return
+      setOpen(false)
     }
 
     document.addEventListener("mousedown", handleClickOutside)
@@ -429,108 +531,108 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
   }
 
   return (
-    <div ref={wrapperRef} className="relative z-[9999]">
+    <div ref={wrapperRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-400"}>
+        <span className={value ? "text-white" : "text-zinc-500"}>
           {value ? formatDisplayDate(value) : "xx.xx.xxxx"}
         </span>
+
         <span className="text-zinc-400">
           <CalendarIcon />
         </span>
       </button>
 
-      {open && (
-        <div className={`${popupSurfaceClassName} w-[320px] p-4`}>
-          <div className="relative z-[1]">
-            <div className="mb-3 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() =>
-                  setViewDate(
-                    new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
-                  )
-                }
-                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] text-zinc-300 transition hover:bg-[rgba(255,255,255,0.08)]`}
-              >
-                <ChevronLeft />
-              </button>
-
-              <p className="text-sm font-semibold capitalize text-white">
-                {viewDate.toLocaleDateString("ru-RU", {
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setViewDate(
-                    new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
-                  )
-                }
-                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] text-zinc-300 transition hover:bg-[rgba(255,255,255,0.08)]`}
-              >
-                <ChevronRight />
-              </button>
-            </div>
-
-            <div className="mb-3 grid grid-cols-7 gap-1 text-center text-xs text-zinc-500">
-              {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
-                <div key={day} className="py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-1">
-              {cells.map((cell) => {
-                const cellString = formatInputDate(cell.date)
-                const isSelected = cellString === selectedString
-                const isToday = cellString === todayString
-
-                return (
-                  <button
-                    key={cellString}
-                    type="button"
-                    onClick={() => selectDate(cell.date)}
-                    className={`h-10 ${SMALL_RADIUS} text-sm transition ${
-                      isSelected
-                        ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
-                        : cell.currentMonth
-                        ? "bg-[rgba(255,255,255,0.05)] text-white hover:bg-[rgba(255,255,255,0.08)]"
-                        : "bg-transparent text-zinc-600 hover:bg-[rgba(255,255,255,0.04)]"
-                    } ${isToday && !isSelected ? "ring-1 ring-white/10" : ""}`}
-                  >
-                    {cell.date.getDate()}
-                  </button>
+      <PortalDropdown open={open} anchorRef={buttonRef} width={320}>
+        <div className="p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() =>
+                setViewDate(
+                  new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
                 )
-              })}
-            </div>
+              }
+              className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-white/[0.05] text-zinc-300 transition hover:bg-white/[0.08]"
+            >
+              <ChevronLeft />
+            </button>
 
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={pickToday}
-                className={`${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white transition hover:bg-[rgba(255,255,255,0.08)]`}
-              >
-                Сегодня
-              </button>
-              <button
-                type="button"
-                onClick={pickYesterday}
-                className={`${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white transition hover:bg-[rgba(255,255,255,0.08)]`}
-              >
-                Вчера
-              </button>
-            </div>
+            <p className="text-sm font-semibold capitalize text-white">
+              {viewDate.toLocaleDateString("ru-RU", {
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                setViewDate(
+                  new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
+                )
+              }
+              className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-white/[0.05] text-zinc-300 transition hover:bg-white/[0.08]"
+            >
+              <ChevronRight />
+            </button>
+          </div>
+
+          <div className="mb-3 grid grid-cols-7 gap-1 text-center text-xs text-zinc-500">
+            {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
+              <div key={day} className="py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {cells.map((cell) => {
+              const cellString = formatInputDate(cell.date)
+              const isSelected = cellString === selectedString
+              const isToday = cellString === todayString
+
+              return (
+                <button
+                  key={cellString}
+                  type="button"
+                  onClick={() => selectDate(cell.date)}
+                  className={`h-10 rounded-[14px] text-sm transition ${
+                    isSelected
+                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
+                      : cell.currentMonth
+                      ? "bg-white/[0.05] text-white hover:bg-white/[0.08]"
+                      : "bg-transparent text-zinc-600 hover:bg-white/[0.04]"
+                  } ${isToday && !isSelected ? "ring-1 ring-white/10" : ""}`}
+                >
+                  {cell.date.getDate()}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={pickToday}
+              className="rounded-[14px] bg-white/[0.05] px-3 py-2 text-sm text-white transition hover:bg-white/[0.08]"
+            >
+              Сегодня
+            </button>
+            <button
+              type="button"
+              onClick={pickYesterday}
+              className="rounded-[14px] bg-white/[0.05] px-3 py-2 text-sm text-white transition hover:bg-white/[0.08]"
+            >
+              Вчера
+            </button>
           </div>
         </div>
-      )}
+      </PortalDropdown>
     </div>
   )
 }
@@ -544,10 +646,10 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
+      className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
     >
       <div
-        className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.13),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)_35%,rgba(255,255,255,0.012)_100%)] opacity-90`}
+        className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.11),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)_35%,rgba(255,255,255,0.01)_100%)] opacity-90`}
       />
       <div className="relative z-[1]">{children}</div>
     </div>
@@ -780,7 +882,7 @@ export default function App() {
         },
       },
       tooltip: {
-        backgroundColor: "rgba(15,15,19,0.96)",
+        backgroundColor: "rgba(18,18,20,0.96)",
         borderColor: "rgba(255,255,255,0.08)",
         borderWidth: 1,
         titleColor: "#fff",
@@ -1236,7 +1338,7 @@ export default function App() {
       <div className="noise-overlay pointer-events-none" />
 
       <div className="relative z-[1] flex min-h-screen">
-        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.025),0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-[26px]">
+        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.025),0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-[26px]">
           <div className="mb-8">
             <div className="w-[86px] shrink-0">
               <img
@@ -1249,21 +1351,21 @@ export default function App() {
 
           <button
             onClick={openCreateModal}
-            className={`w-full ${CONTROL_RADIUS} bg-[linear-gradient(180deg,#6f85ff,#4d62f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]`}
+            className="w-full rounded-[20px] bg-[linear-gradient(180deg,#4b4b52,#2d2d33)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(0,0,0,0.32),0_1px_0_rgba(255,255,255,0.14)_inset] transition duration-200 hover:-translate-y-[1px] hover:brightness-110 active:scale-[0.99]"
           >
             + Добавить операцию
           </button>
 
           <button
             onClick={() => void createNewMonth()}
-            className={`mt-3 w-full ${CONTROL_RADIUS} bg-white/[0.055] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]`}
+            className="mt-3 w-full rounded-[20px] bg-white/[0.055] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]"
           >
             + Новый месяц
           </button>
 
           <button
             onClick={() => void deleteSelectedMonth()}
-            className={`mt-3 w-full ${CONTROL_RADIUS} bg-red-500/10 px-4 py-4 text-base font-semibold text-red-300 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]`}
+            className="mt-3 w-full rounded-[20px] bg-red-500/10 px-4 py-4 text-base font-semibold text-red-300 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]"
           >
             − Удалить месяц
           </button>
@@ -1540,7 +1642,7 @@ export default function App() {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => openEditModal(op)}
-                                className={`${SMALL_RADIUS} bg-blue-500/15 px-3 py-1.5 text-sm text-blue-300 transition hover:bg-blue-500/25`}
+                                className={`${SMALL_RADIUS} bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15`}
                               >
                                 Редактировать
                               </button>
@@ -1563,9 +1665,9 @@ export default function App() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(4,4,8,0.72)] p-4 backdrop-blur-[12px]">
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,7,0.74)] p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(26,31,48,0.98),rgba(10,12,22,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
+            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(44,40,36,0.98),rgba(15,15,18,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
           >
             <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
@@ -1761,12 +1863,12 @@ export default function App() {
               </div>
 
               {currentPaymentsTotal !== currentServicesTotal && (
-                <div className={`mt-4 ${CONTROL_RADIUS} bg-yellow-500/10 p-4 text-sm text-yellow-200`}>
+                <div className="mt-4 rounded-[20px] bg-yellow-500/10 p-4 text-sm text-yellow-200">
                   Внимание: сумма оплат и сумма услуг не совпадают. Это нормально, если внесена только предоплата или оплата частями.
                 </div>
               )}
 
-              <div className="sticky bottom-0 mt-6 flex items-center justify-between border-t border-white/10 bg-[rgba(12,14,22,0.96)] py-4 backdrop-blur-md">
+              <div className="sticky bottom-0 mt-6 flex items-center justify-between border-t border-white/10 bg-[rgba(16,16,18,0.96)] py-4 backdrop-blur-md">
                 <div>
                   <p className="text-sm text-zinc-400">Фактически получено</p>
                   <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
@@ -1785,7 +1887,7 @@ export default function App() {
 
                   <button
                     onClick={() => void saveOperation()}
-                    className={`${CONTROL_RADIUS} bg-[linear-gradient(180deg,#26c36c,#159a4f)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(21,154,79,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99]`}
+                    className="rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(27,164,85,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99]"
                   >
                     {editingOperationId ? "Сохранить изменения" : "Сохранить"}
                   </button>
