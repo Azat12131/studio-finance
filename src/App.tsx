@@ -14,6 +14,7 @@ import logoWhite from "./assets/logo-white.png"
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 type Owner = "Азат" | "Марс"
+type PaymentType = "Нал" | "Карта" | "Онлайн"
 type ServiceType =
   | "Запись"
   | "Сведение"
@@ -33,6 +34,7 @@ type Operation = {
   date: string
   client: string
   owner: Owner
+  paymentType: PaymentType
   services: ServiceItem[]
 }
 
@@ -40,6 +42,11 @@ type MonthGoals = Record<string, number>
 
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
+const ONLINE_NET_AMOUNT = 487.5
+
+const SURFACE_RADIUS = "rounded-[30px]"
+const CONTROL_RADIUS = "rounded-[20px]"
+const SMALL_RADIUS = "rounded-[16px]"
 
 const serviceOptions: ServiceType[] = [
   "Запись",
@@ -50,6 +57,7 @@ const serviceOptions: ServiceType[] = [
 ]
 
 const ownerOptions: Owner[] = ["Азат", "Марс"]
+const paymentOptions: PaymentType[] = ["Нал", "Карта", "Онлайн"]
 
 function toMonthKey(dateString: string) {
   const date = new Date(dateString)
@@ -86,18 +94,39 @@ function formatMonthLabel(monthKey: string) {
   })
 }
 
+function formatMoney(value: number) {
+  if (Number.isInteger(value)) return `${value} ₽`
+  return `${value.toFixed(1)} ₽`
+}
+
 function getDaysInMonth(monthKey: string) {
   const [year, month] = monthKey.split("-").map(Number)
   return new Date(year, month, 0).getDate()
 }
 
-function getOperationTotal(operation: Operation) {
+function getServicesTotal(operation: Operation) {
   return operation.services.reduce((sum, item) => sum + item.amount, 0)
+}
+
+function getOperationTotal(operation: Operation) {
+  if (operation.paymentType === "Онлайн") return ONLINE_NET_AMOUNT
+  return getServicesTotal(operation)
 }
 
 function getServiceRevenueMap(operations: Operation[]) {
   const map = new Map<ServiceType, number>()
   operations.forEach((op) => {
+    const total =
+      op.paymentType === "Онлайн"
+        ? ONLINE_NET_AMOUNT
+        : op.services.reduce((sum, item) => sum + item.amount, 0)
+
+    if (op.paymentType === "Онлайн") {
+      const firstService = op.services[0]?.type || "Другое"
+      map.set(firstService, (map.get(firstService) || 0) + total)
+      return
+    }
+
     op.services.forEach((service) => {
       map.set(service.type, (map.get(service.type) || 0) + service.amount)
     })
@@ -244,11 +273,9 @@ type CustomSelectProps<T extends string> = {
   placeholder?: string
 }
 
-const fieldClassName =
-  "w-full rounded-[20px] bg-[rgba(255,255,255,0.06)] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-500 hover:bg-[rgba(255,255,255,0.08)] focus:bg-[rgba(255,255,255,0.09)] focus:shadow-[0_0_0_1px_rgba(98,126,255,0.45),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_28px_rgba(0,0,0,0.2)]"
+const fieldClassName = `w-full ${CONTROL_RADIUS} bg-[rgba(255,255,255,0.06)] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-500 hover:bg-[rgba(255,255,255,0.08)] focus:bg-[rgba(255,255,255,0.09)] focus:shadow-[0_0_0_1px_rgba(98,126,255,0.45),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_28px_rgba(0,0,0,0.2)]`
 
-const popupSurfaceClassName =
-  "absolute left-0 top-[calc(100%+12px)] z-[140] overflow-hidden rounded-[24px] border border-white/[0.06] bg-[rgba(14,16,24,0.96)] shadow-[0_28px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[22px]"
+const popupSurfaceClassName = `absolute left-0 top-[calc(100%+12px)] z-[140] overflow-hidden ${SURFACE_RADIUS} border border-white/[0.06] bg-[rgba(14,16,24,0.96)] shadow-[0_28px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[22px]`
 
 function CustomSelect<T extends string>({
   value,
@@ -292,8 +319,10 @@ function CustomSelect<T extends string>({
 
       {open && (
         <div className={`${popupSurfaceClassName} w-full p-2`}>
-          <div className="pointer-events-none absolute inset-0 rounded-[24px] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_20%,rgba(255,255,255,0.01)_100%)]" />
-          <div className="pointer-events-none absolute inset-[1px] rounded-[23px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_30%)] opacity-80" />
+          <div
+            className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_20%,rgba(255,255,255,0.01)_100%)]`}
+          />
+          <div className="pointer-events-none absolute inset-[1px] rounded-[29px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_30%)] opacity-80" />
 
           <div className="relative z-[1] space-y-1">
             {options.map((option) => {
@@ -307,7 +336,7 @@ function CustomSelect<T extends string>({
                     onChange(option)
                     setOpen(false)
                   }}
-                  className={`w-full rounded-[16px] px-4 py-3 text-left text-sm transition ${
+                  className={`w-full ${SMALL_RADIUS} px-4 py-3 text-left text-sm transition ${
                     isActive
                       ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.16)]"
                       : "bg-white/[0.035] text-white hover:bg-white/[0.08]"
@@ -319,6 +348,50 @@ function CustomSelect<T extends string>({
             })}
           </div>
         </div>
+      )}
+    </div>
+  )
+}
+
+function PaymentTypeSegmented({
+  value,
+  onChange,
+}: {
+  value: PaymentType
+  onChange: (value: PaymentType) => void
+}) {
+  return (
+    <div>
+      <p className="mb-2 text-sm uppercase tracking-[0.08em] text-zinc-500">
+        Тип оплаты
+      </p>
+      <div
+        className={`inline-flex ${CONTROL_RADIUS} bg-black/35 p-1 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_10px_24px_rgba(0,0,0,0.25)]`}
+      >
+        {paymentOptions.map((option) => {
+          const active = option === value
+
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={`min-w-[96px] ${SMALL_RADIUS} px-5 py-3 text-sm font-semibold transition ${
+                active
+                  ? "bg-[linear-gradient(180deg,#1e3a8a,#0f172a)] text-white shadow-[0_10px_24px_rgba(37,99,235,0.28),0_1px_0_rgba(255,255,255,0.1)_inset]"
+                  : "text-zinc-300 hover:bg-white/[0.04]"
+              }`}
+            >
+              {option}
+            </button>
+          )
+        })}
+      </div>
+
+      {value === "Онлайн" && (
+        <p className="mt-2 text-sm text-emerald-300">
+          Онлайн считается как фиксированная чистая сумма {formatMoney(ONLINE_NET_AMOUNT)}
+        </p>
       )}
     </div>
   )
@@ -393,8 +466,10 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
 
       {open && (
         <div className={`${popupSurfaceClassName} w-[320px] p-4`}>
-          <div className="pointer-events-none absolute inset-0 rounded-[24px] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_20%,rgba(255,255,255,0.01)_100%)]" />
-          <div className="pointer-events-none absolute inset-[1px] rounded-[23px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_32%)] opacity-80" />
+          <div
+            className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_20%,rgba(255,255,255,0.01)_100%)]`}
+          />
+          <div className="pointer-events-none absolute inset-[1px] rounded-[29px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_32%)] opacity-80" />
 
           <div className="relative z-[1]">
             <div className="mb-3 flex items-center justify-between">
@@ -405,7 +480,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition hover:bg-white/[0.10]"
+                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-white/[0.06] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition hover:bg-white/[0.10]`}
               >
                 <ChevronLeft />
               </button>
@@ -424,7 +499,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition hover:bg-white/[0.10]"
+                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-white/[0.06] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition hover:bg-white/[0.10]`}
               >
                 <ChevronRight />
               </button>
@@ -449,7 +524,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     key={cellString}
                     type="button"
                     onClick={() => selectDate(cell.date)}
-                    className={`h-10 rounded-xl text-sm transition ${
+                    className={`h-10 ${SMALL_RADIUS} text-sm transition ${
                       isSelected
                         ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
                         : cell.currentMonth
@@ -467,14 +542,14 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
               <button
                 type="button"
                 onClick={pickToday}
-                className="rounded-xl bg-white/[0.06] px-3 py-2 text-sm text-white transition hover:bg-white/[0.11]"
+                className={`${SMALL_RADIUS} bg-white/[0.06] px-3 py-2 text-sm text-white transition hover:bg-white/[0.11]`}
               >
                 Сегодня
               </button>
               <button
                 type="button"
                 onClick={pickYesterday}
-                className="rounded-xl bg-white/[0.06] px-3 py-2 text-sm text-white transition hover:bg-white/[0.11]"
+                className={`${SMALL_RADIUS} bg-white/[0.06] px-3 py-2 text-sm text-white transition hover:bg-white/[0.11]`}
               >
                 Вчера
               </button>
@@ -495,9 +570,11 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-[30px] bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
+      className={`relative overflow-hidden ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-[30px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.13),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)_35%,rgba(255,255,255,0.012)_100%)] opacity-90" />
+      <div
+        className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.13),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.015)_35%,rgba(255,255,255,0.012)_100%)] opacity-90`}
+      />
       <div className="relative z-[1]">{children}</div>
     </div>
   )
@@ -518,6 +595,7 @@ export default function App() {
 
   const [client, setClient] = React.useState("")
   const [owner, setOwner] = React.useState<Owner>("Азат")
+  const [paymentType, setPaymentType] = React.useState<PaymentType>("Нал")
   const [operationDate, setOperationDate] = React.useState("")
   const [serviceRows, setServiceRows] = React.useState<ServiceItem[]>([makeServiceRow()])
 
@@ -535,12 +613,12 @@ export default function App() {
       .select("*")
 
     if (operationsError) {
-      console.error("Ошибка загрузки операций", operationsError)
+      console.error("Error loading operations", operationsError)
       return
     }
 
     if (goalsError) {
-      console.error("Ошибка загрузки целей", goalsError)
+      console.error("Error loading goals", goalsError)
       return
     }
 
@@ -549,6 +627,7 @@ export default function App() {
       date: item.date,
       client: item.client,
       owner: item.owner as Owner,
+      paymentType: (item.payment_type as PaymentType) || "Нал",
       services: item.services as ServiceItem[],
     }))
 
@@ -575,7 +654,9 @@ export default function App() {
         : { [getInitialMonthKey()]: DEFAULT_MONTH_GOAL }
     )
 
-    setSelectedMonth((prev) => (nextMonths.includes(prev) ? prev : nextMonths[0] || initialMonthKey))
+    setSelectedMonth((prev) =>
+      nextMonths.includes(prev) ? prev : nextMonths[0] || initialMonthKey
+    )
   }
 
   React.useEffect(() => {
@@ -641,6 +722,20 @@ export default function App() {
   const serviceRevenueRows = Array.from(serviceRevenueMap.entries()).sort(
     (a, b) => b[1] - a[1]
   )
+
+  const paymentBreakdown = React.useMemo(() => {
+    const result: Record<PaymentType, number> = {
+      Нал: 0,
+      Карта: 0,
+      Онлайн: 0,
+    }
+
+    selectedMonthOperations.forEach((op) => {
+      result[op.paymentType] += getOperationTotal(op)
+    })
+
+    return result
+  }, [selectedMonthOperations])
 
   const dailyStats = React.useMemo(() => {
     const daysCount = getDaysInMonth(selectedMonth)
@@ -721,7 +816,7 @@ export default function App() {
         titleColor: "#fff",
         bodyColor: "#d4d4d8",
         callbacks: {
-          label: (context: any) => `${context.raw} ₽`,
+          label: (context: any) => formatMoney(context.raw),
         },
       },
     },
@@ -737,7 +832,7 @@ export default function App() {
       y: {
         ticks: {
           color: "#8b8b95",
-          callback: (value: string | number) => `${value} ₽`,
+          callback: (value: string | number) => formatMoney(Number(value)),
         },
         grid: {
           color: "rgba(255,255,255,0.035)",
@@ -749,6 +844,7 @@ export default function App() {
   function resetForm() {
     setClient("")
     setOwner("Азат")
+    setPaymentType("Нал")
     setOperationDate("")
     setServiceRows([makeServiceRow()])
     setEditingOperationId(null)
@@ -763,6 +859,7 @@ export default function App() {
     setEditingOperationId(operation.id)
     setClient(operation.client)
     setOwner(operation.owner)
+    setPaymentType(operation.paymentType)
     setOperationDate(operation.date)
     setServiceRows(
       operation.services.map((service) => ({
@@ -806,19 +903,19 @@ export default function App() {
     })
 
     if (error) {
-      console.error("Ошибка сохранения месяца", error)
+      console.error("Error saving month", error)
       throw error
     }
   }
 
   async function saveOperation() {
     if (!operationDate) {
-      alert("Выбери дату.")
+      alert("Choose a date.")
       return
     }
 
     if (serviceRows.length === 0) {
-      alert("Добавь хотя бы одну услугу.")
+      alert("Add at least one service.")
       return
     }
 
@@ -836,7 +933,7 @@ export default function App() {
 
     const hasInvalid = cleanedRows.some((row) => row.amount <= 0)
     if (hasInvalid) {
-      alert("Во всех услугах должна быть корректная сумма.")
+      alert("All services must have a valid amount.")
       return
     }
 
@@ -844,6 +941,7 @@ export default function App() {
       date: operationDate,
       client: client.trim() || "Без клиента",
       owner,
+      payment_type: paymentType,
       services: cleanedRows,
     }
 
@@ -852,7 +950,7 @@ export default function App() {
     try {
       await ensureMonthExists(monthKey)
     } catch {
-      alert("Не удалось сохранить месяц")
+      alert("Failed to save month")
       return
     }
 
@@ -865,8 +963,8 @@ export default function App() {
         .single()
 
       if (error) {
-        console.error("Ошибка обновления операции", error)
-        alert("Не удалось обновить операцию")
+        console.error("Error updating operation", error)
+        alert("Failed to update operation")
         return
       }
 
@@ -875,6 +973,7 @@ export default function App() {
         date: data.date,
         client: data.client,
         owner: data.owner as Owner,
+        paymentType: (data.payment_type as PaymentType) || "Нал",
         services: data.services as ServiceItem[],
       }
 
@@ -889,8 +988,8 @@ export default function App() {
         .single()
 
       if (error) {
-        console.error("Ошибка создания операции:", error)
-        alert(`Не удалось сохранить операцию: ${error.message}`)
+        console.error("Error creating operation", error)
+        alert(`Failed to save operation: ${error.message}`)
         return
       }
 
@@ -899,6 +998,7 @@ export default function App() {
         date: data.date,
         client: data.client,
         owner: data.owner as Owner,
+        paymentType: (data.payment_type as PaymentType) || "Нал",
         services: data.services as ServiceItem[],
       }
 
@@ -922,21 +1022,21 @@ export default function App() {
   }
 
   async function createNewMonth() {
-    const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
+    const typed = prompt("Enter new month in format YYYY-MM, for example 2026-04")
     if (!typed) return
 
     const trimmed = typed.trim()
     const valid = /^\d{4}-(0[1-9]|1[0-2])$/.test(trimmed)
 
     if (!valid) {
-      alert("Неверный формат. Пример: 2026-04")
+      alert("Invalid format. Example: 2026-04")
       return
     }
 
     try {
       await ensureMonthExists(trimmed)
     } catch {
-      alert("Не удалось создать месяц")
+      alert("Failed to create month")
       return
     }
 
@@ -960,8 +1060,8 @@ export default function App() {
     const { error } = await supabase.from("operations").delete().eq("id", id)
 
     if (error) {
-      console.error("Ошибка удаления операции", error)
-      alert("Не удалось удалить операцию")
+      console.error("Error deleting operation", error)
+      alert("Failed to delete operation")
       return
     }
 
@@ -976,6 +1076,7 @@ export default function App() {
       date: lastDeleted.date,
       client: lastDeleted.client,
       owner: lastDeleted.owner,
+      payment_type: lastDeleted.paymentType,
       services: lastDeleted.services,
     }
 
@@ -986,8 +1087,8 @@ export default function App() {
       .single()
 
     if (error) {
-      console.error("Ошибка восстановления операции", error)
-      alert("Не удалось восстановить операцию")
+      console.error("Error restoring operation", error)
+      alert("Failed to restore operation")
       return
     }
 
@@ -996,6 +1097,7 @@ export default function App() {
       date: data.date,
       client: data.client,
       owner: data.owner as Owner,
+      paymentType: (data.payment_type as PaymentType) || "Нал",
       services: data.services as ServiceItem[],
     }
 
@@ -1009,8 +1111,8 @@ export default function App() {
     const { error } = await supabase.from("operations").delete().eq("id", lastAdded.id)
 
     if (error) {
-      console.error("Ошибка отмены добавления", error)
-      alert("Не удалось отменить добавление")
+      console.error("Error undoing add", error)
+      alert("Failed to undo add")
       return
     }
 
@@ -1033,13 +1135,13 @@ export default function App() {
     })
 
     if (error) {
-      console.error("Ошибка сохранения цели месяца", error)
+      console.error("Error saving month goal", error)
     }
   }
 
   async function deleteSelectedMonth() {
     if (normalizedMonths.length <= 1) {
-      alert("Нельзя удалить последний месяц.")
+      alert("You cannot delete the last month.")
       return
     }
 
@@ -1048,8 +1150,8 @@ export default function App() {
 
     const confirmed = window.confirm(
       hasOperations
-        ? `В месяце ${formatMonthLabel(selectedMonth)} есть ${opsForMonth.length} операций. Удалить месяц вместе со всеми операциями?`
-        : `Удалить пустой месяц ${formatMonthLabel(selectedMonth)}?`
+        ? `Month ${formatMonthLabel(selectedMonth)} contains ${opsForMonth.length} operations. Delete month with all operations?`
+        : `Delete empty month ${formatMonthLabel(selectedMonth)}?`
     )
 
     if (!confirmed) return
@@ -1062,8 +1164,8 @@ export default function App() {
         .lte("date", `${selectedMonth}-31`)
 
       if (deleteOperationsError) {
-        console.error("Ошибка удаления операций месяца", deleteOperationsError)
-        alert("Не удалось удалить операции месяца")
+        console.error("Error deleting month operations", deleteOperationsError)
+        alert("Failed to delete month operations")
         return
       }
     }
@@ -1074,8 +1176,8 @@ export default function App() {
       .eq("month_key", selectedMonth)
 
     if (deleteGoalError) {
-      console.error("Ошибка удаления месяца", deleteGoalError)
-      alert("Не удалось удалить месяц")
+      console.error("Error deleting month", deleteGoalError)
+      alert("Failed to delete month")
       return
     }
 
@@ -1112,21 +1214,21 @@ export default function App() {
 
           <button
             onClick={openCreateModal}
-            className="w-full rounded-[22px] bg-[linear-gradient(180deg,#6f85ff,#4d62f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]"
+            className={`w-full ${CONTROL_RADIUS} bg-[linear-gradient(180deg,#6f85ff,#4d62f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]`}
           >
             + Добавить операцию
           </button>
 
           <button
             onClick={() => void createNewMonth()}
-            className="mt-3 w-full rounded-[22px] bg-white/[0.055] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]"
+            className={`mt-3 w-full ${CONTROL_RADIUS} bg-white/[0.055] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]`}
           >
             + Новый месяц
           </button>
 
           <button
             onClick={() => void deleteSelectedMonth()}
-            className="mt-3 w-full rounded-[22px] bg-red-500/10 px-4 py-4 text-base font-semibold text-red-300 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]"
+            className={`mt-3 w-full ${CONTROL_RADIUS} bg-red-500/10 px-4 py-4 text-base font-semibold text-red-300 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]`}
           >
             − Удалить месяц
           </button>
@@ -1134,32 +1236,34 @@ export default function App() {
           <div className="mt-8 space-y-4">
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Аренда</p>
-              <p className="mt-1 text-2xl font-bold">{RENT_GOAL} ₽</p>
+              <p className="mt-1 text-2xl font-bold">{formatMoney(RENT_GOAL)}</p>
             </GlassCard>
 
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">До аренды осталось</p>
-              <p className="mt-1 text-2xl font-bold text-yellow-300">{leftToRent} ₽</p>
+              <p className="mt-1 text-2xl font-bold text-yellow-300">
+                {formatMoney(leftToRent)}
+              </p>
             </GlassCard>
 
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Цель месяца</p>
-              <p className="mt-1 text-2xl font-bold">{monthGoal} ₽</p>
+              <p className="mt-1 text-2xl font-bold">{formatMoney(monthGoal)}</p>
             </GlassCard>
 
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Осталось до цели</p>
-              <p className="mt-1 text-2xl font-bold">{leftToMonthGoal} ₽</p>
+              <p className="mt-1 text-2xl font-bold">{formatMoney(leftToMonthGoal)}</p>
             </GlassCard>
 
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Азат</p>
-              <p className="mt-1 text-2xl font-bold">{azatIncome} ₽</p>
+              <p className="mt-1 text-2xl font-bold">{formatMoney(azatIncome)}</p>
             </GlassCard>
 
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Марс</p>
-              <p className="mt-1 text-2xl font-bold">{marsIncome} ₽</p>
+              <p className="mt-1 text-2xl font-bold">{formatMoney(marsIncome)}</p>
             </GlassCard>
           </div>
         </aside>
@@ -1170,7 +1274,7 @@ export default function App() {
               <button
                 key={monthKey}
                 onClick={() => setSelectedMonth(monthKey)}
-                className={`rounded-[20px] px-4 py-2.5 text-sm font-medium capitalize transition duration-200 ${
+                className={`${CONTROL_RADIUS} px-4 py-2.5 text-sm font-medium capitalize transition duration-200 ${
                   selectedMonth === monthKey
                     ? "bg-white text-black shadow-[0_12px_26px_rgba(255,255,255,0.12)]"
                     : "bg-white/[0.05] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.045)_inset] hover:bg-white/[0.08]"
@@ -1196,17 +1300,21 @@ export default function App() {
           <div className="grid grid-cols-4 gap-6">
             <GlassCard className="p-6">
               <p className="text-sm text-zinc-400">Доход</p>
-              <h2 className="mt-2 text-4xl font-bold text-green-400">{monthIncome} ₽</h2>
+              <h2 className="mt-2 text-4xl font-bold text-green-400">
+                {formatMoney(monthIncome)}
+              </h2>
             </GlassCard>
 
             <GlassCard className="p-6">
               <p className="text-sm text-zinc-400">Аренда</p>
-              <h2 className="mt-2 text-4xl font-bold">{RENT_GOAL} ₽</h2>
+              <h2 className="mt-2 text-4xl font-bold">{formatMoney(RENT_GOAL)}</h2>
             </GlassCard>
 
             <GlassCard className="p-6">
               <p className="text-sm text-zinc-400">Осталось до аренды</p>
-              <h2 className="mt-2 text-4xl font-bold text-yellow-300">{leftToRent} ₽</h2>
+              <h2 className="mt-2 text-4xl font-bold text-yellow-300">
+                {formatMoney(leftToRent)}
+              </h2>
             </GlassCard>
 
             <GlassCard className="p-6">
@@ -1216,7 +1324,7 @@ export default function App() {
                   profitAfterRent >= 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
-                {profitAfterRent} ₽
+                {formatMoney(profitAfterRent)}
               </h2>
             </GlassCard>
           </div>
@@ -1245,12 +1353,12 @@ export default function App() {
                     dailyStats.bestDays.map((day) => (
                       <div
                         key={day.dateKey}
-                        className="rounded-[22px] bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]"
+                        className={`${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                       >
                         <p className="text-sm text-zinc-400">
                           {formatDisplayDate(day.dateKey)}
                         </p>
-                        <p className="text-xl font-bold">{day.amount} ₽</p>
+                        <p className="text-xl font-bold">{formatMoney(day.amount)}</p>
                       </div>
                     ))
                   )}
@@ -1276,13 +1384,30 @@ export default function App() {
                     serviceRevenueRows.map(([serviceName, amount]) => (
                       <div
                         key={serviceName}
-                        className="flex items-center justify-between rounded-[22px] bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]"
+                        className={`flex items-center justify-between ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                       >
                         <span>{serviceName}</span>
-                        <span className="font-semibold">{amount} ₽</span>
+                        <span className="font-semibold">{formatMoney(amount)}</span>
                       </div>
                     ))
                   )}
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-6">
+                <p className="text-lg font-semibold">Доход по оплате</p>
+                <div className="mt-4 space-y-3">
+                  {paymentOptions.map((type) => (
+                    <div
+                      key={type}
+                      className={`flex items-center justify-between ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+                    >
+                      <span>{type}</span>
+                      <span className="font-semibold">
+                        {formatMoney(paymentBreakdown[type])}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </GlassCard>
             </div>
@@ -1299,7 +1424,7 @@ export default function App() {
                 {lastAdded && (
                   <button
                     onClick={() => void undoAdd()}
-                    className="rounded-xl bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
+                    className={`${SMALL_RADIUS} bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25`}
                   >
                     Отменить добавление
                   </button>
@@ -1308,7 +1433,7 @@ export default function App() {
                 {lastDeleted && (
                   <button
                     onClick={() => void undoDelete()}
-                    className="rounded-xl bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
+                    className={`${SMALL_RADIUS} bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25`}
                   >
                     Отменить удаление
                   </button>
@@ -1317,16 +1442,21 @@ export default function App() {
             </div>
 
             {selectedMonthOperations.length === 0 ? (
-              <div className="rounded-[28px] bg-white/[0.03] py-14 text-center text-zinc-400 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]">
+              <div
+                className={`${SURFACE_RADIUS} bg-white/[0.03] py-14 text-center text-zinc-400 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]`}
+              >
                 Пока нет операций за этот месяц
               </div>
             ) : (
-              <div className="overflow-hidden rounded-[28px] bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]">
+              <div
+                className={`overflow-hidden ${SURFACE_RADIUS} bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+              >
                 <table className="w-full text-left">
                   <thead className="bg-white/[0.045] text-sm text-zinc-400">
                     <tr>
                       <th className="px-4 py-3">Дата</th>
                       <th className="px-4 py-3">Клиент</th>
+                      <th className="px-4 py-3">Оплата</th>
                       <th className="px-4 py-3">Услуги</th>
                       <th className="px-4 py-3">Сумма</th>
                       <th className="px-4 py-3">Кто работал</th>
@@ -1347,6 +1477,7 @@ export default function App() {
                         >
                           <td className="px-4 py-4">{formatDisplayDate(op.date)}</td>
                           <td className="px-4 py-4">{op.client}</td>
+                          <td className="px-4 py-4">{op.paymentType}</td>
                           <td className="px-4 py-4">
                             <div className="space-y-1">
                               {op.services.map((service) => (
@@ -1355,24 +1486,26 @@ export default function App() {
                                   {service.type === "Запись"
                                     ? ` — ${service.hours} ч`
                                     : ""}{" "}
-                                  — {service.amount} ₽
+                                  — {formatMoney(service.amount)}
                                 </div>
                               ))}
                             </div>
                           </td>
-                          <td className="px-4 py-4 font-semibold">{getOperationTotal(op)} ₽</td>
+                          <td className="px-4 py-4 font-semibold">
+                            {formatMoney(getOperationTotal(op))}
+                          </td>
                           <td className="px-4 py-4">{op.owner}</td>
                           <td className="px-4 py-4">
                             <div className="flex gap-2">
                               <button
                                 onClick={() => openEditModal(op)}
-                                className="rounded-xl bg-blue-500/15 px-3 py-1.5 text-sm text-blue-300 transition hover:bg-blue-500/25"
+                                className={`${SMALL_RADIUS} bg-blue-500/15 px-3 py-1.5 text-sm text-blue-300 transition hover:bg-blue-500/25`}
                               >
                                 Редактировать
                               </button>
                               <button
                                 onClick={() => void deleteOperation(op.id)}
-                                className="rounded-xl bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25"
+                                className={`${SMALL_RADIUS} bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25`}
                               >
                                 Удалить
                               </button>
@@ -1390,8 +1523,12 @@ export default function App() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-visible bg-[rgba(4,4,8,0.68)] p-4 backdrop-blur-[12px]">
-          <div className="relative w-full max-w-[760px] overflow-visible rounded-[34px] bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.48),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[30px]">
-            <div className="pointer-events-none absolute inset-0 rounded-[34px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_35%,rgba(255,255,255,0.01)_100%)] opacity-90" />
+          <div
+            className={`relative w-full max-w-[820px] overflow-visible ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.48),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[30px]`}
+          >
+            <div
+              className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_35%,rgba(255,255,255,0.01)_100%)] opacity-90`}
+            />
 
             <div className="relative z-[1] overflow-visible">
               <div className="mb-5">
@@ -1401,6 +1538,13 @@ export default function App() {
                 <p className="mt-1 text-sm text-zinc-400">
                   Один клиент может взять несколько услуг сразу
                 </p>
+              </div>
+
+              <div className="mb-5">
+                <PaymentTypeSegmented
+                  value={paymentType}
+                  onChange={setPaymentType}
+                />
               </div>
 
               <div className="relative z-[20] grid grid-cols-3 gap-4">
@@ -1424,7 +1568,7 @@ export default function App() {
                 {serviceRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className="relative z-[10] rounded-[28px] bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)] transition duration-200 hover:bg-white/[0.055]"
+                    className={`relative z-[10] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)] transition duration-200 hover:bg-white/[0.055]`}
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-semibold">Услуга {index + 1}</p>
@@ -1483,7 +1627,7 @@ export default function App() {
                       )}
 
                       <div className={`${fieldClassName} flex items-center font-semibold`}>
-                        {row.type === "Запись" ? row.hours * 1000 : row.amount} ₽
+                        {formatMoney(row.type === "Запись" ? row.hours * 1000 : row.amount)}
                       </div>
                     </div>
                   </div>
@@ -1492,7 +1636,7 @@ export default function App() {
 
               <button
                 onClick={addServiceRow}
-                className="mt-5 rounded-[20px] bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]"
+                className={`mt-5 ${CONTROL_RADIUS} bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]`}
               >
                 + Добавить услугу
               </button>
@@ -1501,12 +1645,16 @@ export default function App() {
                 <div>
                   <p className="text-sm text-zinc-400">Итог по операции</p>
                   <p className="text-2xl font-bold">
-                    {serviceRows.reduce(
-                      (sum, row) =>
-                        sum + (row.type === "Запись" ? row.hours * 1000 : row.amount),
-                      0
-                    )}{" "}
-                    ₽
+                    {paymentType === "Онлайн"
+                      ? formatMoney(ONLINE_NET_AMOUNT)
+                      : formatMoney(
+                          serviceRows.reduce(
+                            (sum, row) =>
+                              sum +
+                              (row.type === "Запись" ? row.hours * 1000 : row.amount),
+                            0
+                          )
+                        )}
                   </p>
                 </div>
 
@@ -1516,14 +1664,14 @@ export default function App() {
                       setShowModal(false)
                       resetForm()
                     }}
-                    className="rounded-[18px] px-4 py-2 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
+                    className={`${SMALL_RADIUS} px-4 py-2 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white`}
                   >
                     Отмена
                   </button>
 
                   <button
                     onClick={() => void saveOperation()}
-                    className="rounded-[20px] bg-[linear-gradient(180deg,#26c36c,#159a4f)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(21,154,79,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99]"
+                    className={`${CONTROL_RADIUS} bg-[linear-gradient(180deg,#26c36c,#159a4f)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(21,154,79,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99]`}
                   >
                     {editingOperationId ? "Сохранить изменения" : "Сохранить"}
                   </button>
