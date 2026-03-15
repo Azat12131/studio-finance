@@ -691,7 +691,7 @@ React.useEffect(() => {
     ],
   }
 
-  const chartOptions = {
+  const chartOptions: any = {
     responsive: true,
     maintainAspectRatio: false,
     animation: {
@@ -710,7 +710,7 @@ React.useEffect(() => {
         titleColor: "#fff",
         bodyColor: "#d4d4d8",
         callbacks: {
-          label: (context: { raw: number }) => `${context.raw} ₽`,
+          label: (context: any) => `${context.raw} ₽`,
         },
       },
     },
