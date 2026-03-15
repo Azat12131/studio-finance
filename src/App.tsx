@@ -311,13 +311,13 @@ type FloatingPosition = {
 const fieldClassName = `
 w-full rounded-[20px]
 border border-white/12
-bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.045))]
+bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))]
 px-4 py-3 text-white outline-none
 shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
 backdrop-blur-xl transition duration-200
 placeholder:text-zinc-400
-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.055))]
-focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))]
+hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.035))]
+focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.04))]
 focus:shadow-[0_0_0_1px_rgba(95,122,255,0.5),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
 `
 
@@ -643,7 +643,7 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
+      className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
     >
       <div
         className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.11),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)_35%,rgba(255,255,255,0.01)_100%)] opacity-90`}
