@@ -110,10 +110,6 @@ function getDaysInMonth(monthKey: string) {
   return new Date(year, month, 0).getDate()
 }
 
-function getServicesTotal(operation: Operation) {
-  return operation.services.reduce((sum, item) => sum + item.amount, 0)
-}
-
 function getPaymentsTotal(operation: Operation) {
   return operation.payments.reduce((sum, item) => sum + item.amount, 0)
 }
