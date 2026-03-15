@@ -320,14 +320,6 @@ hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.10),rgba(255,255,255,0.05))]
 focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.055))]
 focus:shadow-[0_0_0_1px_rgba(95,122,255,0.45),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
 `
-px-4 py-3 text-white outline-none
-shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
-backdrop-blur-xl transition duration-200
-placeholder:text-zinc-500
-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.065))]
-focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.13),rgba(255,255,255,0.07))]
-focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
-`
 
 const popupClassName = `
 overflow-hidden rounded-[24px]
@@ -392,10 +384,7 @@ function PortalDropdown({
   if (!open) return null
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[99999]"
-      style={{ pointerEvents: "none" }}
-    >
+    <div className="fixed inset-0 z-[99999]" style={{ pointerEvents: "none" }}>
       <div
         className={popupClassName}
         style={{
@@ -613,8 +602,8 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     isSelected
                       ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
                       : cell.currentMonth
-                      ? "bg-white/[0.05] text-white hover:bg-white/[0.08]"
-                      : "bg-transparent text-zinc-600 hover:bg-white/[0.04]"
+                        ? "bg-white/[0.05] text-white hover:bg-white/[0.08]"
+                        : "bg-transparent text-zinc-600 hover:bg-white/[0.04]"
                   } ${isToday && !isSelected ? "ring-1 ring-white/10" : ""}`}
                 >
                   {cell.date.getDate()}
