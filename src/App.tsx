@@ -301,9 +301,9 @@ type CustomSelectProps<T extends string> = {
   placeholder?: string
 }
 
-const fieldClassName = `w-full ${CONTROL_RADIUS} bg-[rgba(255,255,255,0.09)] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-400 hover:bg-[rgba(255,255,255,0.11)] focus:bg-[rgba(255,255,255,0.12)] focus:shadow-[0_0_0_1px_rgba(98,126,255,0.55),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_28px_rgba(0,0,0,0.2)]`
+const fieldClassName = `w-full ${CONTROL_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.11),rgba(255,255,255,0.07))] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.07)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_28px_rgba(0,0,0,0.22)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-400 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.13),rgba(255,255,255,0.08))] focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.14),rgba(255,255,255,0.09))] focus:shadow-[0_0_0_1px_rgba(95,122,255,0.55),0_1px_0_rgba(255,255,255,0.07)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_32px_rgba(0,0,0,0.26)]`
 
-const popupSurfaceClassName = `absolute left-0 top-[calc(100%+12px)] z-[500] overflow-hidden ${SURFACE_RADIUS} border border-white/10 bg-[#11151f] shadow-[0_28px_80px_rgba(0,0,0,0.72)]`
+const popupSurfaceClassName = `absolute left-0 top-[calc(100%+12px)] z-[9999] overflow-hidden ${SURFACE_RADIUS} border border-white/[0.08] bg-[linear-gradient(180deg,rgba(22,26,40,0.98),rgba(12,15,26,0.99))] shadow-[0_36px_90px_rgba(0,0,0,0.78),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[26px]`
 
 function CustomSelect<T extends string>({
   value,
@@ -327,7 +327,7 @@ function CustomSelect<T extends string>({
   }, [])
 
   return (
-    <div ref={wrapperRef} className="relative z-[120]">
+    <div ref={wrapperRef} className="relative z-[9999]">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -362,7 +362,7 @@ function CustomSelect<T extends string>({
                   className={`w-full ${SMALL_RADIUS} px-4 py-3 text-left text-sm transition ${
                     isActive
                       ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.18)]"
-                      : "bg-[#1a2130] text-white hover:bg-[#232c3f]"
+                      : "bg-[rgba(255,255,255,0.04)] text-white hover:bg-[rgba(255,255,255,0.08)]"
                   }`}
                 >
                   {option}
@@ -429,7 +429,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
   }
 
   return (
-    <div ref={wrapperRef} className="relative z-[120]">
+    <div ref={wrapperRef} className="relative z-[9999]">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -454,7 +454,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
                   )
                 }
-                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[#1a2130] text-zinc-300 transition hover:bg-[#232c3f]`}
+                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] text-zinc-300 transition hover:bg-[rgba(255,255,255,0.08)]`}
               >
                 <ChevronLeft />
               </button>
@@ -473,7 +473,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
                   )
                 }
-                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[#1a2130] text-zinc-300 transition hover:bg-[#232c3f]`}
+                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] text-zinc-300 transition hover:bg-[rgba(255,255,255,0.08)]`}
               >
                 <ChevronRight />
               </button>
@@ -502,8 +502,8 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                       isSelected
                         ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
                         : cell.currentMonth
-                        ? "bg-[#1a2130] text-white hover:bg-[#232c3f]"
-                        : "bg-transparent text-zinc-600 hover:bg-[#1a2130]"
+                        ? "bg-[rgba(255,255,255,0.05)] text-white hover:bg-[rgba(255,255,255,0.08)]"
+                        : "bg-transparent text-zinc-600 hover:bg-[rgba(255,255,255,0.04)]"
                     } ${isToday && !isSelected ? "ring-1 ring-white/10" : ""}`}
                   >
                     {cell.date.getDate()}
@@ -516,14 +516,14 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
               <button
                 type="button"
                 onClick={pickToday}
-                className={`${SMALL_RADIUS} bg-[#1a2130] px-3 py-2 text-sm text-white transition hover:bg-[#232c3f]`}
+                className={`${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white transition hover:bg-[rgba(255,255,255,0.08)]`}
               >
                 Сегодня
               </button>
               <button
                 type="button"
                 onClick={pickYesterday}
-                className={`${SMALL_RADIUS} bg-[#1a2130] px-3 py-2 text-sm text-white transition hover:bg-[#232c3f]`}
+                className={`${SMALL_RADIUS} bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-white transition hover:bg-[rgba(255,255,255,0.08)]`}
               >
                 Вчера
               </button>
@@ -780,7 +780,7 @@ export default function App() {
         },
       },
       tooltip: {
-        backgroundColor: "rgba(15,15,19,0.98)",
+        backgroundColor: "rgba(15,15,19,0.96)",
         borderColor: "rgba(255,255,255,0.08)",
         borderWidth: 1,
         titleColor: "#fff",
@@ -1565,7 +1565,7 @@ export default function App() {
       {showModal && (
         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(4,4,8,0.72)] p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(20,24,34,0.98),rgba(10,12,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
+            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(26,31,48,0.98),rgba(10,12,22,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
           >
             <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
@@ -1577,7 +1577,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="relative z-[120] grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <input
                   className={fieldClassName}
                   placeholder="Клиент"
@@ -1608,7 +1608,7 @@ export default function App() {
                 {serviceRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className={`relative z-[110] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
+                    className={`relative ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-semibold">Услуга {index + 1}</p>
@@ -1694,7 +1694,7 @@ export default function App() {
                 {paymentRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className={`relative z-[100] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
+                    className={`relative ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-semibold">Оплата {index + 1}</p>
