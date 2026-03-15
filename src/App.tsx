@@ -301,9 +301,9 @@ type CustomSelectProps<T extends string> = {
   placeholder?: string
 }
 
-const fieldClassName = `w-full ${CONTROL_RADIUS} bg-[rgba(255,255,255,0.06)] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-500 hover:bg-[rgba(255,255,255,0.08)] focus:bg-[rgba(255,255,255,0.09)] focus:shadow-[0_0_0_1px_rgba(98,126,255,0.45),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_28px_rgba(0,0,0,0.2)]`
+const fieldClassName = `w-full ${CONTROL_RADIUS} bg-[rgba(255,255,255,0.09)] px-4 py-3 text-white outline-none shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-200 placeholder:text-zinc-400 hover:bg-[rgba(255,255,255,0.11)] focus:bg-[rgba(255,255,255,0.12)] focus:shadow-[0_0_0_1px_rgba(98,126,255,0.55),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_28px_rgba(0,0,0,0.2)]`
 
-const popupSurfaceClassName = `absolute left-0 top-[calc(100%+12px)] z-[140] overflow-hidden ${SURFACE_RADIUS} border border-white/[0.06] bg-[rgba(14,16,24,0.96)] shadow-[0_28px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[22px]`
+const popupSurfaceClassName = `absolute left-0 top-[calc(100%+12px)] z-[500] overflow-hidden ${SURFACE_RADIUS} border border-white/10 bg-[#11151f] shadow-[0_28px_80px_rgba(0,0,0,0.72)]`
 
 function CustomSelect<T extends string>({
   value,
@@ -327,14 +327,14 @@ function CustomSelect<T extends string>({
   }, [])
 
   return (
-    <div ref={wrapperRef} className="relative z-[90]">
+    <div ref={wrapperRef} className="relative z-[120]">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-500"}>
-          {value || placeholder || "Select"}
+        <span className={value ? "text-white" : "text-zinc-400"}>
+          {value || placeholder || "Выбрать"}
         </span>
         <span
           className={`text-zinc-400 transition duration-200 ${
@@ -347,11 +347,6 @@ function CustomSelect<T extends string>({
 
       {open && (
         <div className={`${popupSurfaceClassName} w-full p-2`}>
-          <div
-            className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_20%,rgba(255,255,255,0.01)_100%)]`}
-          />
-          <div className="pointer-events-none absolute inset-[1px] rounded-[29px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_30%)] opacity-80" />
-
           <div className="relative z-[1] space-y-1">
             {options.map((option) => {
               const isActive = option === value
@@ -366,8 +361,8 @@ function CustomSelect<T extends string>({
                   }}
                   className={`w-full ${SMALL_RADIUS} px-4 py-3 text-left text-sm transition ${
                     isActive
-                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.16)]"
-                      : "bg-white/[0.035] text-white hover:bg-white/[0.08]"
+                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.18)]"
+                      : "bg-[#1a2130] text-white hover:bg-[#232c3f]"
                   }`}
                 >
                   {option}
@@ -434,13 +429,13 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
   }
 
   return (
-    <div ref={wrapperRef} className="relative z-[95]">
+    <div ref={wrapperRef} className="relative z-[120]">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-500"}>
+        <span className={value ? "text-white" : "text-zinc-400"}>
           {value ? formatDisplayDate(value) : "xx.xx.xxxx"}
         </span>
         <span className="text-zinc-400">
@@ -450,11 +445,6 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
 
       {open && (
         <div className={`${popupSurfaceClassName} w-[320px] p-4`}>
-          <div
-            className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02)_20%,rgba(255,255,255,0.01)_100%)]`}
-          />
-          <div className="pointer-events-none absolute inset-[1px] rounded-[29px] bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_32%)] opacity-80" />
-
           <div className="relative z-[1]">
             <div className="mb-3 flex items-center justify-between">
               <button
@@ -464,7 +454,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
                   )
                 }
-                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-white/[0.06] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition hover:bg-white/[0.10]`}
+                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[#1a2130] text-zinc-300 transition hover:bg-[#232c3f]`}
               >
                 <ChevronLeft />
               </button>
@@ -483,7 +473,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                     new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
                   )
                 }
-                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-white/[0.06] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition hover:bg-white/[0.10]`}
+                className={`flex h-9 w-9 items-center justify-center ${SMALL_RADIUS} bg-[#1a2130] text-zinc-300 transition hover:bg-[#232c3f]`}
               >
                 <ChevronRight />
               </button>
@@ -512,8 +502,8 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                       isSelected
                         ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
                         : cell.currentMonth
-                        ? "bg-white/[0.055] text-white hover:bg-white/[0.10]"
-                        : "bg-transparent text-zinc-600 hover:bg-white/[0.04]"
+                        ? "bg-[#1a2130] text-white hover:bg-[#232c3f]"
+                        : "bg-transparent text-zinc-600 hover:bg-[#1a2130]"
                     } ${isToday && !isSelected ? "ring-1 ring-white/10" : ""}`}
                   >
                     {cell.date.getDate()}
@@ -526,14 +516,14 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
               <button
                 type="button"
                 onClick={pickToday}
-                className={`${SMALL_RADIUS} bg-white/[0.06] px-3 py-2 text-sm text-white transition hover:bg-white/[0.11]`}
+                className={`${SMALL_RADIUS} bg-[#1a2130] px-3 py-2 text-sm text-white transition hover:bg-[#232c3f]`}
               >
                 Сегодня
               </button>
               <button
                 type="button"
                 onClick={pickYesterday}
-                className={`${SMALL_RADIUS} bg-white/[0.06] px-3 py-2 text-sm text-white transition hover:bg-white/[0.11]`}
+                className={`${SMALL_RADIUS} bg-[#1a2130] px-3 py-2 text-sm text-white transition hover:bg-[#232c3f]`}
               >
                 Вчера
               </button>
@@ -790,7 +780,7 @@ export default function App() {
         },
       },
       tooltip: {
-        backgroundColor: "rgba(15,15,19,0.92)",
+        backgroundColor: "rgba(15,15,19,0.98)",
         borderColor: "rgba(255,255,255,0.08)",
         borderWidth: 1,
         titleColor: "#fff",
@@ -848,10 +838,12 @@ export default function App() {
     setOwner(operation.owner)
     setOperationDate(operation.date)
     setServiceRows(
-      operation.services.map((service) => ({
-        ...service,
-        id: service.id || Date.now() + Math.floor(Math.random() * 10000),
-      }))
+      operation.services.length > 0
+        ? operation.services.map((service) => ({
+            ...service,
+            id: service.id || Date.now() + Math.floor(Math.random() * 10000),
+          }))
+        : [makeServiceRow()]
     )
     setPaymentRows(
       operation.payments.length > 0
@@ -931,17 +923,17 @@ export default function App() {
 
   async function saveOperation() {
     if (!operationDate) {
-      alert("Choose a date.")
+      alert("Выбери дату.")
       return
     }
 
     if (serviceRows.length === 0) {
-      alert("Add at least one service.")
+      alert("Добавь хотя бы одну услугу.")
       return
     }
 
     if (paymentRows.length === 0) {
-      alert("Add at least one payment.")
+      alert("Добавь хотя бы одну оплату.")
       return
     }
 
@@ -970,13 +962,13 @@ export default function App() {
 
     const hasInvalidService = cleanedServices.some((row) => row.amount <= 0)
     if (hasInvalidService) {
-      alert("All services must have a valid amount.")
+      alert("Во всех услугах должна быть корректная сумма.")
       return
     }
 
     const hasInvalidPayment = cleanedPayments.some((row) => row.amount <= 0)
     if (hasInvalidPayment) {
-      alert("All payments must have a valid amount.")
+      alert("Во всех оплатах должна быть корректная сумма.")
       return
     }
 
@@ -993,7 +985,7 @@ export default function App() {
     try {
       await ensureMonthExists(monthKey)
     } catch {
-      alert("Failed to save month")
+      alert("Не удалось сохранить месяц")
       return
     }
 
@@ -1007,7 +999,7 @@ export default function App() {
 
       if (error) {
         console.error("Error updating operation", error)
-        alert("Failed to update operation")
+        alert("Не удалось обновить операцию")
         return
       }
 
@@ -1032,7 +1024,7 @@ export default function App() {
 
       if (error) {
         console.error("Error creating operation", error)
-        alert(`Failed to save operation: ${error.message}`)
+        alert(`Не удалось сохранить операцию: ${error.message}`)
         return
       }
 
@@ -1065,21 +1057,21 @@ export default function App() {
   }
 
   async function createNewMonth() {
-    const typed = prompt("Enter new month in format YYYY-MM, for example 2026-04")
+    const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
     if (!typed) return
 
     const trimmed = typed.trim()
     const valid = /^\d{4}-(0[1-9]|1[0-2])$/.test(trimmed)
 
     if (!valid) {
-      alert("Invalid format. Example: 2026-04")
+      alert("Неверный формат. Пример: 2026-04")
       return
     }
 
     try {
       await ensureMonthExists(trimmed)
     } catch {
-      alert("Failed to create month")
+      alert("Не удалось создать месяц")
       return
     }
 
@@ -1104,7 +1096,7 @@ export default function App() {
 
     if (error) {
       console.error("Error deleting operation", error)
-      alert("Failed to delete operation")
+      alert("Не удалось удалить операцию")
       return
     }
 
@@ -1131,7 +1123,7 @@ export default function App() {
 
     if (error) {
       console.error("Error restoring operation", error)
-      alert("Failed to restore operation")
+      alert("Не удалось восстановить операцию")
       return
     }
 
@@ -1155,7 +1147,7 @@ export default function App() {
 
     if (error) {
       console.error("Error undoing add", error)
-      alert("Failed to undo add")
+      alert("Не удалось отменить добавление")
       return
     }
 
@@ -1184,7 +1176,7 @@ export default function App() {
 
   async function deleteSelectedMonth() {
     if (normalizedMonths.length <= 1) {
-      alert("You cannot delete the last month.")
+      alert("Нельзя удалить последний месяц.")
       return
     }
 
@@ -1193,8 +1185,8 @@ export default function App() {
 
     const confirmed = window.confirm(
       hasOperations
-        ? `Month ${formatMonthLabel(selectedMonth)} contains ${opsForMonth.length} operations. Delete month with all operations?`
-        : `Delete empty month ${formatMonthLabel(selectedMonth)}?`
+        ? `В месяце ${formatMonthLabel(selectedMonth)} есть ${opsForMonth.length} операций. Удалить месяц вместе со всеми операциями?`
+        : `Удалить пустой месяц ${formatMonthLabel(selectedMonth)}?`
     )
 
     if (!confirmed) return
@@ -1208,7 +1200,7 @@ export default function App() {
 
       if (deleteOperationsError) {
         console.error("Error deleting month operations", deleteOperationsError)
-        alert("Failed to delete month operations")
+        alert("Не удалось удалить операции месяца")
         return
       }
     }
@@ -1220,7 +1212,7 @@ export default function App() {
 
     if (deleteGoalError) {
       console.error("Error deleting month", deleteGoalError)
-      alert("Failed to delete month")
+      alert("Не удалось удалить месяц")
       return
     }
 
@@ -1571,15 +1563,11 @@ export default function App() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-visible bg-[rgba(4,4,8,0.68)] p-4 backdrop-blur-[12px]">
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(4,4,8,0.72)] p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[860px] overflow-visible ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.48),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[30px]`}
+            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(20,24,34,0.98),rgba(10,12,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
           >
-            <div
-              className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_35%,rgba(255,255,255,0.01)_100%)] opacity-90`}
-            />
-
-            <div className="relative z-[1] overflow-visible">
+            <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
                   {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
@@ -1589,7 +1577,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="relative z-[20] grid grid-cols-3 gap-4">
+              <div className="relative z-[120] grid grid-cols-3 gap-4">
                 <input
                   className={fieldClassName}
                   placeholder="Клиент"
@@ -1620,7 +1608,7 @@ export default function App() {
                 {serviceRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className={`relative z-[10] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)] transition duration-200 hover:bg-white/[0.055]`}
+                    className={`relative z-[110] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-semibold">Услуга {index + 1}</p>
@@ -1634,7 +1622,7 @@ export default function App() {
                       )}
                     </div>
 
-                    <div className="relative z-[30] grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <CustomSelect<ServiceType>
                         value={row.type}
                         onChange={(selectedType) =>
@@ -1706,7 +1694,7 @@ export default function App() {
                 {paymentRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className={`relative z-[10] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)] transition duration-200 hover:bg-white/[0.055]`}
+                    className={`relative z-[100] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-semibold">Оплата {index + 1}</p>
@@ -1778,7 +1766,7 @@ export default function App() {
                 </div>
               )}
 
-              <div className="mt-6 flex items-center justify-between">
+              <div className="sticky bottom-0 mt-6 flex items-center justify-between border-t border-white/10 bg-[rgba(12,14,22,0.96)] py-4 backdrop-blur-md">
                 <div>
                   <p className="text-sm text-zinc-400">Фактически получено</p>
                   <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
