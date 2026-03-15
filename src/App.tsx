@@ -524,7 +524,6 @@ export default function App() {
   const [lastDeleted, setLastDeleted] = React.useState<Operation | null>(null)
   const [lastAdded, setLastAdded] = React.useState<Operation | null>(null)
 
-React.useEffect(() => {
   async function loadData() {
     const { data: operationsData, error: operationsError } = await supabase
       .from("operations")
@@ -545,58 +544,70 @@ React.useEffect(() => {
       return
     }
 
-    if (operationsData) {
-      const mappedOperations: Operation[] = operationsData.map((item) => ({
-        id: item.id,
-        date: item.date,
-        client: item.client,
-        owner: item.owner as Owner,
-        services: item.services as ServiceItem[],
-      }))
+    const mappedOperations: Operation[] = (operationsData || []).map((item) => ({
+      id: item.id,
+      date: item.date,
+      client: item.client,
+      owner: item.owner as Owner,
+      services: item.services as ServiceItem[],
+    }))
 
-      setOperations(mappedOperations)
+    setOperations(mappedOperations)
 
-      const monthSet = new Set<string>([getInitialMonthKey()])
-      mappedOperations.forEach((op) => monthSet.add(toMonthKey(op.date)))
-      setMonths(Array.from(monthSet).sort().reverse())
-    }
+    const goals: Record<string, number> = {}
+    const monthSet = new Set<string>([getInitialMonthKey()])
 
-    if (goalsData) {
-      const goals: Record<string, number> = {}
+    ;(goalsData || []).forEach((g) => {
+      goals[g.month_key] = Number(g.goal)
+      monthSet.add(g.month_key)
+    })
 
-      goalsData.forEach((g) => {
-        goals[g.month_key] = Number(g.goal)
-      })
+    mappedOperations.forEach((op) => {
+      monthSet.add(toMonthKey(op.date))
+    })
 
-      setMonthGoals(
-        Object.keys(goals).length > 0
-          ? goals
-          : { [getInitialMonthKey()]: DEFAULT_MONTH_GOAL }
-      )
-    }
-  }
+    const nextMonths = Array.from(monthSet).sort().reverse()
+    setMonths(nextMonths)
 
-  loadData()
-
-  const channel = supabase
-    .channel("operations-realtime")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "operations" },
-      () => {
-        loadData()
-      }
+    setMonthGoals(
+      Object.keys(goals).length > 0
+        ? { [getInitialMonthKey()]: DEFAULT_MONTH_GOAL, ...goals }
+        : { [getInitialMonthKey()]: DEFAULT_MONTH_GOAL }
     )
-    .subscribe()
 
-  return () => {
-    supabase.removeChannel(channel)
+    setSelectedMonth((prev) => (nextMonths.includes(prev) ? prev : nextMonths[0] || initialMonthKey))
   }
-}, [])
+
+  React.useEffect(() => {
+    void loadData()
+
+    const channel = supabase
+      .channel("operations-and-goals-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "operations" },
+        () => {
+          void loadData()
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "month_goals" },
+        () => {
+          void loadData()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const normalizedMonths = React.useMemo(() => {
     const all = new Set<string>(months)
     operations.forEach((op) => all.add(toMonthKey(op.date)))
+    all.add(getInitialMonthKey())
     return Array.from(all).sort().reverse()
   }, [months, operations])
 
@@ -788,6 +799,18 @@ React.useEffect(() => {
     setServiceRows((prev) => prev.filter((row) => row.id !== id))
   }
 
+  async function ensureMonthExists(monthKey: string) {
+    const { error } = await supabase.from("month_goals").upsert({
+      month_key: monthKey,
+      goal: monthGoals[monthKey] ?? DEFAULT_MONTH_GOAL,
+    })
+
+    if (error) {
+      console.error("Ошибка сохранения месяца", error)
+      throw error
+    }
+  }
+
   async function saveOperation() {
     if (!operationDate) {
       alert("Выбери дату.")
@@ -826,6 +849,13 @@ React.useEffect(() => {
 
     const monthKey = toMonthKey(operationDate)
 
+    try {
+      await ensureMonthExists(monthKey)
+    } catch {
+      alert("Не удалось сохранить месяц")
+      return
+    }
+
     if (editingOperationId) {
       const { data, error } = await supabase
         .from("operations")
@@ -859,10 +889,10 @@ React.useEffect(() => {
         .single()
 
       if (error) {
-  console.error("Ошибка создания операции:", error)
-  alert(`Не удалось сохранить операцию: ${error.message}`)
-  return
-}
+        console.error("Ошибка создания операции:", error)
+        alert(`Не удалось сохранить операцию: ${error.message}`)
+        return
+      }
 
       const newOperation: Operation = {
         id: data.id,
@@ -874,15 +904,6 @@ React.useEffect(() => {
 
       setOperations((prev) => [...prev, newOperation])
       setLastAdded(newOperation)
-    }
-
-    const { error: goalError } = await supabase.from("month_goals").upsert({
-      month_key: monthKey,
-      goal: monthGoals[monthKey] ?? DEFAULT_MONTH_GOAL,
-    })
-
-    if (goalError) {
-      console.error("Ошибка сохранения цели месяца", goalError)
     }
 
     setMonthGoals((prev) => ({
@@ -900,7 +921,7 @@ React.useEffect(() => {
     resetForm()
   }
 
-  function createNewMonth() {
+  async function createNewMonth() {
     const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
     if (!typed) return
 
@@ -909,6 +930,13 @@ React.useEffect(() => {
 
     if (!valid) {
       alert("Неверный формат. Пример: 2026-04")
+      return
+    }
+
+    try {
+      await ensureMonthExists(trimmed)
+    } catch {
+      alert("Не удалось создать месяц")
       return
     }
 
@@ -941,14 +969,51 @@ React.useEffect(() => {
     setOperations((prev) => prev.filter((op) => op.id !== id))
   }
 
-  function undoDelete() {
+  async function undoDelete() {
     if (!lastDeleted) return
-    setOperations((prev) => [...prev, lastDeleted].sort((a, b) => a.id - b.id))
+
+    const payload = {
+      date: lastDeleted.date,
+      client: lastDeleted.client,
+      owner: lastDeleted.owner,
+      services: lastDeleted.services,
+    }
+
+    const { data, error } = await supabase
+      .from("operations")
+      .insert(payload)
+      .select()
+      .single()
+
+    if (error) {
+      console.error("Ошибка восстановления операции", error)
+      alert("Не удалось восстановить операцию")
+      return
+    }
+
+    const restored: Operation = {
+      id: data.id,
+      date: data.date,
+      client: data.client,
+      owner: data.owner as Owner,
+      services: data.services as ServiceItem[],
+    }
+
+    setOperations((prev) => [...prev, restored])
     setLastDeleted(null)
   }
 
-  function undoAdd() {
+  async function undoAdd() {
     if (!lastAdded) return
+
+    const { error } = await supabase.from("operations").delete().eq("id", lastAdded.id)
+
+    if (error) {
+      console.error("Ошибка отмены добавления", error)
+      alert("Не удалось отменить добавление")
+      return
+    }
+
     setOperations((prev) => prev.filter((op) => op.id !== lastAdded.id))
     setLastAdded(null)
   }
@@ -970,6 +1035,60 @@ React.useEffect(() => {
     if (error) {
       console.error("Ошибка сохранения цели месяца", error)
     }
+  }
+
+  async function deleteSelectedMonth() {
+    if (normalizedMonths.length <= 1) {
+      alert("Нельзя удалить последний месяц.")
+      return
+    }
+
+    const opsForMonth = operations.filter((op) => toMonthKey(op.date) === selectedMonth)
+    const hasOperations = opsForMonth.length > 0
+
+    const confirmed = window.confirm(
+      hasOperations
+        ? `В месяце ${formatMonthLabel(selectedMonth)} есть ${opsForMonth.length} операций. Удалить месяц вместе со всеми операциями?`
+        : `Удалить пустой месяц ${formatMonthLabel(selectedMonth)}?`
+    )
+
+    if (!confirmed) return
+
+    if (hasOperations) {
+      const { error: deleteOperationsError } = await supabase
+        .from("operations")
+        .delete()
+        .gte("date", `${selectedMonth}-01`)
+        .lte("date", `${selectedMonth}-31`)
+
+      if (deleteOperationsError) {
+        console.error("Ошибка удаления операций месяца", deleteOperationsError)
+        alert("Не удалось удалить операции месяца")
+        return
+      }
+    }
+
+    const { error: deleteGoalError } = await supabase
+      .from("month_goals")
+      .delete()
+      .eq("month_key", selectedMonth)
+
+    if (deleteGoalError) {
+      console.error("Ошибка удаления месяца", deleteGoalError)
+      alert("Не удалось удалить месяц")
+      return
+    }
+
+    const nextMonths = normalizedMonths.filter((month) => month !== selectedMonth)
+
+    setOperations((prev) => prev.filter((op) => toMonthKey(op.date) !== selectedMonth))
+    setMonths(nextMonths)
+    setMonthGoals((prev) => {
+      const copy = { ...prev }
+      delete copy[selectedMonth]
+      return copy
+    })
+    setSelectedMonth(nextMonths[0] || getInitialMonthKey())
   }
 
   return (
@@ -999,10 +1118,17 @@ React.useEffect(() => {
           </button>
 
           <button
-            onClick={createNewMonth}
+            onClick={() => void createNewMonth()}
             className="mt-3 w-full rounded-[22px] bg-white/[0.055] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]"
           >
             + Новый месяц
+          </button>
+
+          <button
+            onClick={() => void deleteSelectedMonth()}
+            className="mt-3 w-full rounded-[22px] bg-red-500/10 px-4 py-4 text-base font-semibold text-red-300 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]"
+          >
+            − Удалить месяц
           </button>
 
           <div className="mt-8 space-y-4">
@@ -1172,7 +1298,7 @@ React.useEffect(() => {
               <div className="flex gap-3">
                 {lastAdded && (
                   <button
-                    onClick={undoAdd}
+                    onClick={() => void undoAdd()}
                     className="rounded-xl bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
                   >
                     Отменить добавление
@@ -1181,7 +1307,7 @@ React.useEffect(() => {
 
                 {lastDeleted && (
                   <button
-                    onClick={undoDelete}
+                    onClick={() => void undoDelete()}
                     className="rounded-xl bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
                   >
                     Отменить удаление
