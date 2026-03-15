@@ -29,13 +29,19 @@ type ServiceItem = {
   amount: number
 }
 
+type PaymentItem = {
+  id: number
+  type: PaymentType
+  amount: number
+}
+
 type Operation = {
   id: number
   date: string
   client: string
   owner: Owner
-  paymentType: PaymentType
   services: ServiceItem[]
+  payments: PaymentItem[]
 }
 
 type MonthGoals = Record<string, number>
@@ -108,29 +114,31 @@ function getServicesTotal(operation: Operation) {
   return operation.services.reduce((sum, item) => sum + item.amount, 0)
 }
 
-function getOperationTotal(operation: Operation) {
-  if (operation.paymentType === "Онлайн") return ONLINE_NET_AMOUNT
-  return getServicesTotal(operation)
+function getPaymentsTotal(operation: Operation) {
+  return operation.payments.reduce((sum, item) => sum + item.amount, 0)
 }
 
 function getServiceRevenueMap(operations: Operation[]) {
   const map = new Map<ServiceType, number>()
+
   operations.forEach((op) => {
-    const total =
-      op.paymentType === "Онлайн"
-        ? ONLINE_NET_AMOUNT
-        : op.services.reduce((sum, item) => sum + item.amount, 0)
-
-    if (op.paymentType === "Онлайн") {
-      const firstService = op.services[0]?.type || "Другое"
-      map.set(firstService, (map.get(firstService) || 0) + total)
-      return
-    }
-
     op.services.forEach((service) => {
       map.set(service.type, (map.get(service.type) || 0) + service.amount)
     })
   })
+
+  return map
+}
+
+function getPaymentRevenueMap(operations: Operation[]) {
+  const map = new Map<PaymentType, number>()
+
+  operations.forEach((op) => {
+    op.payments.forEach((payment) => {
+      map.set(payment.type, (map.get(payment.type) || 0) + payment.amount)
+    })
+  })
+
   return map
 }
 
@@ -141,6 +149,30 @@ function makeServiceRow(type: ServiceType = "Запись"): ServiceItem {
     hours: 1,
     amount: type === "Запись" ? 1000 : 0,
   }
+}
+
+function makePaymentRow(type: PaymentType = "Нал"): PaymentItem {
+  return {
+    id: Date.now() + Math.floor(Math.random() * 10000),
+    type,
+    amount: type === "Онлайн" ? ONLINE_NET_AMOUNT : 0,
+  }
+}
+
+function normalizePayments(rawPayments: unknown): PaymentItem[] {
+  if (!Array.isArray(rawPayments)) return []
+
+  return rawPayments.map((item, index) => {
+    const raw = item as Partial<PaymentItem>
+    const type = (raw.type as PaymentType) || "Нал"
+    const amount = type === "Онлайн" ? ONLINE_NET_AMOUNT : Number(raw.amount) || 0
+
+    return {
+      id: Number(raw.id) || Date.now() + index,
+      type,
+      amount,
+    }
+  })
 }
 
 function getInitialMonthKey() {
@@ -353,50 +385,6 @@ function CustomSelect<T extends string>({
   )
 }
 
-function PaymentTypeSegmented({
-  value,
-  onChange,
-}: {
-  value: PaymentType
-  onChange: (value: PaymentType) => void
-}) {
-  return (
-    <div>
-      <p className="mb-2 text-sm uppercase tracking-[0.08em] text-zinc-500">
-        Тип оплаты
-      </p>
-      <div
-        className={`inline-flex ${CONTROL_RADIUS} bg-black/35 p-1 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_10px_24px_rgba(0,0,0,0.25)]`}
-      >
-        {paymentOptions.map((option) => {
-          const active = option === value
-
-          return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onChange(option)}
-              className={`min-w-[96px] ${SMALL_RADIUS} px-5 py-3 text-sm font-semibold transition ${
-                active
-                  ? "bg-[linear-gradient(180deg,#1e3a8a,#0f172a)] text-white shadow-[0_10px_24px_rgba(37,99,235,0.28),0_1px_0_rgba(255,255,255,0.1)_inset]"
-                  : "text-zinc-300 hover:bg-white/[0.04]"
-              }`}
-            >
-              {option}
-            </button>
-          )
-        })}
-      </div>
-
-      {value === "Онлайн" && (
-        <p className="mt-2 text-sm text-emerald-300">
-          Онлайн считается как фиксированная чистая сумма {formatMoney(ONLINE_NET_AMOUNT)}
-        </p>
-      )}
-    </div>
-  )
-}
-
 function CustomDatePicker({ value, onChange }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
   const [viewDate, setViewDate] = React.useState<Date>(
@@ -595,9 +583,9 @@ export default function App() {
 
   const [client, setClient] = React.useState("")
   const [owner, setOwner] = React.useState<Owner>("Азат")
-  const [paymentType, setPaymentType] = React.useState<PaymentType>("Нал")
   const [operationDate, setOperationDate] = React.useState("")
   const [serviceRows, setServiceRows] = React.useState<ServiceItem[]>([makeServiceRow()])
+  const [paymentRows, setPaymentRows] = React.useState<PaymentItem[]>([makePaymentRow("Нал")])
 
   const [lastDeleted, setLastDeleted] = React.useState<Operation | null>(null)
   const [lastAdded, setLastAdded] = React.useState<Operation | null>(null)
@@ -627,8 +615,8 @@ export default function App() {
       date: item.date,
       client: item.client,
       owner: item.owner as Owner,
-      paymentType: (item.payment_type as PaymentType) || "Нал",
-      services: item.services as ServiceItem[],
+      services: (item.services as ServiceItem[]) || [],
+      payments: normalizePayments(item.payments),
     }))
 
     setOperations(mappedOperations)
@@ -697,7 +685,7 @@ export default function App() {
   }, [operations, selectedMonth])
 
   const monthIncome = selectedMonthOperations.reduce(
-    (sum, op) => sum + getOperationTotal(op),
+    (sum, op) => sum + getPaymentsTotal(op),
     0
   )
 
@@ -708,11 +696,11 @@ export default function App() {
 
   const azatIncome = selectedMonthOperations
     .filter((op) => op.owner === "Азат")
-    .reduce((sum, op) => sum + getOperationTotal(op), 0)
+    .reduce((sum, op) => sum + getPaymentsTotal(op), 0)
 
   const marsIncome = selectedMonthOperations
     .filter((op) => op.owner === "Марс")
-    .reduce((sum, op) => sum + getOperationTotal(op), 0)
+    .reduce((sum, op) => sum + getPaymentsTotal(op), 0)
 
   const serviceRevenueMap = React.useMemo(
     () => getServiceRevenueMap(selectedMonthOperations),
@@ -723,19 +711,15 @@ export default function App() {
     (a, b) => b[1] - a[1]
   )
 
-  const paymentBreakdown = React.useMemo(() => {
-    const result: Record<PaymentType, number> = {
-      Нал: 0,
-      Карта: 0,
-      Онлайн: 0,
-    }
+  const paymentRevenueMap = React.useMemo(
+    () => getPaymentRevenueMap(selectedMonthOperations),
+    [selectedMonthOperations]
+  )
 
-    selectedMonthOperations.forEach((op) => {
-      result[op.paymentType] += getOperationTotal(op)
-    })
-
-    return result
-  }, [selectedMonthOperations])
+  const paymentRevenueRows = paymentOptions.map((type) => [
+    type,
+    paymentRevenueMap.get(type) || 0,
+  ] as const)
 
   const dailyStats = React.useMemo(() => {
     const daysCount = getDaysInMonth(selectedMonth)
@@ -751,7 +735,7 @@ export default function App() {
       const day = parseInputDate(op.date).getDate()
       const index = day - 1
       if (values[index]) {
-        values[index].amount += getOperationTotal(op)
+        values[index].amount += getPaymentsTotal(op)
       }
     })
 
@@ -816,7 +800,7 @@ export default function App() {
         titleColor: "#fff",
         bodyColor: "#d4d4d8",
         callbacks: {
-          label: (context: any) => formatMoney(context.raw),
+          label: (context: any) => formatMoney(Number(context.raw)),
         },
       },
     },
@@ -841,12 +825,19 @@ export default function App() {
     },
   }
 
+  const currentServicesTotal = serviceRows.reduce(
+    (sum, row) => sum + (row.type === "Запись" ? row.hours * 1000 : row.amount),
+    0
+  )
+
+  const currentPaymentsTotal = paymentRows.reduce((sum, row) => sum + row.amount, 0)
+
   function resetForm() {
     setClient("")
     setOwner("Азат")
-    setPaymentType("Нал")
     setOperationDate("")
     setServiceRows([makeServiceRow()])
+    setPaymentRows([makePaymentRow("Нал")])
     setEditingOperationId(null)
   }
 
@@ -859,13 +850,21 @@ export default function App() {
     setEditingOperationId(operation.id)
     setClient(operation.client)
     setOwner(operation.owner)
-    setPaymentType(operation.paymentType)
     setOperationDate(operation.date)
     setServiceRows(
       operation.services.map((service) => ({
         ...service,
         id: service.id || Date.now() + Math.floor(Math.random() * 10000),
       }))
+    )
+    setPaymentRows(
+      operation.payments.length > 0
+        ? operation.payments.map((payment) => ({
+            ...payment,
+            id: payment.id || Date.now() + Math.floor(Math.random() * 10000),
+            amount: payment.type === "Онлайн" ? ONLINE_NET_AMOUNT : payment.amount,
+          }))
+        : [makePaymentRow("Нал")]
     )
     setShowModal(true)
   }
@@ -896,6 +895,32 @@ export default function App() {
     setServiceRows((prev) => prev.filter((row) => row.id !== id))
   }
 
+  function addPaymentRow() {
+    setPaymentRows((prev) => [...prev, makePaymentRow("Нал")])
+  }
+
+  function updatePaymentRow(id: number, patch: Partial<PaymentItem>) {
+    setPaymentRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== id) return row
+
+        const updated = { ...row, ...patch }
+
+        if (updated.type === "Онлайн") {
+          updated.amount = ONLINE_NET_AMOUNT
+        } else {
+          updated.amount = Number(updated.amount) || 0
+        }
+
+        return updated
+      })
+    )
+  }
+
+  function removePaymentRow(id: number) {
+    setPaymentRows((prev) => prev.filter((row) => row.id !== id))
+  }
+
   async function ensureMonthExists(monthKey: string) {
     const { error } = await supabase.from("month_goals").upsert({
       month_key: monthKey,
@@ -919,7 +944,12 @@ export default function App() {
       return
     }
 
-    const cleanedRows = serviceRows.map((row) => {
+    if (paymentRows.length === 0) {
+      alert("Add at least one payment.")
+      return
+    }
+
+    const cleanedServices = serviceRows.map((row) => {
       if (row.type === "Запись") {
         const hours = Number(row.hours) || 1
         return { ...row, hours, amount: hours * 1000 }
@@ -931,9 +961,26 @@ export default function App() {
       }
     })
 
-    const hasInvalid = cleanedRows.some((row) => row.amount <= 0)
-    if (hasInvalid) {
+    const cleanedPayments = paymentRows.map((row) => {
+      if (row.type === "Онлайн") {
+        return { ...row, amount: ONLINE_NET_AMOUNT }
+      }
+
+      return {
+        ...row,
+        amount: Number(row.amount) || 0,
+      }
+    })
+
+    const hasInvalidService = cleanedServices.some((row) => row.amount <= 0)
+    if (hasInvalidService) {
       alert("All services must have a valid amount.")
+      return
+    }
+
+    const hasInvalidPayment = cleanedPayments.some((row) => row.amount <= 0)
+    if (hasInvalidPayment) {
+      alert("All payments must have a valid amount.")
       return
     }
 
@@ -941,8 +988,8 @@ export default function App() {
       date: operationDate,
       client: client.trim() || "Без клиента",
       owner,
-      payment_type: paymentType,
-      services: cleanedRows,
+      services: cleanedServices,
+      payments: cleanedPayments,
     }
 
     const monthKey = toMonthKey(operationDate)
@@ -973,8 +1020,8 @@ export default function App() {
         date: data.date,
         client: data.client,
         owner: data.owner as Owner,
-        paymentType: (data.payment_type as PaymentType) || "Нал",
-        services: data.services as ServiceItem[],
+        services: (data.services as ServiceItem[]) || [],
+        payments: normalizePayments(data.payments),
       }
 
       setOperations((prev) =>
@@ -998,8 +1045,8 @@ export default function App() {
         date: data.date,
         client: data.client,
         owner: data.owner as Owner,
-        paymentType: (data.payment_type as PaymentType) || "Нал",
-        services: data.services as ServiceItem[],
+        services: (data.services as ServiceItem[]) || [],
+        payments: normalizePayments(data.payments),
       }
 
       setOperations((prev) => [...prev, newOperation])
@@ -1076,8 +1123,8 @@ export default function App() {
       date: lastDeleted.date,
       client: lastDeleted.client,
       owner: lastDeleted.owner,
-      payment_type: lastDeleted.paymentType,
       services: lastDeleted.services,
+      payments: lastDeleted.payments,
     }
 
     const { data, error } = await supabase
@@ -1097,8 +1144,8 @@ export default function App() {
       date: data.date,
       client: data.client,
       owner: data.owner as Owner,
-      paymentType: (data.payment_type as PaymentType) || "Нал",
-      services: data.services as ServiceItem[],
+      services: (data.services as ServiceItem[]) || [],
+      payments: normalizePayments(data.payments),
     }
 
     setOperations((prev) => [...prev, restored])
@@ -1397,15 +1444,13 @@ export default function App() {
               <GlassCard className="p-6">
                 <p className="text-lg font-semibold">Доход по оплате</p>
                 <div className="mt-4 space-y-3">
-                  {paymentOptions.map((type) => (
+                  {paymentRevenueRows.map(([paymentName, amount]) => (
                     <div
-                      key={type}
+                      key={paymentName}
                       className={`flex items-center justify-between ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                     >
-                      <span>{type}</span>
-                      <span className="font-semibold">
-                        {formatMoney(paymentBreakdown[type])}
-                      </span>
+                      <span>{paymentName}</span>
+                      <span className="font-semibold">{formatMoney(amount)}</span>
                     </div>
                   ))}
                 </div>
@@ -1456,9 +1501,9 @@ export default function App() {
                     <tr>
                       <th className="px-4 py-3">Дата</th>
                       <th className="px-4 py-3">Клиент</th>
-                      <th className="px-4 py-3">Оплата</th>
+                      <th className="px-4 py-3">Оплаты</th>
                       <th className="px-4 py-3">Услуги</th>
-                      <th className="px-4 py-3">Сумма</th>
+                      <th className="px-4 py-3">Получено</th>
                       <th className="px-4 py-3">Кто работал</th>
                       <th className="px-4 py-3">Действия</th>
                     </tr>
@@ -1477,7 +1522,15 @@ export default function App() {
                         >
                           <td className="px-4 py-4">{formatDisplayDate(op.date)}</td>
                           <td className="px-4 py-4">{op.client}</td>
-                          <td className="px-4 py-4">{op.paymentType}</td>
+                          <td className="px-4 py-4">
+                            <div className="space-y-1">
+                              {op.payments.map((payment) => (
+                                <div key={payment.id} className="text-zinc-300">
+                                  {payment.type} — {formatMoney(payment.amount)}
+                                </div>
+                              ))}
+                            </div>
+                          </td>
                           <td className="px-4 py-4">
                             <div className="space-y-1">
                               {op.services.map((service) => (
@@ -1492,7 +1545,7 @@ export default function App() {
                             </div>
                           </td>
                           <td className="px-4 py-4 font-semibold">
-                            {formatMoney(getOperationTotal(op))}
+                            {formatMoney(getPaymentsTotal(op))}
                           </td>
                           <td className="px-4 py-4">{op.owner}</td>
                           <td className="px-4 py-4">
@@ -1524,7 +1577,7 @@ export default function App() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-visible bg-[rgba(4,4,8,0.68)] p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[820px] overflow-visible ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.48),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[30px]`}
+            className={`relative w-full max-w-[860px] overflow-visible ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.03))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.48),0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-[30px]`}
           >
             <div
               className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.012)_35%,rgba(255,255,255,0.01)_100%)] opacity-90`}
@@ -1538,13 +1591,6 @@ export default function App() {
                 <p className="mt-1 text-sm text-zinc-400">
                   Один клиент может взять несколько услуг сразу
                 </p>
-              </div>
-
-              <div className="mb-5">
-                <PaymentTypeSegmented
-                  value={paymentType}
-                  onChange={setPaymentType}
-                />
               </div>
 
               <div className="relative z-[20] grid grid-cols-3 gap-4">
@@ -1565,6 +1611,16 @@ export default function App() {
               </div>
 
               <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-lg font-semibold">Услуги</p>
+                  <button
+                    onClick={addServiceRow}
+                    className={`${CONTROL_RADIUS} bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]`}
+                  >
+                    + Добавить услугу
+                  </button>
+                </div>
+
                 {serviceRows.map((row, index) => (
                   <div
                     key={row.id}
@@ -1634,28 +1690,102 @@ export default function App() {
                 ))}
               </div>
 
-              <button
-                onClick={addServiceRow}
-                className={`mt-5 ${CONTROL_RADIUS} bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]`}
-              >
-                + Добавить услугу
-              </button>
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-semibold">Оплата</p>
+                    <p className="mt-1 text-sm text-zinc-400">
+                      Для Онлайн сумма всегда фиксированная: {formatMoney(ONLINE_NET_AMOUNT)}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={addPaymentRow}
+                    className={`${CONTROL_RADIUS} bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]`}
+                  >
+                    + Добавить оплату
+                  </button>
+                </div>
+
+                {paymentRows.map((row, index) => (
+                  <div
+                    key={row.id}
+                    className={`relative z-[10] ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)] transition duration-200 hover:bg-white/[0.055]`}
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="font-semibold">Оплата {index + 1}</p>
+                      {paymentRows.length > 1 && (
+                        <button
+                          onClick={() => removePaymentRow(row.id)}
+                          className="text-sm text-red-400 transition hover:text-red-300"
+                        >
+                          Удалить оплату
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <CustomSelect<PaymentType>
+                        value={row.type}
+                        onChange={(selectedType) =>
+                          updatePaymentRow(row.id, {
+                            type: selectedType,
+                            amount:
+                              selectedType === "Онлайн"
+                                ? ONLINE_NET_AMOUNT
+                                : row.amount,
+                          })
+                        }
+                        options={paymentOptions}
+                      />
+
+                      {row.type === "Онлайн" ? (
+                        <div className={`${fieldClassName} flex items-center font-semibold`}>
+                          {formatMoney(ONLINE_NET_AMOUNT)}
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          className={fieldClassName}
+                          value={row.amount}
+                          onChange={(e) =>
+                            updatePaymentRow(row.id, {
+                              amount: Number(e.target.value) || 0,
+                            })
+                          }
+                          placeholder="Сумма оплаты"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <GlassCard className="p-4">
+                  <p className="text-sm text-zinc-400">Итог по услугам</p>
+                  <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
+                </GlassCard>
+
+                <GlassCard className="p-4">
+                  <p className="text-sm text-zinc-400">Получено оплатой</p>
+                  <p className="mt-2 text-2xl font-bold text-green-400">
+                    {formatMoney(currentPaymentsTotal)}
+                  </p>
+                </GlassCard>
+              </div>
+
+              {currentPaymentsTotal !== currentServicesTotal && (
+                <div className={`mt-4 ${CONTROL_RADIUS} bg-yellow-500/10 p-4 text-sm text-yellow-200`}>
+                  Внимание: сумма оплат и сумма услуг не совпадают. Это нормально, если внесена только предоплата или оплата частями.
+                </div>
+              )}
 
               <div className="mt-6 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-zinc-400">Итог по операции</p>
-                  <p className="text-2xl font-bold">
-                    {paymentType === "Онлайн"
-                      ? formatMoney(ONLINE_NET_AMOUNT)
-                      : formatMoney(
-                          serviceRows.reduce(
-                            (sum, row) =>
-                              sum +
-                              (row.type === "Запись" ? row.hours * 1000 : row.amount),
-                            0
-                          )
-                        )}
-                  </p>
+                  <p className="text-sm text-zinc-400">Фактически получено</p>
+                  <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
                 </div>
 
                 <div className="flex items-center gap-3">
