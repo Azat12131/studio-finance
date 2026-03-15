@@ -310,22 +310,22 @@ type FloatingPosition = {
 
 const fieldClassName = `
 w-full rounded-[20px]
-border border-white/12
-bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))]
+border border-white/10
+bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))]
 px-4 py-3 text-white outline-none
-shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_12px_30px_rgba(0,0,0,0.24)]
+shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_12px_30px_rgba(0,0,0,0.26)]
 backdrop-blur-xl transition duration-200
-placeholder:text-zinc-400
-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.035))]
-focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.04))]
-focus:shadow-[0_0_0_1px_rgba(95,122,255,0.5),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset,0_14px_34px_rgba(0,0,0,0.28)]
+placeholder:text-zinc-500
+hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.028))]
+focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))]
+focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_14px_34px_rgba(0,0,0,0.3)]
 `
 
 const popupClassName = `
 overflow-hidden rounded-[24px]
-border border-white/[0.08]
-bg-[linear-gradient(180deg,rgba(18,24,44,0.98),rgba(9,12,24,0.99))]
-shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.06)_inset]
+border border-white/[0.07]
+bg-[linear-gradient(180deg,rgba(28,28,34,0.98),rgba(14,14,18,0.99))]
+shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.04)_inset]
 backdrop-blur-[28px]
 `
 
@@ -643,10 +643,10 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] shadow-[0_16px_40px_rgba(0,0,0,0.24),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.015)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.085),rgba(255,255,255,0.04))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.06)_inset,0_-1px_0_rgba(255,255,255,0.02)_inset] ${className}`}
+      className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] shadow-[0_16px_40px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.04)_inset,0_-1px_0_rgba(255,255,255,0.01)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.022))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3),0_1px_0_rgba(255,255,255,0.045)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset] ${className}`}
     >
       <div
-        className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.11),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)_35%,rgba(255,255,255,0.01)_100%)] opacity-90`}
+        className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.07),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012)_35%,rgba(255,255,255,0.006)_100%)] opacity-90`}
       />
       <div className="relative z-[1]">{children}</div>
     </div>
@@ -1335,7 +1335,7 @@ export default function App() {
       <div className="noise-overlay pointer-events-none" />
 
       <div className="relative z-[1] flex min-h-screen">
-        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.015))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.025),0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-[26px]">
+        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.018),0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px]">
           <div className="mb-8">
             <div className="w-[86px] shrink-0">
               <img
@@ -1348,7 +1348,7 @@ export default function App() {
 
           <button
             onClick={openCreateModal}
-            className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6f85ff,#4d62f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]"
+            className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]"
           >
             + Добавить операцию
           </button>
@@ -1664,8 +1664,8 @@ export default function App() {
       {showModal && (
         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(20,26,44,0.98),rgba(10,12,22,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.58),0_1px_0_rgba(255,255,255,0.06)_inset]`}
-          >
+  className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.05)_inset]`}
+>
             <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
@@ -1707,7 +1707,7 @@ export default function App() {
                 {serviceRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className={`relative ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
+                    className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_30px_rgba(0,0,0,0.18)]`}
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <p className="font-semibold">Услуга {index + 1}</p>
@@ -1860,7 +1860,7 @@ export default function App() {
               </div>
 
               {currentPaymentsTotal !== currentServicesTotal && (
-                <div className="mt-4 rounded-[20px] bg-yellow-500/10 p-4 text-sm text-yellow-200">
+                <div className="mt-4 rounded-[20px] bg-[rgba(120,92,18,0.18)] p-4 text-sm text-yellow-100">
                   Внимание: сумма оплат и сумма услуг не совпадают. Это нормально, если внесена только предоплата или оплата частями.
                 </div>
               )}
