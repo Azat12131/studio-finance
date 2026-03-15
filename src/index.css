@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #07080c;
+}
+
+body {
+  margin: 0;
+  color: #fff;
+  font-family: Inter, system-ui, sans-serif;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 12% 14%, rgba(97, 112, 255, 0.22), transparent 24%),
+    radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.06), transparent 16%),
+    radial-gradient(circle at 78% 72%, rgba(82, 99, 216, 0.16), transparent 26%),
+    radial-gradient(circle at 26% 84%, rgba(255, 255, 255, 0.035), transparent 20%),
+    linear-gradient(180deg, #06070a 0%, #090b11 38%, #0a0d14 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.02),
+      transparent 20%,
+      transparent 80%,
+      rgba(255, 255, 255, 0.01)
+    ),
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.03), transparent 40%);
+  z-index: 0;
+}
+
+.page-glow {
+  position: fixed;
+  left: -140px;
+  top: 12%;
+  width: 520px;
+  height: 520px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(91, 112, 255, 0.2), transparent 68%);
+  filter: blur(58px);
+  z-index: 0;
+}
+
+.page-glow-2 {
+  position: fixed;
+  right: -120px;
+  top: 8%;
+  width: 560px;
+  height: 560px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.06), transparent 70%);
+  filter: blur(64px);
+  z-index: 0;
+}
+
+.page-glow-3 {
+  position: fixed;
+  left: 28%;
+  bottom: -180px;
+  width: 620px;
+  height: 620px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(84, 100, 215, 0.14), transparent 70%);
+  filter: blur(74px);
+  z-index: 0;
+}
+
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.028;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.9) 0.6px, transparent 0.8px),
+    radial-gradient(circle at 80% 40%, rgba(255, 255, 255, 0.7) 0.6px, transparent 0.8px),
+    radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.8) 0.6px, transparent 0.8px),
+    radial-gradient(circle at 60% 60%, rgba(255, 255, 255, 0.7) 0.6px, transparent 0.8px);
+  background-size: 160px 160px, 220px 220px, 190px 190px, 240px 240px;
+}
