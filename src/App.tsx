@@ -8,6 +8,7 @@ import {
   BarElement,
   Tooltip,
   Legend,
+  type ChartOptions,
 } from "chart.js"
 import { Bar } from "react-chartjs-2"
 import logoWhite from "./assets/logo-white.png"
@@ -47,6 +48,24 @@ type Operation = {
 
 type MonthGoals = Record<string, number>
 
+type FloatingPosition = {
+  top: number
+  left: number
+  width: number
+}
+
+type DatePickerProps = {
+  value: string
+  onChange: (value: string) => void
+}
+
+type CustomSelectProps<T extends string> = {
+  value: T
+  onChange: (value: T) => void
+  options: readonly T[]
+  placeholder?: string
+}
+
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
 const ONLINE_NET_AMOUNT = 487.5
@@ -55,7 +74,7 @@ const SURFACE_RADIUS = "rounded-[30px]"
 const CONTROL_RADIUS = "rounded-[20px]"
 const SMALL_RADIUS = "rounded-[16px]"
 
-const serviceOptions: ServiceType[] = [
+const serviceOptions: readonly ServiceType[] = [
   "Запись",
   "Сведение",
   "Дистрибуция",
@@ -63,8 +82,38 @@ const serviceOptions: ServiceType[] = [
   "Другое",
 ]
 
-const ownerOptions: Owner[] = ["Азат", "Марс"]
-const paymentOptions: PaymentType[] = ["Нал", "Карта", "Онлайн"]
+const ownerOptions: readonly Owner[] = ["Азат", "Марс"]
+const paymentOptions: readonly PaymentType[] = ["Нал", "Карта", "Онлайн"]
+
+const fieldClassName = `
+w-full rounded-[20px]
+appearance-none
+border border-white/10
+!bg-[#20232d]
+px-4 py-3 text-white outline-none
+shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_12px_30px_rgba(0,0,0,0.28)]
+backdrop-blur-xl transition duration-200
+placeholder:text-zinc-500
+hover:!bg-[#252934]
+focus:!bg-[#282d39]
+focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_14px_34px_rgba(0,0,0,0.32)]
+[color-scheme:dark]
+`
+
+const popupClassName = `
+overflow-hidden rounded-[24px]
+border border-white/[0.08]
+bg-[linear-gradient(180deg,rgba(34,37,46,0.98),rgba(17,19,25,0.99))]
+shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.04)_inset]
+backdrop-blur-[28px]
+`
+
+const rowCardClassName = `
+relative rounded-[30px]
+bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))]
+p-4
+shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_30px_rgba(0,0,0,0.18)]
+`
 
 function toMonthKey(dateString: string) {
   const date = new Date(dateString)
@@ -95,6 +144,7 @@ function formatDisplayDate(dateString: string) {
 function formatMonthLabel(monthKey: string) {
   const [year, month] = monthKey.split("-")
   const date = new Date(Number(year), Number(month) - 1, 1)
+
   return date.toLocaleDateString("ru-RU", {
     month: "long",
     year: "numeric",
@@ -118,8 +168,8 @@ function getPaymentsTotal(operation: Operation) {
 function getServiceRevenueMap(operations: Operation[]) {
   const map = new Map<ServiceType, number>()
 
-  operations.forEach((op) => {
-    op.services.forEach((service) => {
+  operations.forEach((operation) => {
+    operation.services.forEach((service) => {
       map.set(service.type, (map.get(service.type) || 0) + service.amount)
     })
   })
@@ -130,8 +180,8 @@ function getServiceRevenueMap(operations: Operation[]) {
 function getPaymentRevenueMap(operations: Operation[]) {
   const map = new Map<PaymentType, number>()
 
-  operations.forEach((op) => {
-    op.payments.forEach((payment) => {
+  operations.forEach((operation) => {
+    operation.payments.forEach((payment) => {
       map.set(payment.type, (map.get(payment.type) || 0) + payment.amount)
     })
   })
@@ -139,9 +189,13 @@ function getPaymentRevenueMap(operations: Operation[]) {
   return map
 }
 
+function makeId() {
+  return Date.now() + Math.floor(Math.random() * 100000)
+}
+
 function makeServiceRow(type: ServiceType = "Запись"): ServiceItem {
   return {
-    id: Date.now() + Math.floor(Math.random() * 10000),
+    id: makeId(),
     type,
     hours: 1,
     amount: type === "Запись" ? 1000 : 0,
@@ -150,7 +204,7 @@ function makeServiceRow(type: ServiceType = "Запись"): ServiceItem {
 
 function makePaymentRow(type: PaymentType = "Нал"): PaymentItem {
   return {
-    id: Date.now() + Math.floor(Math.random() * 10000),
+    id: makeId(),
     type,
     amount: type === "Онлайн" ? ONLINE_NET_AMOUNT : 0,
   }
@@ -165,7 +219,7 @@ function normalizePayments(rawPayments: unknown): PaymentItem[] {
     const amount = type === "Онлайн" ? ONLINE_NET_AMOUNT : Number(raw.amount) || 0
 
     return {
-      id: Number(raw.id) || Date.now() + index,
+      id: Number(raw.id) || makeId() + index,
       type,
       amount,
     }
@@ -221,6 +275,36 @@ function getCalendarGrid(viewDate: Date) {
   }
 
   return cells
+}
+
+function normalizeServiceRow(row: ServiceItem): ServiceItem {
+  if (row.type === "Запись") {
+    const hours = Number(row.hours) || 1
+    return {
+      ...row,
+      hours,
+      amount: hours * 1000,
+    }
+  }
+
+  return {
+    ...row,
+    amount: Number(row.amount) || 0,
+  }
+}
+
+function normalizePaymentRow(row: PaymentItem): PaymentItem {
+  if (row.type === "Онлайн") {
+    return {
+      ...row,
+      amount: ONLINE_NET_AMOUNT,
+    }
+  }
+
+  return {
+    ...row,
+    amount: Number(row.amount) || 0,
+  }
 }
 
 function CalendarIcon() {
@@ -290,45 +374,6 @@ function ChevronDown() {
   )
 }
 
-type DatePickerProps = {
-  value: string
-  onChange: (value: string) => void
-}
-
-type CustomSelectProps<T extends string> = {
-  value: T
-  onChange: (value: T) => void
-  options: T[]
-  placeholder?: string
-}
-
-type FloatingPosition = {
-  top: number
-  left: number
-  width: number
-}
-
-const fieldClassName = `
-w-full rounded-[20px]
-border border-white/10
-bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02))]
-px-4 py-3 text-white outline-none
-shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_12px_30px_rgba(0,0,0,0.26)]
-backdrop-blur-xl transition duration-200
-placeholder:text-zinc-500
-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.028))]
-focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))]
-focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_14px_34px_rgba(0,0,0,0.3)]
-`
-
-const popupClassName = `
-overflow-hidden rounded-[24px]
-border border-white/[0.07]
-bg-[linear-gradient(180deg,rgba(28,28,34,0.98),rgba(14,14,18,0.99))]
-shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.04)_inset]
-backdrop-blur-[28px]
-`
-
 function useFloatingPosition(
   open: boolean,
   anchorRef: React.RefObject<HTMLElement | null>
@@ -344,6 +389,7 @@ function useFloatingPosition(
     if (!element) return
 
     const rect = element.getBoundingClientRect()
+
     setPosition({
       top: rect.bottom + window.scrollY + 12,
       left: rect.left + window.scrollX,
@@ -368,14 +414,45 @@ function useFloatingPosition(
   return position
 }
 
+function useOutsideClick(
+  open: boolean,
+  refs: Array<React.RefObject<HTMLElement | null>>,
+  onClose: () => void
+) {
+  React.useEffect(() => {
+    if (!open) return
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node
+
+      const clickedInside = refs.some((ref) => {
+        const element = ref.current
+        return element ? element.contains(target) : false
+      })
+
+      if (!clickedInside) {
+        onClose()
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+    }
+  }, [open, refs, onClose])
+}
+
 function PortalDropdown({
   open,
   anchorRef,
+  panelRef,
   children,
   width,
 }: {
   open: boolean
   anchorRef: React.RefObject<HTMLElement | null>
+  panelRef: React.RefObject<HTMLDivElement | null>
   children: React.ReactNode
   width?: number
 }) {
@@ -386,6 +463,7 @@ function PortalDropdown({
   return createPortal(
     <div className="fixed inset-0 z-[99999]" style={{ pointerEvents: "none" }}>
       <div
+        ref={panelRef}
         className={popupClassName}
         style={{
           position: "absolute",
@@ -402,6 +480,23 @@ function PortalDropdown({
   )
 }
 
+function GraphiteActionButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`${CONTROL_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.02))] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))]`}
+    >
+      {children}
+    </button>
+  )
+}
+
 function CustomSelect<T extends string>({
   value,
   onChange,
@@ -409,19 +504,12 @@ function CustomSelect<T extends string>({
   placeholder,
 }: CustomSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
+
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
   const buttonRef = React.useRef<HTMLButtonElement | null>(null)
+  const panelRef = React.useRef<HTMLDivElement | null>(null)
 
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node
-      if (wrapperRef.current?.contains(target)) return
-      setOpen(false)
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  useOutsideClick(open, [wrapperRef, panelRef], () => setOpen(false))
 
   return (
     <div ref={wrapperRef} className="relative">
@@ -431,7 +519,7 @@ function CustomSelect<T extends string>({
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-400"}>
+        <span className={value ? "text-white" : "text-zinc-500"}>
           {value || placeholder || "Выбрать"}
         </span>
 
@@ -444,7 +532,7 @@ function CustomSelect<T extends string>({
         </span>
       </button>
 
-      <PortalDropdown open={open} anchorRef={buttonRef}>
+      <PortalDropdown open={open} anchorRef={buttonRef} panelRef={panelRef}>
         <div className="p-2">
           <div className="space-y-1">
             {options.map((option) => {
@@ -458,10 +546,10 @@ function CustomSelect<T extends string>({
                     onChange(option)
                     setOpen(false)
                   }}
-                  className={`w-full rounded-[16px] px-4 py-3 text-left text-sm transition ${
+                  className={`w-full rounded-[16px] border px-4 py-3 text-left text-sm transition ${
                     isActive
-                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.16)]"
-                      : "bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                      ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035))] text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)]"
+                      : "border-transparent bg-white/[0.03] text-zinc-200 hover:border-white/8 hover:bg-white/[0.06]"
                   }`}
                 >
                   {option}
@@ -483,28 +571,20 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
 
   const wrapperRef = React.useRef<HTMLDivElement | null>(null)
   const buttonRef = React.useRef<HTMLButtonElement | null>(null)
+  const panelRef = React.useRef<HTMLDivElement | null>(null)
+
+  useOutsideClick(open, [wrapperRef, panelRef], () => setOpen(false))
 
   React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node
-      if (wrapperRef.current?.contains(target)) return
-      setOpen(false)
-    }
+    if (!value) return
 
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  React.useEffect(() => {
-    if (value) {
-      const parsed = parseInputDate(value)
-      if (!Number.isNaN(parsed.getTime())) {
-        setViewDate(parsed)
-      }
+    const parsed = parseInputDate(value)
+    if (!Number.isNaN(parsed.getTime())) {
+      setViewDate(parsed)
     }
   }, [value])
 
-  const cells = getCalendarGrid(viewDate)
+  const cells = React.useMemo(() => getCalendarGrid(viewDate), [viewDate])
   const todayString = formatInputDate(new Date())
   const selectedString = value
 
@@ -535,7 +615,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
         onClick={() => setOpen((prev) => !prev)}
         className={`${fieldClassName} flex items-center justify-between text-left`}
       >
-        <span className={value ? "text-white" : "text-zinc-400"}>
+        <span className={value ? "text-white" : "text-zinc-500"}>
           {value ? formatDisplayDate(value) : "xx.xx.xxxx"}
         </span>
 
@@ -544,7 +624,12 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
         </span>
       </button>
 
-      <PortalDropdown open={open} anchorRef={buttonRef} width={320}>
+      <PortalDropdown
+        open={open}
+        anchorRef={buttonRef}
+        panelRef={panelRef}
+        width={320}
+      >
         <div className="p-4">
           <div className="mb-3 flex items-center justify-between">
             <button
@@ -600,7 +685,7 @@ function CustomDatePicker({ value, onChange }: DatePickerProps) {
                   onClick={() => selectDate(cell.date)}
                   className={`h-10 rounded-[14px] text-sm transition ${
                     isSelected
-                      ? "bg-white text-black shadow-[0_10px_24px_rgba(255,255,255,0.14)]"
+                      ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05))] text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)]"
                       : cell.currentMonth
                         ? "bg-white/[0.05] text-white hover:bg-white/[0.08]"
                         : "bg-transparent text-zinc-600 hover:bg-white/[0.04]"
@@ -653,8 +738,45 @@ function GlassCard({
   )
 }
 
+function SummaryCard({
+  label,
+  value,
+  valueClassName = "",
+}: {
+  label: string
+  value: string
+  valueClassName?: string
+}) {
+  return (
+    <GlassCard className="p-6">
+      <p className="text-sm text-zinc-400">{label}</p>
+      <h2 className={`mt-2 text-4xl font-bold ${valueClassName}`}>{value}</h2>
+    </GlassCard>
+  )
+}
+
+function ModalRowCard({
+  title,
+  children,
+  dangerAction,
+}: {
+  title: string
+  children: React.ReactNode
+  dangerAction?: React.ReactNode
+}) {
+  return (
+    <div className={rowCardClassName}>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="font-semibold">{title}</p>
+        {dangerAction}
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export default function App() {
-  const initialMonthKey = getInitialMonthKey()
+  const initialMonthKey = React.useMemo(() => getInitialMonthKey(), [])
 
   const [operations, setOperations] = React.useState<Operation[]>([])
   const [monthGoals, setMonthGoals] = React.useState<MonthGoals>({
@@ -675,7 +797,16 @@ export default function App() {
   const [lastDeleted, setLastDeleted] = React.useState<Operation | null>(null)
   const [lastAdded, setLastAdded] = React.useState<Operation | null>(null)
 
-  async function loadData() {
+  const resetForm = React.useCallback(() => {
+    setClient("")
+    setOwner("Азат")
+    setOperationDate("")
+    setServiceRows([makeServiceRow()])
+    setPaymentRows([makePaymentRow("Нал")])
+    setEditingOperationId(null)
+  }, [])
+
+  const loadData = React.useCallback(async () => {
     const { data: operationsData, error: operationsError } = await supabase
       .from("operations")
       .select("*")
@@ -704,33 +835,30 @@ export default function App() {
       payments: normalizePayments(item.payments),
     }))
 
-    setOperations(mappedOperations)
+    const goalMap: Record<string, number> = {}
+    const monthSet = new Set<string>([initialMonthKey])
 
-    const goals: Record<string, number> = {}
-    const monthSet = new Set<string>([getInitialMonthKey()])
-
-    ;(goalsData || []).forEach((g) => {
-      goals[g.month_key] = Number(g.goal)
-      monthSet.add(g.month_key)
+    ;(goalsData || []).forEach((goalRow) => {
+      goalMap[goalRow.month_key] = Number(goalRow.goal)
+      monthSet.add(goalRow.month_key)
     })
 
-    mappedOperations.forEach((op) => {
-      monthSet.add(toMonthKey(op.date))
+    mappedOperations.forEach((operation) => {
+      monthSet.add(toMonthKey(operation.date))
     })
 
     const nextMonths = Array.from(monthSet).sort().reverse()
+
+    setOperations(mappedOperations)
     setMonths(nextMonths)
-
-    setMonthGoals(
-      Object.keys(goals).length > 0
-        ? { [getInitialMonthKey()]: DEFAULT_MONTH_GOAL, ...goals }
-        : { [getInitialMonthKey()]: DEFAULT_MONTH_GOAL }
-    )
-
+    setMonthGoals({
+      [initialMonthKey]: DEFAULT_MONTH_GOAL,
+      ...goalMap,
+    })
     setSelectedMonth((prev) =>
       nextMonths.includes(prev) ? prev : nextMonths[0] || initialMonthKey
     )
-  }
+  }, [initialMonthKey])
 
   React.useEffect(() => {
     void loadData()
@@ -740,87 +868,82 @@ export default function App() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "operations" },
-        () => {
-          void loadData()
-        }
+        () => void loadData()
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "month_goals" },
-        () => {
-          void loadData()
-        }
+        () => void loadData()
       )
       .subscribe()
 
     return () => {
-      supabase.removeChannel(channel)
+      void supabase.removeChannel(channel)
     }
-  }, [])
+  }, [loadData])
 
   const normalizedMonths = React.useMemo(() => {
     const all = new Set<string>(months)
-    operations.forEach((op) => all.add(toMonthKey(op.date)))
-    all.add(getInitialMonthKey())
+    operations.forEach((operation) => all.add(toMonthKey(operation.date)))
+    all.add(initialMonthKey)
     return Array.from(all).sort().reverse()
-  }, [months, operations])
+  }, [initialMonthKey, months, operations])
 
   const selectedMonthOperations = React.useMemo(() => {
-    return operations.filter((op) => toMonthKey(op.date) === selectedMonth)
+    return operations.filter((operation) => toMonthKey(operation.date) === selectedMonth)
   }, [operations, selectedMonth])
 
-  const monthIncome = selectedMonthOperations.reduce(
-    (sum, op) => sum + getPaymentsTotal(op),
-    0
-  )
+  const monthIncome = React.useMemo(() => {
+    return selectedMonthOperations.reduce(
+      (sum, operation) => sum + getPaymentsTotal(operation),
+      0
+    )
+  }, [selectedMonthOperations])
 
   const monthGoal = monthGoals[selectedMonth] ?? DEFAULT_MONTH_GOAL
   const leftToRent = Math.max(RENT_GOAL - monthIncome, 0)
   const leftToMonthGoal = Math.max(monthGoal - monthIncome, 0)
   const profitAfterRent = monthIncome - RENT_GOAL
 
-  const azatIncome = selectedMonthOperations
-    .filter((op) => op.owner === "Азат")
-    .reduce((sum, op) => sum + getPaymentsTotal(op), 0)
+  const azatIncome = React.useMemo(() => {
+    return selectedMonthOperations
+      .filter((operation) => operation.owner === "Азат")
+      .reduce((sum, operation) => sum + getPaymentsTotal(operation), 0)
+  }, [selectedMonthOperations])
 
-  const marsIncome = selectedMonthOperations
-    .filter((op) => op.owner === "Марс")
-    .reduce((sum, op) => sum + getPaymentsTotal(op), 0)
+  const marsIncome = React.useMemo(() => {
+    return selectedMonthOperations
+      .filter((operation) => operation.owner === "Марс")
+      .reduce((sum, operation) => sum + getPaymentsTotal(operation), 0)
+  }, [selectedMonthOperations])
 
-  const serviceRevenueMap = React.useMemo(
-    () => getServiceRevenueMap(selectedMonthOperations),
-    [selectedMonthOperations]
-  )
+  const serviceRevenueRows = React.useMemo(() => {
+    return Array.from(getServiceRevenueMap(selectedMonthOperations).entries()).sort(
+      (a, b) => b[1] - a[1]
+    )
+  }, [selectedMonthOperations])
 
-  const serviceRevenueRows = Array.from(serviceRevenueMap.entries()).sort(
-    (a, b) => b[1] - a[1]
-  )
-
-  const paymentRevenueMap = React.useMemo(
-    () => getPaymentRevenueMap(selectedMonthOperations),
-    [selectedMonthOperations]
-  )
-
-  const paymentRevenueRows = paymentOptions.map((type) => [
-    type,
-    paymentRevenueMap.get(type) || 0,
-  ] as const)
+  const paymentRevenueRows = React.useMemo(() => {
+    const paymentRevenueMap = getPaymentRevenueMap(selectedMonthOperations)
+    return paymentOptions.map((type) => [type, paymentRevenueMap.get(type) || 0] as const)
+  }, [selectedMonthOperations])
 
   const dailyStats = React.useMemo(() => {
     const daysCount = getDaysInMonth(selectedMonth)
     const [year, month] = selectedMonth.split("-").map(Number)
 
-    const values = Array.from({ length: daysCount }, (_, i) => ({
-      day: i + 1,
+    const values = Array.from({ length: daysCount }, (_, index) => ({
+      day: index + 1,
       amount: 0,
-      dateKey: formatInputDate(new Date(year, month - 1, i + 1)),
+      dateKey: formatInputDate(new Date(year, month - 1, index + 1)),
     }))
 
-    selectedMonthOperations.forEach((op) => {
-      const day = parseInputDate(op.date).getDate()
+    selectedMonthOperations.forEach((operation) => {
+      const day = parseInputDate(operation.date).getDate()
       const index = day - 1
+
       if (values[index]) {
-        values[index].amount += getPaymentsTotal(op)
+        values[index].amount += getPaymentsTotal(operation)
       }
     })
 
@@ -853,85 +976,87 @@ export default function App() {
     }
   }, [selectedMonth, selectedMonthOperations])
 
-  const chartData = {
-    labels: dailyStats.values.map((item) => String(item.day)),
-    datasets: [
-      {
-        label: "Выручка по дням",
-        data: dailyStats.values.map((item) => item.amount),
-        backgroundColor: dailyStats.colors,
-        borderRadius: 14,
-        barThickness: 18,
-      },
-    ],
-  }
+  const chartData = React.useMemo(() => {
+    return {
+      labels: dailyStats.values.map((item) => String(item.day)),
+      datasets: [
+        {
+          label: "Выручка по дням",
+          data: dailyStats.values.map((item) => item.amount),
+          backgroundColor: dailyStats.colors,
+          borderRadius: 14,
+          barThickness: 18,
+        },
+      ],
+    }
+  }, [dailyStats])
 
-  const chartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-      duration: 500,
-    },
-    plugins: {
-      legend: {
-        labels: {
-          color: "#d4d4d8",
-        },
+  const chartOptions = React.useMemo<ChartOptions<"bar">>(() => {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: {
+        duration: 500,
       },
-      tooltip: {
-        backgroundColor: "rgba(15,15,19,0.96)",
-        borderColor: "rgba(255,255,255,0.08)",
-        borderWidth: 1,
-        titleColor: "#fff",
-        bodyColor: "#d4d4d8",
-        callbacks: {
-          label: (context: any) => formatMoney(Number(context.raw)),
+      plugins: {
+        legend: {
+          labels: {
+            color: "#d4d4d8",
+          },
         },
-      },
-    },
-    scales: {
-      x: {
-        ticks: {
-          color: "#8b8b95",
-        },
-        grid: {
-          color: "rgba(255,255,255,0.035)",
+        tooltip: {
+          backgroundColor: "rgba(15,15,19,0.96)",
+          borderColor: "rgba(255,255,255,0.08)",
+          borderWidth: 1,
+          titleColor: "#fff",
+          bodyColor: "#d4d4d8",
+          callbacks: {
+            label(context) {
+              return formatMoney(Number(context.raw))
+            },
+          },
         },
       },
-      y: {
-        ticks: {
-          color: "#8b8b95",
-          callback: (value: string | number) => formatMoney(Number(value)),
+      scales: {
+        x: {
+          ticks: {
+            color: "#8b8b95",
+          },
+          grid: {
+            color: "rgba(255,255,255,0.035)",
+          },
         },
-        grid: {
-          color: "rgba(255,255,255,0.035)",
+        y: {
+          ticks: {
+            color: "#8b8b95",
+            callback(value) {
+              return formatMoney(Number(value))
+            },
+          },
+          grid: {
+            color: "rgba(255,255,255,0.035)",
+          },
         },
       },
-    },
-  }
+    }
+  }, [])
 
-  const currentServicesTotal = serviceRows.reduce(
-    (sum, row) => sum + (row.type === "Запись" ? row.hours * 1000 : row.amount),
-    0
-  )
+  const currentServicesTotal = React.useMemo(() => {
+    return serviceRows.reduce((sum, row) => {
+      return sum + (row.type === "Запись" ? row.hours * 1000 : row.amount)
+    }, 0)
+  }, [serviceRows])
 
-  const currentPaymentsTotal = paymentRows.reduce((sum, row) => sum + row.amount, 0)
+  const currentPaymentsTotal = React.useMemo(() => {
+    return paymentRows.reduce((sum, row) => sum + row.amount, 0)
+  }, [paymentRows])
 
-  function resetForm() {
-    setClient("")
-    setOwner("Азат")
-    setOperationDate("")
-    setServiceRows([makeServiceRow()])
-    setPaymentRows([makePaymentRow("Нал")])
-    setEditingOperationId(null)
-  }
-
-  function openCreateModal() {
+  const openCreateModal = React.useCallback(() => {
     resetForm()
     setShowModal(true)
-  }
+  }, [resetForm])
 
-  function openEditModal(operation: Operation) {
+  const openEditModal = React.useCallback((operation: Operation) => {
     setEditingOperationId(operation.id)
     setClient(operation.client)
     setOwner(operation.owner)
@@ -940,7 +1065,7 @@ export default function App() {
       operation.services.length > 0
         ? operation.services.map((service) => ({
             ...service,
-            id: service.id || Date.now() + Math.floor(Math.random() * 10000),
+            id: service.id || makeId(),
           }))
         : [makeServiceRow()]
     )
@@ -948,79 +1073,64 @@ export default function App() {
       operation.payments.length > 0
         ? operation.payments.map((payment) => ({
             ...payment,
-            id: payment.id || Date.now() + Math.floor(Math.random() * 10000),
+            id: payment.id || makeId(),
             amount: payment.type === "Онлайн" ? ONLINE_NET_AMOUNT : payment.amount,
           }))
         : [makePaymentRow("Нал")]
     )
     setShowModal(true)
-  }
+  }, [])
 
-  function addServiceRow() {
+  const addServiceRow = React.useCallback(() => {
     setServiceRows((prev) => [...prev, makeServiceRow()])
-  }
+  }, [])
 
-  function updateServiceRow(id: number, patch: Partial<ServiceItem>) {
+  const updateServiceRow = React.useCallback((id: number, patch: Partial<ServiceItem>) => {
     setServiceRows((prev) =>
       prev.map((row) => {
         if (row.id !== id) return row
-
-        const updated = { ...row, ...patch }
-
-        if (updated.type === "Запись") {
-          const hours = Number(updated.hours) || 1
-          updated.hours = hours
-          updated.amount = hours * 1000
-        }
-
-        return updated
+        return normalizeServiceRow({ ...row, ...patch })
       })
     )
-  }
+  }, [])
 
-  function removeServiceRow(id: number) {
+  const removeServiceRow = React.useCallback((id: number) => {
     setServiceRows((prev) => prev.filter((row) => row.id !== id))
-  }
+  }, [])
 
-  function addPaymentRow() {
+  const addPaymentRow = React.useCallback(() => {
     setPaymentRows((prev) => [...prev, makePaymentRow("Нал")])
-  }
+  }, [])
 
-  function updatePaymentRow(id: number, patch: Partial<PaymentItem>) {
+  const updatePaymentRow = React.useCallback((id: number, patch: Partial<PaymentItem>) => {
     setPaymentRows((prev) =>
       prev.map((row) => {
         if (row.id !== id) return row
-
-        const updated = { ...row, ...patch }
-
-        if (updated.type === "Онлайн") {
-          updated.amount = ONLINE_NET_AMOUNT
-        } else {
-          updated.amount = Number(updated.amount) || 0
-        }
-
-        return updated
+        return normalizePaymentRow({ ...row, ...patch })
       })
     )
-  }
+  }, [])
 
-  function removePaymentRow(id: number) {
+  const removePaymentRow = React.useCallback((id: number) => {
     setPaymentRows((prev) => prev.filter((row) => row.id !== id))
-  }
+  }, [])
 
-  async function ensureMonthExists(monthKey: string) {
-    const { error } = await supabase.from("month_goals").upsert({
-      month_key: monthKey,
-      goal: monthGoals[monthKey] ?? DEFAULT_MONTH_GOAL,
-    })
+  const ensureMonthExists = React.useCallback(
+    async (monthKey: string) => {
+      const { error } = await supabase.from("month_goals").upsert({
+        month_key: monthKey,
+        goal: monthGoals[monthKey] ?? DEFAULT_MONTH_GOAL,
+      })
 
-    if (error) {
-      console.error("Error saving month", error)
-      throw error
-    }
-  }
+      if (error) {
+        console.error("Error saving month", error)
+        throw error
+      }
+    },
+    [monthGoals]
+  )
 
-  async function saveOperation() {
+  const saveOperation = React.useCallback(async () => {
     if (!operationDate) {
       alert("Выбери дату.")
       return
@@ -1036,28 +1146,8 @@ export default function App() {
       return
     }
 
-    const cleanedServices = serviceRows.map((row) => {
-      if (row.type === "Запись") {
-        const hours = Number(row.hours) || 1
-        return { ...row, hours, amount: hours * 1000 }
-      }
-
-      return {
-        ...row,
-        amount: Number(row.amount) || 0,
-      }
-    })
-
-    const cleanedPayments = paymentRows.map((row) => {
-      if (row.type === "Онлайн") {
-        return { ...row, amount: ONLINE_NET_AMOUNT }
-      }
-
-      return {
-        ...row,
-        amount: Number(row.amount) || 0,
-      }
-    })
+    const cleanedServices = serviceRows.map(normalizeServiceRow)
+    const cleanedPayments = paymentRows.map(normalizePaymentRow)
 
     const hasInvalidService = cleanedServices.some((row) => row.amount <= 0)
     if (hasInvalidService) {
@@ -1112,7 +1202,9 @@ export default function App() {
       }
 
       setOperations((prev) =>
-        prev.map((op) => (op.id === editingOperationId ? updatedOperation : op))
+        prev.map((operation) =>
+          operation.id === editingOperationId ? updatedOperation : operation
+        )
       )
     } else {
       const { data, error } = await supabase
@@ -1153,9 +1245,18 @@ export default function App() {
     setSelectedMonth(monthKey)
     setShowModal(false)
     resetForm()
-  }
+  }, [
+    client,
+    editingOperationId,
+    ensureMonthExists,
+    operationDate,
+    owner,
+    paymentRows,
+    resetForm,
+    serviceRows,
+  ])
 
-  async function createNewMonth() {
+  const createNewMonth = React.useCallback(async () => {
     const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
     if (!typed) return
 
@@ -1185,25 +1286,28 @@ export default function App() {
     }))
 
     setSelectedMonth(trimmed)
-  }
+  }, [ensureMonthExists])
 
-  async function deleteOperation(id: number) {
-    const found = operations.find((op) => op.id === id)
-    if (!found) return
+  const deleteOperation = React.useCallback(
+    async (id: number) => {
+      const found = operations.find((operation) => operation.id === id)
+      if (!found) return
 
-    const { error } = await supabase.from("operations").delete().eq("id", id)
+      const { error } = await supabase.from("operations").delete().eq("id", id)
 
-    if (error) {
-      console.error("Error deleting operation", error)
-      alert("Не удалось удалить операцию")
-      return
-    }
+      if (error) {
+        console.error("Error deleting operation", error)
+        alert("Не удалось удалить операцию")
+        return
+      }
 
-    setLastDeleted(found)
-    setOperations((prev) => prev.filter((op) => op.id !== id))
-  }
+      setLastDeleted(found)
+      setOperations((prev) => prev.filter((operation) => operation.id !== id))
+    },
+    [operations]
+  )
 
-  async function undoDelete() {
+  const undoDelete = React.useCallback(async () => {
     if (!lastDeleted) return
 
     const payload = {
@@ -1237,9 +1341,9 @@ export default function App() {
 
     setOperations((prev) => [...prev, restored])
     setLastDeleted(null)
-  }
+  }, [lastDeleted])
 
-  async function undoAdd() {
+  const undoAdd = React.useCallback(async () => {
     if (!lastAdded) return
 
     const { error } = await supabase.from("operations").delete().eq("id", lastAdded.id)
@@ -1250,36 +1354,42 @@ export default function App() {
       return
     }
 
-    setOperations((prev) => prev.filter((op) => op.id !== lastAdded.id))
+    setOperations((prev) => prev.filter((operation) => operation.id !== lastAdded.id))
     setLastAdded(null)
-  }
+  }, [lastAdded])
 
-  async function updateMonthGoal(value: string) {
-    const numeric = Number(value)
-    const nextGoal = numeric > 0 ? numeric : 0
+  const updateMonthGoal = React.useCallback(
+    async (value: string) => {
+      const numeric = Number(value)
+      const nextGoal = numeric > 0 ? numeric : 0
 
-    setMonthGoals((prev) => ({
-      ...prev,
-      [selectedMonth]: nextGoal,
-    }))
+      setMonthGoals((prev) => ({
+        ...prev,
+        [selectedMonth]: nextGoal,
+      }))
 
-    const { error } = await supabase.from("month_goals").upsert({
-      month_key: selectedMonth,
-      goal: nextGoal,
-    })
+      const { error } = await supabase.from("month_goals").upsert({
+        month_key: selectedMonth,
+        goal: nextGoal,
+      })
 
-    if (error) {
-      console.error("Error saving month goal", error)
-    }
-  }
+      if (error) {
+        console.error("Error saving month goal", error)
+      }
+    },
+    [selectedMonth]
+  )
 
-  async function deleteSelectedMonth() {
+  const deleteSelectedMonth = React.useCallback(async () => {
     if (normalizedMonths.length <= 1) {
       alert("Нельзя удалить последний месяц.")
       return
     }
 
-    const opsForMonth = operations.filter((op) => toMonthKey(op.date) === selectedMonth)
+    const opsForMonth = operations.filter(
+      (operation) => toMonthKey(operation.date) === selectedMonth
+    )
+
     const hasOperations = opsForMonth.length > 0
 
     const confirmed = window.confirm(
@@ -1317,7 +1427,9 @@ export default function App() {
 
     const nextMonths = normalizedMonths.filter((month) => month !== selectedMonth)
 
-    setOperations((prev) => prev.filter((op) => toMonthKey(op.date) !== selectedMonth))
+    setOperations((prev) =>
+      prev.filter((operation) => toMonthKey(operation.date) !== selectedMonth)
+    )
     setMonths(nextMonths)
     setMonthGoals((prev) => {
       const copy = { ...prev }
@@ -1325,7 +1437,7 @@ export default function App() {
       return copy
     })
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
-  }
+  }, [normalizedMonths, operations, selectedMonth])
 
   return (
     <div className="min-h-screen text-white">
@@ -1410,7 +1522,7 @@ export default function App() {
                 onClick={() => setSelectedMonth(monthKey)}
                 className={`${CONTROL_RADIUS} px-4 py-2.5 text-sm font-medium capitalize transition duration-200 ${
                   selectedMonth === monthKey
-                    ? "bg-white text-black shadow-[0_12px_26px_rgba(255,255,255,0.12)]"
+                    ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.16)]"
                     : "bg-white/[0.05] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.045)_inset] hover:bg-white/[0.08]"
                 }`}
               >
@@ -1432,35 +1544,14 @@ export default function App() {
           </GlassCard>
 
           <div className="grid grid-cols-4 gap-6">
-            <GlassCard className="p-6">
-              <p className="text-sm text-zinc-400">Доход</p>
-              <h2 className="mt-2 text-4xl font-bold text-green-400">
-                {formatMoney(monthIncome)}
-              </h2>
-            </GlassCard>
-
-            <GlassCard className="p-6">
-              <p className="text-sm text-zinc-400">Аренда</p>
-              <h2 className="mt-2 text-4xl font-bold">{formatMoney(RENT_GOAL)}</h2>
-            </GlassCard>
-
-            <GlassCard className="p-6">
-              <p className="text-sm text-zinc-400">Осталось до аренды</p>
-              <h2 className="mt-2 text-4xl font-bold text-yellow-300">
-                {formatMoney(leftToRent)}
-              </h2>
-            </GlassCard>
-
-            <GlassCard className="p-6">
-              <p className="text-sm text-zinc-400">Чистая прибыль после аренды</p>
-              <h2
-                className={`mt-2 text-4xl font-bold ${
-                  profitAfterRent >= 0 ? "text-green-400" : "text-red-400"
-                }`}
-              >
-                {formatMoney(profitAfterRent)}
-              </h2>
-            </GlassCard>
+            <SummaryCard label="Доход" value={formatMoney(monthIncome)} valueClassName="text-green-400" />
+            <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
+            <SummaryCard label="Осталось до аренды" value={formatMoney(leftToRent)} valueClassName="text-yellow-300" />
+            <SummaryCard
+              label="Чистая прибыль после аренды"
+              value={formatMoney(profitAfterRent)}
+              valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+            />
           </div>
 
           <div className="mt-6 grid grid-cols-[2fr_1fr] gap-6">
@@ -1602,16 +1693,16 @@ export default function App() {
                         (a, b) =>
                           parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
                       )
-                      .map((op) => (
+                      .map((operation) => (
                         <tr
-                          key={op.id}
+                          key={operation.id}
                           className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
                         >
-                          <td className="px-4 py-4">{formatDisplayDate(op.date)}</td>
-                          <td className="px-4 py-4">{op.client}</td>
+                          <td className="px-4 py-4">{formatDisplayDate(operation.date)}</td>
+                          <td className="px-4 py-4">{operation.client}</td>
                           <td className="px-4 py-4">
                             <div className="space-y-1">
-                              {op.payments.map((payment) => (
+                              {operation.payments.map((payment) => (
                                 <div key={payment.id} className="text-zinc-300">
                                   {payment.type} — {formatMoney(payment.amount)}
                                 </div>
@@ -1620,31 +1711,29 @@ export default function App() {
                           </td>
                           <td className="px-4 py-4">
                             <div className="space-y-1">
-                              {op.services.map((service) => (
+                              {operation.services.map((service) => (
                                 <div key={service.id} className="text-zinc-300">
                                   {service.type}
-                                  {service.type === "Запись"
-                                    ? ` — ${service.hours} ч`
-                                    : ""}{" "}
-                                  — {formatMoney(service.amount)}
+                                  {service.type === "Запись" ? ` — ${service.hours} ч` : ""} —{" "}
+                                  {formatMoney(service.amount)}
                                 </div>
                               ))}
                             </div>
                           </td>
                           <td className="px-4 py-4 font-semibold">
-                            {formatMoney(getPaymentsTotal(op))}
+                            {formatMoney(getPaymentsTotal(operation))}
                           </td>
-                          <td className="px-4 py-4">{op.owner}</td>
+                          <td className="px-4 py-4">{operation.owner}</td>
                           <td className="px-4 py-4">
                             <div className="flex gap-2">
                               <button
-                                onClick={() => openEditModal(op)}
+                                onClick={() => openEditModal(operation)}
                                 className={`${SMALL_RADIUS} bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15`}
                               >
                                 Редактировать
                               </button>
                               <button
-                                onClick={() => void deleteOperation(op.id)}
+                                onClick={() => void deleteOperation(operation.id)}
                                 className={`${SMALL_RADIUS} bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25`}
                               >
                                 Удалить
@@ -1664,8 +1753,8 @@ export default function App() {
       {showModal && (
         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-4 backdrop-blur-[12px]">
           <div
-  className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.05)_inset]`}
->
+            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.05)_inset]`}
+          >
             <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
@@ -1696,31 +1785,26 @@ export default function App() {
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold">Услуги</p>
-                  <button
-                    onClick={addServiceRow}
-                    className={`${CONTROL_RADIUS} bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]`}
-                  >
+                  <GraphiteActionButton onClick={addServiceRow}>
                     + Добавить услугу
-                  </button>
+                  </GraphiteActionButton>
                 </div>
 
                 {serviceRows.map((row, index) => (
-                  <div
+                  <ModalRowCard
                     key={row.id}
-                    className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_30px_rgba(0,0,0,0.18)]`}
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="font-semibold">Услуга {index + 1}</p>
-                      {serviceRows.length > 1 && (
+                    title={`Услуга ${index + 1}`}
+                    dangerAction={
+                      serviceRows.length > 1 ? (
                         <button
                           onClick={() => removeServiceRow(row.id)}
                           className="text-sm text-red-400 transition hover:text-red-300"
                         >
                           Удалить услугу
                         </button>
-                      )}
-                    </div>
-
+                      ) : undefined
+                    }
+                  >
                     <div className="grid grid-cols-3 gap-4">
                       <CustomSelect<ServiceType>
                         value={row.type}
@@ -1769,7 +1853,7 @@ export default function App() {
                         {formatMoney(row.type === "Запись" ? row.hours * 1000 : row.amount)}
                       </div>
                     </div>
-                  </div>
+                  </ModalRowCard>
                 ))}
               </div>
 
@@ -1782,31 +1866,26 @@ export default function App() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={addPaymentRow}
-                    className={`${CONTROL_RADIUS} bg-white/[0.055] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-white/[0.085]`}
-                  >
+                  <GraphiteActionButton onClick={addPaymentRow}>
                     + Добавить оплату
-                  </button>
+                  </GraphiteActionButton>
                 </div>
 
                 {paymentRows.map((row, index) => (
-                  <div
+                  <ModalRowCard
                     key={row.id}
-                    className={`relative ${SURFACE_RADIUS} bg-white/[0.04] p-4 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset,0_14px_30px_rgba(0,0,0,0.14)]`}
-                  >
-                    <div className="mb-3 flex items-center justify-between">
-                      <p className="font-semibold">Оплата {index + 1}</p>
-                      {paymentRows.length > 1 && (
+                    title={`Оплата ${index + 1}`}
+                    dangerAction={
+                      paymentRows.length > 1 ? (
                         <button
                           onClick={() => removePaymentRow(row.id)}
                           className="text-sm text-red-400 transition hover:text-red-300"
                         >
                           Удалить оплату
                         </button>
-                      )}
-                    </div>
-
+                      ) : undefined
+                    }
+                  >
                     <div className="grid grid-cols-2 gap-4">
                       <CustomSelect<PaymentType>
                         value={row.type}
@@ -1841,7 +1920,7 @@ export default function App() {
                         />
                       )}
                     </div>
-                  </div>
+                  </ModalRowCard>
                 ))}
               </div>
 
@@ -1861,7 +1940,8 @@ export default function App() {
 
               {currentPaymentsTotal !== currentServicesTotal && (
                 <div className="mt-4 rounded-[20px] bg-[rgba(120,92,18,0.18)] p-4 text-sm text-yellow-100">
-                  Внимание: сумма оплат и сумма услуг не совпадают. Это нормально, если внесена только предоплата или оплата частями.
+                  Внимание: сумма оплат и сумма услуг не совпадают. Это нормально,
+                  если внесена только предоплата или оплата частями.
                 </div>
               )}
 

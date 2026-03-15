@@ -134,3 +134,43 @@ select:-webkit-autofill {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.24);
 }
+input,
+textarea,
+select {
+  color: #fff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #71717a;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: transparent;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  box-shadow: 0 0 0 1000px #20232d inset;
+  transition: background-color 9999s ease-in-out 0s;
+  border-radius: 20px;
+}
