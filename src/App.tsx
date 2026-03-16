@@ -430,9 +430,7 @@ function useOutsideClick(
         return element ? element.contains(target) : false
       })
 
-      if (!clickedInside) {
-        onClose()
-      }
+      if (!clickedInside) onClose()
     }
 
     document.addEventListener("pointerdown", handlePointerDown)
@@ -748,9 +746,9 @@ function SummaryCard({
   valueClassName?: string
 }) {
   return (
-    <GlassCard className="p-6">
+    <GlassCard className="p-5 sm:p-6">
       <p className="text-sm text-zinc-400">{label}</p>
-      <h2 className={`mt-2 text-4xl font-bold ${valueClassName}`}>{value}</h2>
+      <h2 className={`mt-2 text-3xl sm:text-4xl font-bold ${valueClassName}`}>{value}</h2>
     </GlassCard>
   )
 }
@@ -766,7 +764,7 @@ function ModalRowCard({
 }) {
   return (
     <div className={rowCardClassName}>
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <p className="font-semibold">{title}</p>
         {dangerAction}
       </div>
@@ -1446,9 +1444,9 @@ export default function App() {
       <div className="page-glow-3 pointer-events-none" />
       <div className="noise-overlay pointer-events-none" />
 
-      <div className="relative z-[1] flex min-h-screen">
-        <aside className="w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.018),0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px]">
-          <div className="mb-8">
+      <div className="relative z-[1] flex min-h-screen flex-col lg:flex-row">
+        <aside className="w-full lg:w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 sm:p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.018),0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px]">
+          <div className="mb-6 sm:mb-8">
             <div className="w-[86px] shrink-0">
               <img
                 src={logoWhite}
@@ -1479,7 +1477,7 @@ export default function App() {
             − Удалить месяц
           </button>
 
-          <div className="mt-8 space-y-4">
+          <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Аренда</p>
               <p className="mt-1 text-2xl font-bold">{formatMoney(RENT_GOAL)}</p>
@@ -1514,7 +1512,7 @@ export default function App() {
           </div>
         </aside>
 
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 lg:p-8">
           <div className="mb-6 flex flex-wrap items-center gap-3">
             {normalizedMonths.map((monthKey) => (
               <button
@@ -1532,18 +1530,18 @@ export default function App() {
           </div>
 
           <GlassCard className="mb-6 p-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <p className="text-sm text-zinc-400">Цель выбранного месяца</p>
               <input
                 type="number"
                 value={monthGoal}
                 onChange={(e) => void updateMonthGoal(e.target.value)}
-                className={`${fieldClassName} w-[180px]`}
+                className={`${fieldClassName} w-full sm:w-[220px]`}
               />
             </div>
           </GlassCard>
 
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
             <SummaryCard label="Доход" value={formatMoney(monthIncome)} valueClassName="text-green-400" />
             <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
             <SummaryCard label="Осталось до аренды" value={formatMoney(leftToRent)} valueClassName="text-yellow-300" />
@@ -1554,8 +1552,8 @@ export default function App() {
             />
           </div>
 
-          <div className="mt-6 grid grid-cols-[2fr_1fr] gap-6">
-            <GlassCard className="p-6">
+          <div className="mt-6 grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
+            <GlassCard className="p-4 sm:p-6">
               <div className="mb-5">
                 <p className="text-xl font-semibold">График по дням</p>
                 <p className="text-sm text-zinc-400">
@@ -1563,7 +1561,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="h-[360px]">
+              <div className="h-[280px] sm:h-[360px]">
                 <Bar data={chartData} options={chartOptions} />
               </div>
             </GlassCard>
@@ -1609,10 +1607,10 @@ export default function App() {
                     serviceRevenueRows.map(([serviceName, amount]) => (
                       <div
                         key={serviceName}
-                        className={`flex items-center justify-between ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+                        className={`flex items-center justify-between gap-4 ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                       >
                         <span>{serviceName}</span>
-                        <span className="font-semibold">{formatMoney(amount)}</span>
+                        <span className="font-semibold whitespace-nowrap">{formatMoney(amount)}</span>
                       </div>
                     ))
                   )}
@@ -1625,10 +1623,10 @@ export default function App() {
                   {paymentRevenueRows.map(([paymentName, amount]) => (
                     <div
                       key={paymentName}
-                      className={`flex items-center justify-between ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+                      className={`flex items-center justify-between gap-4 ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                     >
                       <span>{paymentName}</span>
-                      <span className="font-semibold">{formatMoney(amount)}</span>
+                      <span className="font-semibold whitespace-nowrap">{formatMoney(amount)}</span>
                     </div>
                   ))}
                 </div>
@@ -1636,14 +1634,14 @@ export default function App() {
             </div>
           </div>
 
-          <GlassCard className="mt-6 p-6">
-            <div className="mb-5 flex items-center justify-between">
+          <GlassCard className="mt-6 p-4 sm:p-6">
+            <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-xl font-semibold">История операций</p>
                 <p className="text-sm text-zinc-400">Все операции выбранного месяца</p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {lastAdded && (
                   <button
                     onClick={() => void undoAdd()}
@@ -1672,9 +1670,9 @@ export default function App() {
               </div>
             ) : (
               <div
-                className={`overflow-hidden ${SURFACE_RADIUS} bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+                className={`overflow-x-auto ${SURFACE_RADIUS} bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
               >
-                <table className="w-full text-left">
+                <table className="w-full min-w-[860px] text-left">
                   <thead className="bg-white/[0.045] text-sm text-zinc-400">
                     <tr>
                       <th className="px-4 py-3">Дата</th>
@@ -1751,11 +1749,11 @@ export default function App() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-4 backdrop-blur-[12px]">
+        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-2 sm:p-4 backdrop-blur-[12px]">
           <div
-            className={`relative w-full max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.05)_inset]`}
+            className={`relative w-full max-w-[98vw] sm:max-w-[95vw] lg:max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.05)_inset]`}
           >
-            <div className="max-h-[90vh] overflow-y-auto px-6 pb-6 pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
+            <div className="max-h-[92vh] overflow-y-auto px-4 sm:px-6 pb-6 pt-5 sm:pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
                   {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
@@ -1765,7 +1763,7 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <input
                   className={fieldClassName}
                   placeholder="Клиент"
@@ -1783,7 +1781,7 @@ export default function App() {
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <p className="text-lg font-semibold">Услуги</p>
                   <GraphiteActionButton onClick={addServiceRow}>
                     + Добавить услугу
@@ -1805,7 +1803,7 @@ export default function App() {
                       ) : undefined
                     }
                   >
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <CustomSelect<ServiceType>
                         value={row.type}
                         onChange={(selectedType) =>
@@ -1858,7 +1856,7 @@ export default function App() {
               </div>
 
               <div className="mt-8 space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <p className="text-lg font-semibold">Оплата</p>
                     <p className="mt-1 text-sm text-zinc-400">
@@ -1886,7 +1884,7 @@ export default function App() {
                       ) : undefined
                     }
                   >
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <CustomSelect<PaymentType>
                         value={row.type}
                         onChange={(selectedType) =>
@@ -1924,7 +1922,7 @@ export default function App() {
                 ))}
               </div>
 
-              <div className="mt-6 grid grid-cols-2 gap-4">
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <GlassCard className="p-4">
                   <p className="text-sm text-zinc-400">Итог по услугам</p>
                   <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
@@ -1945,26 +1943,26 @@ export default function App() {
                 </div>
               )}
 
-              <div className="sticky bottom-0 mt-6 flex items-center justify-between border-t border-white/10 bg-[rgba(10,12,20,0.96)] py-4 backdrop-blur-md">
+              <div className="sticky bottom-0 mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-white/10 bg-[rgba(10,12,20,0.96)] py-4 backdrop-blur-md">
                 <div>
                   <p className="text-sm text-zinc-400">Фактически получено</p>
                   <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => {
                       setShowModal(false)
                       resetForm()
                     }}
-                    className={`${SMALL_RADIUS} px-4 py-2 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white`}
+                    className={`${SMALL_RADIUS} px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white w-full sm:w-auto`}
                   >
                     Отмена
                   </button>
 
                   <button
                     onClick={() => void saveOperation()}
-                    className="rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(27,164,85,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99]"
+                    className="rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(27,164,85,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99] w-full sm:w-auto"
                   >
                     {editingOperationId ? "Сохранить изменения" : "Сохранить"}
                   </button>
