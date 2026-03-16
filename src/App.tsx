@@ -1,6 +1,5 @@
 import { supabase } from "./supabase"
 import React from "react"
-import { createPortal } from "react-dom"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,16 +11,6 @@ import {
 } from "chart.js"
 import { Bar } from "react-chartjs-2"
 import logoWhite from "./assets/logo-white.png"
-import BottomNav from "./components/BottomNav"
-
-function App() {
-  return (
-    <>
-      <MainPages />
-      <BottomNav />
-    </>
-  )
-}
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
@@ -58,33 +47,13 @@ type Operation = {
 
 type MonthGoals = Record<string, number>
 
-type FloatingPosition = {
-  top: number
-  left: number
-  width: number
-}
-
-type DatePickerProps = {
-  value: string
-  onChange: (value: string) => void
-}
-
-type CustomSelectProps<T extends string> = {
-  value: T
-  onChange: (value: T) => void
-  options: readonly T[]
-  placeholder?: string
-}
-
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
 const ONLINE_NET_AMOUNT = 487.5
 
-const SURFACE_RADIUS = "rounded-[30px]"
-const CONTROL_RADIUS = "rounded-[20px]"
-const SMALL_RADIUS = "rounded-[16px]"
-
-const serviceOptions: readonly ServiceType[] = [
+const ownerOptions: Owner[] = ["Азат", "Марс"]
+const paymentOptions: PaymentType[] = ["Нал", "Карта", "Онлайн"]
+const serviceOptions: ServiceType[] = [
   "Запись",
   "Сведение",
   "Дистрибуция",
@@ -92,44 +61,13 @@ const serviceOptions: readonly ServiceType[] = [
   "Другое",
 ]
 
-const ownerOptions: readonly Owner[] = ["Азат", "Марс"]
-const paymentOptions: readonly PaymentType[] = ["Нал", "Карта", "Онлайн"]
+function makeId() {
+  return Date.now() + Math.floor(Math.random() * 100000)
+}
 
-const fieldClassName = `
-w-full rounded-[20px]
-appearance-none
-border border-white/10
-!bg-[#20232d]
-px-4 py-3 text-white outline-none
-shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_12px_30px_rgba(0,0,0,0.28)]
-backdrop-blur-xl transition duration-200
-placeholder:text-zinc-500
-hover:!bg-[#252934]
-focus:!bg-[#282d39]
-focus:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset,0_14px_34px_rgba(0,0,0,0.32)]
-[color-scheme:dark]
-`
-
-const popupClassName = `
-overflow-hidden rounded-[24px]
-border border-white/[0.08]
-bg-[linear-gradient(180deg,rgba(34,37,46,0.98),rgba(17,19,25,0.99))]
-shadow-[0_36px_90px_rgba(0,0,0,0.72),0_1px_0_rgba(255,255,255,0.04)_inset]
-backdrop-blur-[28px]
-`
-
-const rowCardClassName = `
-relative rounded-[30px]
-bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))]
-p-4
-shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_30px_rgba(0,0,0,0.18)]
-`
-
-function toMonthKey(dateString: string) {
-  const date = new Date(dateString)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  return `${year}-${month}`
+function formatMoney(value: number) {
+  if (Number.isInteger(value)) return `${value} ₽`
+  return `${value.toFixed(1)} ₽`
 }
 
 function formatInputDate(date: Date) {
@@ -151,19 +89,26 @@ function formatDisplayDate(dateString: string) {
   return date.toLocaleDateString("ru-RU")
 }
 
+function toMonthKey(dateString: string) {
+  if (!dateString) return getInitialMonthKey()
+  const date = parseInputDate(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  return `${year}-${month}`
+}
+
 function formatMonthLabel(monthKey: string) {
   const [year, month] = monthKey.split("-")
   const date = new Date(Number(year), Number(month) - 1, 1)
-
   return date.toLocaleDateString("ru-RU", {
     month: "long",
     year: "numeric",
   })
 }
 
-function formatMoney(value: number) {
-  if (Number.isInteger(value)) return `${value} ₽`
-  return `${value.toFixed(1)} ₽`
+function getInitialMonthKey() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
 }
 
 function getDaysInMonth(monthKey: string) {
@@ -172,35 +117,27 @@ function getDaysInMonth(monthKey: string) {
 }
 
 function getPaymentsTotal(operation: Operation) {
-  return operation.payments.reduce((sum, item) => sum + item.amount, 0)
+  return operation.payments.reduce((sum, item) => sum + Number(item.amount || 0), 0)
 }
 
 function getServiceRevenueMap(operations: Operation[]) {
   const map = new Map<ServiceType, number>()
-
   operations.forEach((operation) => {
     operation.services.forEach((service) => {
-      map.set(service.type, (map.get(service.type) || 0) + service.amount)
+      map.set(service.type, (map.get(service.type) || 0) + Number(service.amount || 0))
     })
   })
-
   return map
 }
 
 function getPaymentRevenueMap(operations: Operation[]) {
   const map = new Map<PaymentType, number>()
-
   operations.forEach((operation) => {
     operation.payments.forEach((payment) => {
-      map.set(payment.type, (map.get(payment.type) || 0) + payment.amount)
+      map.set(payment.type, (map.get(payment.type) || 0) + Number(payment.amount || 0))
     })
   })
-
   return map
-}
-
-function makeId() {
-  return Date.now() + Math.floor(Math.random() * 100000)
 }
 
 function makeServiceRow(type: ServiceType = "Запись"): ServiceItem {
@@ -220,73 +157,6 @@ function makePaymentRow(type: PaymentType = "Нал"): PaymentItem {
   }
 }
 
-function normalizePayments(rawPayments: unknown): PaymentItem[] {
-  if (!Array.isArray(rawPayments)) return []
-
-  return rawPayments.map((item, index) => {
-    const raw = item as Partial<PaymentItem>
-    const type = (raw.type as PaymentType) || "Нал"
-    const amount = type === "Онлайн" ? ONLINE_NET_AMOUNT : Number(raw.amount) || 0
-
-    return {
-      id: Number(raw.id) || makeId() + index,
-      type,
-      amount,
-    }
-  })
-}
-
-function getInitialMonthKey() {
-  const now = new Date()
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
-}
-
-function getPreviousDayString() {
-  const date = new Date()
-  date.setDate(date.getDate() - 1)
-  return formatInputDate(date)
-}
-
-function getCalendarGrid(viewDate: Date) {
-  const year = viewDate.getFullYear()
-  const month = viewDate.getMonth()
-
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-
-  const jsWeekday = firstDay.getDay()
-  const mondayFirstOffset = (jsWeekday + 6) % 7
-
-  const daysInMonth = lastDay.getDate()
-  const prevMonthLastDay = new Date(year, month, 0).getDate()
-
-  const cells: { date: Date; currentMonth: boolean }[] = []
-
-  for (let i = mondayFirstOffset - 1; i >= 0; i--) {
-    cells.push({
-      date: new Date(year, month - 1, prevMonthLastDay - i),
-      currentMonth: false,
-    })
-  }
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    cells.push({
-      date: new Date(year, month, day),
-      currentMonth: true,
-    })
-  }
-
-  while (cells.length % 7 !== 0) {
-    const nextDay = cells.length - (mondayFirstOffset + daysInMonth) + 1
-    cells.push({
-      date: new Date(year, month + 1, nextDay),
-      currentMonth: false,
-    })
-  }
-
-  return cells
-}
-
 function normalizeServiceRow(row: ServiceItem): ServiceItem {
   if (row.type === "Запись") {
     const hours = Number(row.hours) || 1
@@ -299,6 +169,7 @@ function normalizeServiceRow(row: ServiceItem): ServiceItem {
 
   return {
     ...row,
+    hours: Number(row.hours) || 0,
     amount: Number(row.amount) || 0,
   }
 }
@@ -317,414 +188,35 @@ function normalizePaymentRow(row: PaymentItem): PaymentItem {
   }
 }
 
-function CalendarIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M16 3v4" />
-      <path d="M8 3v4" />
-      <path d="M3 10h18" />
-    </svg>
-  )
-}
-
-function ChevronLeft() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  )
-}
-
-function ChevronRight() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  )
-}
-
-function ChevronDown() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  )
-}
-
-function useFloatingPosition(
-  open: boolean,
-  anchorRef: React.RefObject<HTMLElement | null>
-) {
-  const [position, setPosition] = React.useState<FloatingPosition>({
-    top: 0,
-    left: 0,
-    width: 0,
+function normalizePayments(rawPayments: unknown): PaymentItem[] {
+  if (!Array.isArray(rawPayments)) return []
+  return rawPayments.map((item, index) => {
+    const raw = item as Partial<PaymentItem>
+    const type = (raw.type as PaymentType) || "Нал"
+    return {
+      id: Number(raw.id) || makeId() + index,
+      type,
+      amount: type === "Онлайн" ? ONLINE_NET_AMOUNT : Number(raw.amount) || 0,
+    }
   })
+}
 
-  const updatePosition = React.useCallback(() => {
-    const element = anchorRef.current
-    if (!element) return
+function normalizeServices(rawServices: unknown): ServiceItem[] {
+  if (!Array.isArray(rawServices)) return []
+  return rawServices.map((item, index) => {
+    const raw = item as Partial<ServiceItem>
+    const type = (raw.type as ServiceType) || "Запись"
+    const hours = Number(raw.hours) || (type === "Запись" ? 1 : 0)
+    const amount =
+      type === "Запись" ? hours * 1000 : Number(raw.amount) || 0
 
-    const rect = element.getBoundingClientRect()
-
-    setPosition({
-      top: rect.bottom + window.scrollY + 12,
-      left: rect.left + window.scrollX,
-      width: rect.width,
-    })
-  }, [anchorRef])
-
-  React.useEffect(() => {
-    if (!open) return
-
-    updatePosition()
-
-    window.addEventListener("resize", updatePosition)
-    window.addEventListener("scroll", updatePosition, true)
-
-    return () => {
-      window.removeEventListener("resize", updatePosition)
-      window.removeEventListener("scroll", updatePosition, true)
+    return {
+      id: Number(raw.id) || makeId() + index,
+      type,
+      hours,
+      amount,
     }
-  }, [open, updatePosition])
-
-  return position
-}
-
-function useOutsideClick(
-  open: boolean,
-  refs: Array<React.RefObject<HTMLElement | null>>,
-  onClose: () => void
-) {
-  React.useEffect(() => {
-    if (!open) return
-
-    function handlePointerDown(event: PointerEvent) {
-      const target = event.target as Node
-
-      const clickedInside = refs.some((ref) => {
-        const element = ref.current
-        return element ? element.contains(target) : false
-      })
-
-      if (!clickedInside) onClose()
-    }
-
-    document.addEventListener("pointerdown", handlePointerDown)
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown)
-    }
-  }, [open, refs, onClose])
-}
-
-function PortalDropdown({
-  open,
-  anchorRef,
-  panelRef,
-  children,
-  width,
-}: {
-  open: boolean
-  anchorRef: React.RefObject<HTMLElement | null>
-  panelRef: React.RefObject<HTMLDivElement | null>
-  children: React.ReactNode
-  width?: number
-}) {
-  const position = useFloatingPosition(open, anchorRef)
-
-  if (!open) return null
-
-  return createPortal(
-    <div className="fixed inset-0 z-[99999]" style={{ pointerEvents: "none" }}>
-      <div
-        ref={panelRef}
-        className={popupClassName}
-        style={{
-          position: "absolute",
-          top: position.top,
-          left: position.left,
-          width: width ?? position.width,
-          pointerEvents: "auto",
-        }}
-      >
-        {children}
-      </div>
-    </div>,
-    document.body
-  )
-}
-
-function GraphiteActionButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode
-  onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`${CONTROL_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.02))] px-4 py-3 text-sm font-medium text-white shadow-[0_1px_0_rgba(255,255,255,0.045)_inset,0_10px_24px_rgba(0,0,0,0.14)] transition hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))]`}
-    >
-      {children}
-    </button>
-  )
-}
-
-function CustomSelect<T extends string>({
-  value,
-  onChange,
-  options,
-  placeholder,
-}: CustomSelectProps<T>) {
-  const [open, setOpen] = React.useState(false)
-
-  const wrapperRef = React.useRef<HTMLDivElement | null>(null)
-  const buttonRef = React.useRef<HTMLButtonElement | null>(null)
-  const panelRef = React.useRef<HTMLDivElement | null>(null)
-
-  useOutsideClick(open, [wrapperRef, panelRef], () => setOpen(false))
-
-  return (
-    <div ref={wrapperRef} className="relative">
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={`${fieldClassName} flex items-center justify-between text-left`}
-      >
-        <span className={value ? "text-white" : "text-zinc-500"}>
-          {value || placeholder || "Выбрать"}
-        </span>
-
-        <span
-          className={`text-zinc-400 transition duration-200 ${
-            open ? "rotate-180" : ""
-          }`}
-        >
-          <ChevronDown />
-        </span>
-      </button>
-
-      <PortalDropdown open={open} anchorRef={buttonRef} panelRef={panelRef}>
-        <div className="p-2">
-          <div className="space-y-1">
-            {options.map((option) => {
-              const isActive = option === value
-
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => {
-                    onChange(option)
-                    setOpen(false)
-                  }}
-                  className={`w-full rounded-[16px] border px-4 py-3 text-left text-sm transition ${
-                    isActive
-                      ? "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.035))] text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)]"
-                      : "border-transparent bg-white/[0.03] text-zinc-200 hover:border-white/8 hover:bg-white/[0.06]"
-                  }`}
-                >
-                  {option}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </PortalDropdown>
-    </div>
-  )
-}
-
-function CustomDatePicker({ value, onChange }: DatePickerProps) {
-  const [open, setOpen] = React.useState(false)
-  const [viewDate, setViewDate] = React.useState<Date>(
-    value ? parseInputDate(value) : new Date()
-  )
-
-  const wrapperRef = React.useRef<HTMLDivElement | null>(null)
-  const buttonRef = React.useRef<HTMLButtonElement | null>(null)
-  const panelRef = React.useRef<HTMLDivElement | null>(null)
-
-  useOutsideClick(open, [wrapperRef, panelRef], () => setOpen(false))
-
-  React.useEffect(() => {
-    if (!value) return
-
-    const parsed = parseInputDate(value)
-    if (!Number.isNaN(parsed.getTime())) {
-      setViewDate(parsed)
-    }
-  }, [value])
-
-  const cells = React.useMemo(() => getCalendarGrid(viewDate), [viewDate])
-  const todayString = formatInputDate(new Date())
-  const selectedString = value
-
-  function selectDate(date: Date) {
-    onChange(formatInputDate(date))
-    setOpen(false)
-  }
-
-  function pickToday() {
-    const today = formatInputDate(new Date())
-    onChange(today)
-    setViewDate(parseInputDate(today))
-    setOpen(false)
-  }
-
-  function pickYesterday() {
-    const yesterday = getPreviousDayString()
-    onChange(yesterday)
-    setViewDate(parseInputDate(yesterday))
-    setOpen(false)
-  }
-
-  return (
-    <div ref={wrapperRef} className="relative">
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={`${fieldClassName} flex items-center justify-between text-left`}
-      >
-        <span className={value ? "text-white" : "text-zinc-500"}>
-          {value ? formatDisplayDate(value) : "xx.xx.xxxx"}
-        </span>
-
-        <span className="text-zinc-400">
-          <CalendarIcon />
-        </span>
-      </button>
-
-      <PortalDropdown
-        open={open}
-        anchorRef={buttonRef}
-        panelRef={panelRef}
-        width={320}
-      >
-        <div className="p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() =>
-                setViewDate(
-                  new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
-                )
-              }
-              className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-white/[0.05] text-zinc-300 transition hover:bg-white/[0.08]"
-            >
-              <ChevronLeft />
-            </button>
-
-            <p className="text-sm font-semibold capitalize text-white">
-              {viewDate.toLocaleDateString("ru-RU", {
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-
-            <button
-              type="button"
-              onClick={() =>
-                setViewDate(
-                  new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
-                )
-              }
-              className="flex h-9 w-9 items-center justify-center rounded-[14px] bg-white/[0.05] text-zinc-300 transition hover:bg-white/[0.08]"
-            >
-              <ChevronRight />
-            </button>
-          </div>
-
-          <div className="mb-3 grid grid-cols-7 gap-1 text-center text-xs text-zinc-500">
-            {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
-              <div key={day} className="py-2">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {cells.map((cell) => {
-              const cellString = formatInputDate(cell.date)
-              const isSelected = cellString === selectedString
-              const isToday = cellString === todayString
-
-              return (
-                <button
-                  key={cellString}
-                  type="button"
-                  onClick={() => selectDate(cell.date)}
-                  className={`h-10 rounded-[14px] text-sm transition ${
-                    isSelected
-                      ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05))] text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)]"
-                      : cell.currentMonth
-                        ? "bg-white/[0.05] text-white hover:bg-white/[0.08]"
-                        : "bg-transparent text-zinc-600 hover:bg-white/[0.04]"
-                  } ${isToday && !isSelected ? "ring-1 ring-white/10" : ""}`}
-                >
-                  {cell.date.getDate()}
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={pickToday}
-              className="rounded-[14px] bg-white/[0.05] px-3 py-2 text-sm text-white transition hover:bg-white/[0.08]"
-            >
-              Сегодня
-            </button>
-            <button
-              type="button"
-              onClick={pickYesterday}
-              className="rounded-[14px] bg-white/[0.05] px-3 py-2 text-sm text-white transition hover:bg-white/[0.08]"
-            >
-              Вчера
-            </button>
-          </div>
-        </div>
-      </PortalDropdown>
-    </div>
-  )
+  })
 }
 
 function GlassCard({
@@ -736,12 +228,9 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`relative ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] shadow-[0_16px_40px_rgba(0,0,0,0.28),0_1px_0_rgba(255,255,255,0.04)_inset,0_-1px_0_rgba(255,255,255,0.01)_inset] backdrop-blur-[24px] transition duration-300 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.022))] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3),0_1px_0_rgba(255,255,255,0.045)_inset,0_-1px_0_rgba(255,255,255,0.012)_inset] ${className}`}
+      className={`rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-[24px] ${className}`}
     >
-      <div
-        className={`pointer-events-none absolute inset-0 ${SURFACE_RADIUS} bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.07),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012)_35%,rgba(255,255,255,0.006)_100%)] opacity-90`}
-      />
-      <div className="relative z-[1]">{children}</div>
+      {children}
     </div>
   )
 }
@@ -758,28 +247,30 @@ function SummaryCard({
   return (
     <GlassCard className="p-5 sm:p-6">
       <p className="text-sm text-zinc-400">{label}</p>
-      <h2 className={`mt-2 text-3xl sm:text-4xl font-bold ${valueClassName}`}>{value}</h2>
+      <h2 className={`mt-2 text-3xl font-bold ${valueClassName}`}>{value}</h2>
     </GlassCard>
   )
 }
 
-function ModalRowCard({
-  title,
-  children,
-  dangerAction,
-}: {
-  title: string
-  children: React.ReactNode
-  dangerAction?: React.ReactNode
-}) {
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 text-sm text-zinc-400">{children}</p>
+}
+
+function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className={rowCardClassName}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="font-semibold">{title}</p>
-        {dangerAction}
-      </div>
-      {children}
-    </div>
+    <input
+      {...props}
+      className={`w-full rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 text-white outline-none transition placeholder:text-zinc-500 focus:border-white/20 focus:bg-[#262a35] ${props.className || ""}`}
+    />
+  )
+}
+
+function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      className={`w-full rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 text-white outline-none transition focus:border-white/20 focus:bg-[#262a35] ${props.className || ""}`}
+    />
   )
 }
 
@@ -793,9 +284,7 @@ function MobileOperationCard({
   onDelete: (id: number) => void
 }) {
   return (
-    <div
-      className={`${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_30px_rgba(0,0,0,0.18)]`}
-    >
+    <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.18)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-base font-semibold text-white">{operation.client}</p>
@@ -812,7 +301,7 @@ function MobileOperationCard({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3">
+      <div className="mt-4 grid gap-3">
         <div className="rounded-[18px] bg-white/[0.04] p-3">
           <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
             Кто работал
@@ -880,6 +369,56 @@ function MobileOperationCard({
   )
 }
 
+function BottomNav({
+  activeTab,
+  onChange,
+  onAdd,
+}: {
+  activeTab: "dashboard" | "operations" | "analytics" | "settings"
+  onChange: (tab: "dashboard" | "operations" | "analytics" | "settings") => void
+  onAdd: () => void
+}) {
+  const itemClass = (tab: "dashboard" | "operations" | "analytics" | "settings") =>
+    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-xs transition ${
+      activeTab === tab
+        ? "bg-white/10 text-white"
+        : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+    }`
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-[500] border-t border-white/10 bg-[rgba(8,10,16,0.92)] px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-3 backdrop-blur-xl md:hidden">
+      <div className="mx-auto flex max-w-xl items-center gap-2 rounded-[28px] border border-white/10 bg-[rgba(18,20,28,0.95)] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+        <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
+          <span className="text-lg">🏠</span>
+          <span>Главная</span>
+        </button>
+
+        <button className={itemClass("operations")} onClick={() => onChange("operations")}>
+          <span className="text-lg">🧾</span>
+          <span>Операции</span>
+        </button>
+
+        <button
+          onClick={onAdd}
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-2xl font-bold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34)]"
+        >
+          +
+        </button>
+
+        <button className={itemClass("analytics")} onClick={() => onChange("analytics")}>
+          <span className="text-lg">📊</span>
+          <span>Аналитика</span>
+        </button>
+
+        <button className={itemClass("settings")} onClick={() => onChange("settings")}>
+          <span className="text-lg">⚙️</span>
+          <span>Ещё</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const initialMonthKey = React.useMemo(() => getInitialMonthKey(), [])
 
@@ -902,10 +441,14 @@ export default function App() {
   const [lastDeleted, setLastDeleted] = React.useState<Operation | null>(null)
   const [lastAdded, setLastAdded] = React.useState<Operation | null>(null)
 
+  const [activeTab, setActiveTab] = React.useState<
+    "dashboard" | "operations" | "analytics" | "settings"
+  >("dashboard")
+
   const resetForm = React.useCallback(() => {
     setClient("")
     setOwner("Азат")
-    setOperationDate("")
+    setOperationDate(formatInputDate(new Date()))
     setServiceRows([makeServiceRow()])
     setPaymentRows([makePaymentRow("Нал")])
     setEditingOperationId(null)
@@ -932,11 +475,11 @@ export default function App() {
     }
 
     const mappedOperations: Operation[] = (operationsData || []).map((item) => ({
-      id: item.id,
-      date: item.date,
-      client: item.client,
-      owner: item.owner as Owner,
-      services: (item.services as ServiceItem[]) || [],
+      id: Number(item.id),
+      date: String(item.date),
+      client: String(item.client || "Без клиента"),
+      owner: (item.owner as Owner) || "Азат",
+      services: normalizeServices(item.services),
       payments: normalizePayments(item.payments),
     }))
 
@@ -944,8 +487,8 @@ export default function App() {
     const monthSet = new Set<string>([initialMonthKey])
 
     ;(goalsData || []).forEach((goalRow) => {
-      goalMap[goalRow.month_key] = Number(goalRow.goal)
-      monthSet.add(goalRow.month_key)
+      goalMap[String(goalRow.month_key)] = Number(goalRow.goal) || DEFAULT_MONTH_GOAL
+      monthSet.add(String(goalRow.month_key))
     })
 
     mappedOperations.forEach((operation) => {
@@ -1052,7 +595,6 @@ export default function App() {
     selectedMonthOperations.forEach((operation) => {
       const day = parseInputDate(operation.date).getDate()
       const index = day - 1
-
       if (values[index]) {
         values[index].amount += getPaymentsTotal(operation)
       }
@@ -1154,12 +696,16 @@ export default function App() {
 
   const currentServicesTotal = React.useMemo(() => {
     return serviceRows.reduce((sum, row) => {
-      return sum + (row.type === "Запись" ? row.hours * 1000 : row.amount)
+      const normalized = normalizeServiceRow(row)
+      return sum + normalized.amount
     }, 0)
   }, [serviceRows])
 
   const currentPaymentsTotal = React.useMemo(() => {
-    return paymentRows.reduce((sum, row) => sum + row.amount, 0)
+    return paymentRows.reduce((sum, row) => {
+      const normalized = normalizePaymentRow(row)
+      return sum + normalized.amount
+    }, 0)
   }, [paymentRows])
 
   const openCreateModal = React.useCallback(() => {
@@ -1304,11 +850,11 @@ export default function App() {
       }
 
       const updatedOperation: Operation = {
-        id: data.id,
-        date: data.date,
-        client: data.client,
+        id: Number(data.id),
+        date: String(data.date),
+        client: String(data.client),
         owner: data.owner as Owner,
-        services: (data.services as ServiceItem[]) || [],
+        services: normalizeServices(data.services),
         payments: normalizePayments(data.payments),
       }
 
@@ -1331,11 +877,11 @@ export default function App() {
       }
 
       const newOperation: Operation = {
-        id: data.id,
-        date: data.date,
-        client: data.client,
+        id: Number(data.id),
+        date: String(data.date),
+        client: String(data.client),
         owner: data.owner as Owner,
-        services: (data.services as ServiceItem[]) || [],
+        services: normalizeServices(data.services),
         payments: normalizePayments(data.payments),
       }
 
@@ -1442,11 +988,11 @@ export default function App() {
     }
 
     const restored: Operation = {
-      id: data.id,
-      date: data.date,
-      client: data.client,
+      id: Number(data.id),
+      date: String(data.date),
+      client: String(data.client),
       owner: data.owner as Owner,
-      services: (data.services as ServiceItem[]) || [],
+      services: normalizeServices(data.services),
       payments: normalizePayments(data.payments),
     }
 
@@ -1550,16 +1096,26 @@ export default function App() {
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
   }, [normalizedMonths, operations, selectedMonth])
 
+  const visibleContent = React.useMemo(() => {
+    if (activeTab === "dashboard") return "dashboard"
+    if (activeTab === "operations") return "operations"
+    if (activeTab === "analytics") return "analytics"
+    return "settings"
+  }, [activeTab])
+
+  React.useEffect(() => {
+    if (operationDate === "") {
+      setOperationDate(formatInputDate(new Date()))
+    }
+  }, [operationDate])
+
   return (
-    <div className="min-h-screen text-white">
-      <div className="page-glow pointer-events-none" />
-      <div className="page-glow-2 pointer-events-none" />
-      <div className="page-glow-3 pointer-events-none" />
-      <div className="noise-overlay pointer-events-none" />
+    <div className="min-h-screen bg-[#0a0c12] pb-28 text-white md:pb-0">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(75,108,255,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(52,211,235,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(119,63,255,0.14),transparent_26%)]" />
 
       <div className="relative z-[1] flex min-h-screen flex-col lg:flex-row">
-        <aside className="w-full lg:w-[290px] bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 sm:p-6 shadow-[inset_-1px_0_0_rgba(255,255,255,0.018),0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px]">
-          <div className="mb-6 sm:mb-8">
+        <aside className="w-full border-r border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px] lg:w-[290px] lg:p-6">
+          <div className="mb-8">
             <div className="w-[86px] shrink-0">
               <img
                 src={logoWhite}
@@ -1569,28 +1125,30 @@ export default function App() {
             </div>
           </div>
 
-          <button
-            onClick={openCreateModal}
-            className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34),0_1px_0_rgba(255,255,255,0.2)_inset] transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_20px_40px_rgba(79,101,255,0.38),0_1px_0_rgba(255,255,255,0.22)_inset] active:scale-[0.99]"
-          >
-            + Добавить операцию
-          </button>
+          <div className="hidden md:block">
+            <button
+              onClick={openCreateModal}
+              className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34)] transition hover:-translate-y-[1px]"
+            >
+              + Добавить операцию
+            </button>
 
-          <button
-            onClick={() => void createNewMonth()}
-            className="mt-3 w-full rounded-[20px] bg-[linear-gradient(180deg,rgba(95,122,255,0.18),rgba(70,90,190,0.14))] px-4 py-4 text-base font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.08] active:scale-[0.99]"
-          >
-            + Новый месяц
-          </button>
+            <button
+              onClick={() => void createNewMonth()}
+              className="mt-3 w-full rounded-[20px] bg-white/[0.06] px-4 py-4 text-base font-semibold text-white transition hover:bg-white/[0.08]"
+            >
+              + Новый месяц
+            </button>
 
-          <button
-            onClick={() => void deleteSelectedMonth()}
-            className="mt-3 w-full rounded-[20px] bg-[linear-gradient(180deg,rgba(170,65,125,0.22),rgba(112,58,130,0.18))] px-4 py-4 text-base font-semibold text-red-200 shadow-[0_1px_0_rgba(255,255,255,0.05)_inset,0_-1px_0_rgba(255,255,255,0.018)_inset,0_12px_26px_rgba(0,0,0,0.16)] transition duration-200 hover:-translate-y-[1px] hover:bg-red-500/15 active:scale-[0.99]"
-          >
-            − Удалить месяц
-          </button>
+            <button
+              onClick={() => void deleteSelectedMonth()}
+              className="mt-3 w-full rounded-[20px] bg-red-500/10 px-4 py-4 text-base font-semibold text-red-200 transition hover:bg-red-500/15"
+            >
+              − Удалить месяц
+            </button>
+          </div>
 
-          <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
             <GlassCard className="p-4">
               <p className="text-sm text-zinc-400">Аренда</p>
               <p className="mt-1 text-2xl font-bold">{formatMoney(RENT_GOAL)}</p>
@@ -1631,10 +1189,10 @@ export default function App() {
               <button
                 key={monthKey}
                 onClick={() => setSelectedMonth(monthKey)}
-                className={`${CONTROL_RADIUS} px-4 py-2.5 text-sm font-medium capitalize transition duration-200 ${
+                className={`rounded-[18px] px-4 py-2.5 text-sm font-medium capitalize transition ${
                   selectedMonth === monthKey
-                    ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.05))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.16)]"
-                    : "bg-white/[0.05] text-zinc-300 shadow-[0_1px_0_rgba(255,255,255,0.045)_inset] hover:bg-white/[0.08]"
+                    ? "bg-white/[0.14] text-white"
+                    : "bg-white/[0.05] text-zinc-300 hover:bg-white/[0.08]"
                 }`}
               >
                 {formatMonthLabel(monthKey)}
@@ -1643,242 +1201,308 @@ export default function App() {
           </div>
 
           <GlassCard className="mb-6 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <p className="text-sm text-zinc-400">Цель выбранного месяца</p>
-              <input
+              <TextInput
                 type="number"
                 value={monthGoal}
                 onChange={(e) => void updateMonthGoal(e.target.value)}
-                className={`${fieldClassName} w-full sm:w-[220px]`}
+                className="w-full sm:w-[220px]"
               />
             </div>
           </GlassCard>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-            <SummaryCard label="Доход" value={formatMoney(monthIncome)} valueClassName="text-green-400" />
-            <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
-            <SummaryCard label="Осталось до аренды" value={formatMoney(leftToRent)} valueClassName="text-yellow-300" />
-            <SummaryCard
-              label="Чистая прибыль после аренды"
-              value={formatMoney(profitAfterRent)}
-              valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
-            />
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-            <GlassCard className="p-4 sm:p-6">
-              <div className="mb-5">
-                <p className="text-xl font-semibold">График по дням</p>
-                <p className="text-sm text-zinc-400">
-                  Красный — 0 клиентов, жёлтый — слабый день, зелёный — нормальный
-                </p>
+          {(visibleContent === "dashboard" || visibleContent === "operations") && (
+            <>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <SummaryCard
+                  label="Доход"
+                  value={formatMoney(monthIncome)}
+                  valueClassName="text-green-400"
+                />
+                <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
+                <SummaryCard
+                  label="Осталось до аренды"
+                  value={formatMoney(leftToRent)}
+                  valueClassName="text-yellow-300"
+                />
+                <SummaryCard
+                  label="Чистая прибыль после аренды"
+                  value={formatMoney(profitAfterRent)}
+                  valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+                />
               </div>
+            </>
+          )}
 
-              <div className="h-[280px] sm:h-[360px]">
-                <Bar data={chartData} options={chartOptions} />
-              </div>
-            </GlassCard>
-
-            <div className="space-y-6">
-              <GlassCard className="p-6">
-                <p className="text-lg font-semibold">Самые прибыльные дни</p>
-                <div className="mt-4 space-y-3">
-                  {dailyStats.bestDays.length === 0 ? (
-                    <p className="text-sm text-zinc-400">Пока нет данных</p>
-                  ) : (
-                    dailyStats.bestDays.map((day) => (
-                      <div
-                        key={day.dateKey}
-                        className={`${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
-                      >
-                        <p className="text-sm text-zinc-400">
-                          {formatDisplayDate(day.dateKey)}
-                        </p>
-                        <p className="text-xl font-bold">{formatMoney(day.amount)}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </GlassCard>
-
-              <GlassCard className="p-6">
-                <p className="text-lg font-semibold">Просадочные дни</p>
-                <div className="mt-4">
-                  <p className="text-4xl font-bold text-red-400">{dailyStats.weakDays}</p>
-                  <p className="mt-2 text-sm text-zinc-400">
-                    дней без клиентов в этом месяце
+          {(visibleContent === "dashboard" || visibleContent === "analytics") && (
+            <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+              <GlassCard className="p-4 sm:p-6">
+                <div className="mb-5">
+                  <p className="text-xl font-semibold">График по дням</p>
+                  <p className="text-sm text-zinc-400">
+                    Красный — 0 клиентов, жёлтый — слабый день, зелёный — нормальный
                   </p>
                 </div>
+
+                <div className="h-[280px] sm:h-[360px]">
+                  <Bar data={chartData} options={chartOptions} />
+                </div>
               </GlassCard>
 
-              <GlassCard className="p-6">
-                <p className="text-lg font-semibold">Доход по услугам</p>
-                <div className="mt-4 space-y-3">
-                  {serviceRevenueRows.length === 0 ? (
-                    <p className="text-sm text-zinc-400">Пока нет данных</p>
-                  ) : (
-                    serviceRevenueRows.map(([serviceName, amount]) => (
+              <div className="space-y-6">
+                <GlassCard className="p-6">
+                  <p className="text-lg font-semibold">Самые прибыльные дни</p>
+                  <div className="mt-4 space-y-3">
+                    {dailyStats.bestDays.length === 0 ? (
+                      <p className="text-sm text-zinc-400">Пока нет данных</p>
+                    ) : (
+                      dailyStats.bestDays.map((day) => (
+                        <div
+                          key={day.dateKey}
+                          className="rounded-[18px] bg-white/[0.05] p-3"
+                        >
+                          <p className="text-sm text-zinc-400">
+                            {formatDisplayDate(day.dateKey)}
+                          </p>
+                          <p className="text-xl font-bold">{formatMoney(day.amount)}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <p className="text-lg font-semibold">Просадочные дни</p>
+                  <div className="mt-4">
+                    <p className="text-4xl font-bold text-red-400">{dailyStats.weakDays}</p>
+                    <p className="mt-2 text-sm text-zinc-400">
+                      дней без клиентов в этом месяце
+                    </p>
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <p className="text-lg font-semibold">Доход по услугам</p>
+                  <div className="mt-4 space-y-3">
+                    {serviceRevenueRows.length === 0 ? (
+                      <p className="text-sm text-zinc-400">Пока нет данных</p>
+                    ) : (
+                      serviceRevenueRows.map(([serviceName, amount]) => (
+                        <div
+                          key={serviceName}
+                          className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.05] p-3"
+                        >
+                          <span>{serviceName}</span>
+                          <span className="font-semibold whitespace-nowrap">
+                            {formatMoney(amount)}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
+                  <p className="text-lg font-semibold">Доход по оплате</p>
+                  <div className="mt-4 space-y-3">
+                    {paymentRevenueRows.map(([paymentName, amount]) => (
                       <div
-                        key={serviceName}
-                        className={`flex items-center justify-between gap-4 ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+                        key={paymentName}
+                        className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.05] p-3"
                       >
-                        <span>{serviceName}</span>
+                        <span>{paymentName}</span>
                         <span className="font-semibold whitespace-nowrap">
                           {formatMoney(amount)}
                         </span>
                       </div>
-                    ))
+                    ))}
+                  </div>
+                </GlassCard>
+              </div>
+            </div>
+          )}
+
+          {(visibleContent === "dashboard" || visibleContent === "operations") && (
+            <GlassCard className="mt-6 p-4 sm:p-6">
+              <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-xl font-semibold">История операций</p>
+                  <p className="text-sm text-zinc-400">Все операции выбранного месяца</p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={openCreateModal}
+                    className="rounded-[16px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2 text-sm font-medium text-white md:hidden"
+                  >
+                    + Операция
+                  </button>
+
+                  {lastAdded && (
+                    <button
+                      onClick={() => void undoAdd()}
+                      className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
+                    >
+                      Отменить добавление
+                    </button>
                   )}
+
+                  {lastDeleted && (
+                    <button
+                      onClick={() => void undoDelete()}
+                      className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
+                    >
+                      Отменить удаление
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {sortedSelectedMonthOperations.length === 0 ? (
+                <div className="rounded-[28px] bg-white/[0.03] py-14 text-center text-zinc-400">
+                  Пока нет операций за этот месяц
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 md:hidden">
+                    {sortedSelectedMonthOperations.map((operation) => (
+                      <MobileOperationCard
+                        key={operation.id}
+                        operation={operation}
+                        onEdit={openEditModal}
+                        onDelete={(id) => void deleteOperation(id)}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="hidden overflow-x-auto rounded-[28px] bg-white/[0.025] md:block">
+                    <table className="w-full min-w-[860px] text-left">
+                      <thead className="bg-white/[0.045] text-sm text-zinc-400">
+                        <tr>
+                          <th className="px-4 py-3">Дата</th>
+                          <th className="px-4 py-3">Клиент</th>
+                          <th className="px-4 py-3">Оплаты</th>
+                          <th className="px-4 py-3">Услуги</th>
+                          <th className="px-4 py-3">Получено</th>
+                          <th className="px-4 py-3">Кто работал</th>
+                          <th className="px-4 py-3">Действия</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {sortedSelectedMonthOperations.map((operation) => (
+                          <tr
+                            key={operation.id}
+                            className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
+                          >
+                            <td className="px-4 py-4">{formatDisplayDate(operation.date)}</td>
+                            <td className="px-4 py-4">{operation.client}</td>
+                            <td className="px-4 py-4">
+                              <div className="space-y-1">
+                                {operation.payments.map((payment) => (
+                                  <div key={payment.id} className="text-zinc-300">
+                                    {payment.type} — {formatMoney(payment.amount)}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="space-y-1">
+                                {operation.services.map((service) => (
+                                  <div key={service.id} className="text-zinc-300">
+                                    {service.type}
+                                    {service.type === "Запись"
+                                      ? ` — ${service.hours} ч`
+                                      : ""}{" "}
+                                    — {formatMoney(service.amount)}
+                                  </div>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 font-semibold">
+                              {formatMoney(getPaymentsTotal(operation))}
+                            </td>
+                            <td className="px-4 py-4">{operation.owner}</td>
+                            <td className="px-4 py-4">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => openEditModal(operation)}
+                                  className="rounded-[14px] bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15"
+                                >
+                                  Редактировать
+                                </button>
+                                <button
+                                  onClick={() => void deleteOperation(operation.id)}
+                                  className="rounded-[14px] bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25"
+                                >
+                                  Удалить
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </GlassCard>
+          )}
+
+          {visibleContent === "settings" && (
+            <div className="mt-6 grid gap-6">
+              <GlassCard className="p-6">
+                <p className="text-xl font-semibold">Быстрые действия</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <button
+                    onClick={openCreateModal}
+                    className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-left font-semibold text-white"
+                  >
+                    + Добавить операцию
+                  </button>
+
+                  <button
+                    onClick={() => void createNewMonth()}
+                    className="rounded-[18px] bg-white/[0.06] px-4 py-4 text-left font-semibold text-white"
+                  >
+                    + Создать новый месяц
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab("analytics")}
+                    className="rounded-[18px] bg-white/[0.06] px-4 py-4 text-left font-semibold text-white"
+                  >
+                    Открыть аналитику
+                  </button>
+
+                  <button
+                    onClick={() => void deleteSelectedMonth()}
+                    className="rounded-[18px] bg-red-500/10 px-4 py-4 text-left font-semibold text-red-200"
+                  >
+                    Удалить выбранный месяц
+                  </button>
                 </div>
               </GlassCard>
 
               <GlassCard className="p-6">
-                <p className="text-lg font-semibold">Доход по оплате</p>
-                <div className="mt-4 space-y-3">
-                  {paymentRevenueRows.map(([paymentName, amount]) => (
-                    <div
-                      key={paymentName}
-                      className={`flex items-center justify-between gap-4 ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
-                    >
-                      <span>{paymentName}</span>
-                      <span className="font-semibold whitespace-nowrap">
-                        {formatMoney(amount)}
-                      </span>
-                    </div>
-                  ))}
+                <p className="text-xl font-semibold">Сводка</p>
+                <div className="mt-4 space-y-3 text-sm text-zinc-300">
+                  <p>Месяц: {formatMonthLabel(selectedMonth)}</p>
+                  <p>Операций: {sortedSelectedMonthOperations.length}</p>
+                  <p>Доход: {formatMoney(monthIncome)}</p>
+                  <p>Цель: {formatMoney(monthGoal)}</p>
                 </div>
               </GlassCard>
             </div>
-          </div>
-
-          <GlassCard className="mt-6 p-4 sm:p-6">
-            <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xl font-semibold">История операций</p>
-                <p className="text-sm text-zinc-400">Все операции выбранного месяца</p>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                {lastAdded && (
-                  <button
-                    onClick={() => void undoAdd()}
-                    className={`${SMALL_RADIUS} bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25`}
-                  >
-                    Отменить добавление
-                  </button>
-                )}
-
-                {lastDeleted && (
-                  <button
-                    onClick={() => void undoDelete()}
-                    className={`${SMALL_RADIUS} bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25`}
-                  >
-                    Отменить удаление
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {sortedSelectedMonthOperations.length === 0 ? (
-              <div
-                className={`${SURFACE_RADIUS} bg-white/[0.03] py-14 text-center text-zinc-400 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]`}
-              >
-                Пока нет операций за этот месяц
-              </div>
-            ) : (
-              <>
-                <div className="space-y-4 md:hidden">
-                  {sortedSelectedMonthOperations.map((operation) => (
-                    <MobileOperationCard
-                      key={operation.id}
-                      operation={operation}
-                      onEdit={openEditModal}
-                      onDelete={(id) => void deleteOperation(id)}
-                    />
-                  ))}
-                </div>
-
-                <div
-                  className={`hidden md:block overflow-x-auto ${SURFACE_RADIUS} bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
-                >
-                  <table className="w-full min-w-[860px] text-left">
-                    <thead className="bg-white/[0.045] text-sm text-zinc-400">
-                      <tr>
-                        <th className="px-4 py-3">Дата</th>
-                        <th className="px-4 py-3">Клиент</th>
-                        <th className="px-4 py-3">Оплаты</th>
-                        <th className="px-4 py-3">Услуги</th>
-                        <th className="px-4 py-3">Получено</th>
-                        <th className="px-4 py-3">Кто работал</th>
-                        <th className="px-4 py-3">Действия</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {sortedSelectedMonthOperations.map((operation) => (
-                        <tr
-                          key={operation.id}
-                          className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
-                        >
-                          <td className="px-4 py-4">{formatDisplayDate(operation.date)}</td>
-                          <td className="px-4 py-4">{operation.client}</td>
-                          <td className="px-4 py-4">
-                            <div className="space-y-1">
-                              {operation.payments.map((payment) => (
-                                <div key={payment.id} className="text-zinc-300">
-                                  {payment.type} — {formatMoney(payment.amount)}
-                                </div>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <div className="space-y-1">
-                              {operation.services.map((service) => (
-                                <div key={service.id} className="text-zinc-300">
-                                  {service.type}
-                                  {service.type === "Запись" ? ` — ${service.hours} ч` : ""} —{" "}
-                                  {formatMoney(service.amount)}
-                                </div>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 font-semibold">
-                            {formatMoney(getPaymentsTotal(operation))}
-                          </td>
-                          <td className="px-4 py-4">{operation.owner}</td>
-                          <td className="px-4 py-4">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => openEditModal(operation)}
-                                className={`${SMALL_RADIUS} bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15`}
-                              >
-                                Редактировать
-                              </button>
-                              <button
-                                onClick={() => void deleteOperation(operation.id)}
-                                className={`${SMALL_RADIUS} bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25`}
-                              >
-                                Удалить
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </GlassCard>
+          )}
         </main>
       </div>
 
       {showModal && (
         <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-2 sm:p-4 backdrop-blur-[12px]">
-          <div
-            className={`relative w-full max-w-[98vw] sm:max-w-[95vw] lg:max-w-[860px] ${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6),0_1px_0_rgba(255,255,255,0.05)_inset]`}
-          >
-            <div className="max-h-[92vh] overflow-y-auto px-4 sm:px-6 pb-6 pt-5 sm:pt-6 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent]">
+          <div className="relative w-full max-w-[98vw] rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6)] sm:max-w-[95vw] lg:max-w-[860px]">
+            <div className="max-h-[92vh] overflow-y-auto px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
                   {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
@@ -1888,169 +1512,225 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                  className={fieldClassName}
-                  placeholder="Клиент"
-                  value={client}
-                  onChange={(e) => setClient(e.target.value)}
-                />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div>
+                  <FieldLabel>Клиент</FieldLabel>
+                  <TextInput
+                    placeholder="Клиент"
+                    value={client}
+                    onChange={(e) => setClient(e.target.value)}
+                  />
+                </div>
 
-                <CustomDatePicker value={operationDate} onChange={setOperationDate} />
+                <div>
+                  <FieldLabel>Дата</FieldLabel>
+                  <TextInput
+                    type="date"
+                    value={operationDate}
+                    onChange={(e) => setOperationDate(e.target.value)}
+                  />
+                </div>
 
-                <CustomSelect<Owner>
-                  value={owner}
-                  onChange={setOwner}
-                  options={ownerOptions}
-                />
+                <div>
+                  <FieldLabel>Кто работал</FieldLabel>
+                  <SelectInput
+                    value={owner}
+                    onChange={(e) => setOwner(e.target.value as Owner)}
+                  >
+                    {ownerOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </div>
               </div>
 
               <div className="mt-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-lg font-semibold">Услуги</p>
-                  <GraphiteActionButton onClick={addServiceRow}>
+                  <button
+                    onClick={addServiceRow}
+                    className="rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                  >
                     + Добавить услугу
-                  </GraphiteActionButton>
+                  </button>
                 </div>
 
                 {serviceRows.map((row, index) => (
-                  <ModalRowCard
+                  <div
                     key={row.id}
-                    title={`Услуга ${index + 1}`}
-                    dangerAction={
-                      serviceRows.length > 1 ? (
+                    className="rounded-[24px] border border-white/10 bg-white/[0.035] p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="font-semibold">Услуга {index + 1}</p>
+                      {serviceRows.length > 1 && (
                         <button
                           onClick={() => removeServiceRow(row.id)}
                           className="text-sm text-red-400 transition hover:text-red-300"
                         >
                           Удалить услугу
                         </button>
-                      ) : undefined
-                    }
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <CustomSelect<ServiceType>
-                        value={row.type}
-                        onChange={(selectedType) =>
-                          updateServiceRow(row.id, {
-                            type: selectedType,
-                            hours: selectedType === "Запись" ? row.hours || 1 : 0,
-                            amount:
-                              selectedType === "Запись"
-                                ? (row.hours || 1) * 1000
-                                : row.amount,
-                          })
-                        }
-                        options={serviceOptions}
-                      />
-
-                      {row.type === "Запись" ? (
-                        <input
-                          type="number"
-                          min={1}
-                          className={fieldClassName}
-                          value={row.hours}
-                          onChange={(e) =>
-                            updateServiceRow(row.id, {
-                              hours: Number(e.target.value) || 1,
-                            })
-                          }
-                          placeholder="Часы"
-                        />
-                      ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          className={fieldClassName}
-                          value={row.amount}
-                          onChange={(e) =>
-                            updateServiceRow(row.id, {
-                              amount: Number(e.target.value) || 0,
-                            })
-                          }
-                          placeholder="Сумма"
-                        />
                       )}
+                    </div>
 
-                      <div className={`${fieldClassName} flex items-center font-semibold`}>
-                        {formatMoney(row.type === "Запись" ? row.hours * 1000 : row.amount)}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                      <div>
+                        <FieldLabel>Тип услуги</FieldLabel>
+                        <SelectInput
+                          value={row.type}
+                          onChange={(e) => {
+                            const selectedType = e.target.value as ServiceType
+                            updateServiceRow(row.id, {
+                              type: selectedType,
+                              hours: selectedType === "Запись" ? row.hours || 1 : 0,
+                              amount:
+                                selectedType === "Запись"
+                                  ? (row.hours || 1) * 1000
+                                  : row.amount,
+                            })
+                          }}
+                        >
+                          {serviceOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </SelectInput>
+                      </div>
+
+                      <div>
+                        <FieldLabel>
+                          {row.type === "Запись" ? "Часы" : "Сумма"}
+                        </FieldLabel>
+                        {row.type === "Запись" ? (
+                          <TextInput
+                            type="number"
+                            min={1}
+                            value={row.hours}
+                            onChange={(e) =>
+                              updateServiceRow(row.id, {
+                                hours: Number(e.target.value) || 1,
+                              })
+                            }
+                          />
+                        ) : (
+                          <TextInput
+                            type="number"
+                            min={0}
+                            value={row.amount}
+                            onChange={(e) =>
+                              updateServiceRow(row.id, {
+                                amount: Number(e.target.value) || 0,
+                              })
+                            }
+                          />
+                        )}
+                      </div>
+
+                      <div>
+                        <FieldLabel>Итог</FieldLabel>
+                        <div className="flex min-h-[50px] items-center rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 font-semibold text-white">
+                          {formatMoney(
+                            row.type === "Запись" ? row.hours * 1000 : row.amount
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </ModalRowCard>
+                  </div>
                 ))}
               </div>
 
               <div className="mt-8 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-lg font-semibold">Оплата</p>
                     <p className="mt-1 text-sm text-zinc-400">
-                      Для Онлайн сумма всегда фиксированная: {formatMoney(ONLINE_NET_AMOUNT)}
+                      Для Онлайн сумма всегда фиксированная:{" "}
+                      {formatMoney(ONLINE_NET_AMOUNT)}
                     </p>
                   </div>
 
-                  <GraphiteActionButton onClick={addPaymentRow}>
+                  <button
+                    onClick={addPaymentRow}
+                    className="rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
+                  >
                     + Добавить оплату
-                  </GraphiteActionButton>
+                  </button>
                 </div>
 
                 {paymentRows.map((row, index) => (
-                  <ModalRowCard
+                  <div
                     key={row.id}
-                    title={`Оплата ${index + 1}`}
-                    dangerAction={
-                      paymentRows.length > 1 ? (
+                    className="rounded-[24px] border border-white/10 bg-white/[0.035] p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="font-semibold">Оплата {index + 1}</p>
+                      {paymentRows.length > 1 && (
                         <button
                           onClick={() => removePaymentRow(row.id)}
                           className="text-sm text-red-400 transition hover:text-red-300"
                         >
                           Удалить оплату
                         </button>
-                      ) : undefined
-                    }
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <CustomSelect<PaymentType>
-                        value={row.type}
-                        onChange={(selectedType) =>
-                          updatePaymentRow(row.id, {
-                            type: selectedType,
-                            amount:
-                              selectedType === "Онлайн"
-                                ? ONLINE_NET_AMOUNT
-                                : row.amount,
-                          })
-                        }
-                        options={paymentOptions}
-                      />
-
-                      {row.type === "Онлайн" ? (
-                        <div className={`${fieldClassName} flex items-center font-semibold`}>
-                          {formatMoney(ONLINE_NET_AMOUNT)}
-                        </div>
-                      ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          className={fieldClassName}
-                          value={row.amount}
-                          onChange={(e) =>
-                            updatePaymentRow(row.id, {
-                              amount: Number(e.target.value) || 0,
-                            })
-                          }
-                          placeholder="Сумма оплаты"
-                        />
                       )}
                     </div>
-                  </ModalRowCard>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div>
+                        <FieldLabel>Тип оплаты</FieldLabel>
+                        <SelectInput
+                          value={row.type}
+                          onChange={(e) => {
+                            const selectedType = e.target.value as PaymentType
+                            updatePaymentRow(row.id, {
+                              type: selectedType,
+                              amount:
+                                selectedType === "Онлайн"
+                                  ? ONLINE_NET_AMOUNT
+                                  : row.amount,
+                            })
+                          }}
+                        >
+                          {paymentOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </SelectInput>
+                      </div>
+
+                      <div>
+                        <FieldLabel>Сумма</FieldLabel>
+                        {row.type === "Онлайн" ? (
+                          <div className="flex min-h-[50px] items-center rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 font-semibold text-white">
+                            {formatMoney(ONLINE_NET_AMOUNT)}
+                          </div>
+                        ) : (
+                          <TextInput
+                            type="number"
+                            min={0}
+                            value={row.amount}
+                            onChange={(e) =>
+                              updatePaymentRow(row.id, {
+                                amount: Number(e.target.value) || 0,
+                              })
+                            }
+                            placeholder="Сумма оплаты"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
 
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <GlassCard className="p-4">
                   <p className="text-sm text-zinc-400">Итог по услугам</p>
-                  <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
+                  <p className="mt-2 text-2xl font-bold">
+                    {formatMoney(currentServicesTotal)}
+                  </p>
                 </GlassCard>
 
                 <GlassCard className="p-4">
@@ -2068,26 +1748,26 @@ export default function App() {
                 </div>
               )}
 
-              <div className="sticky bottom-0 mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-white/10 bg-[rgba(10,12,20,0.96)] py-4 backdrop-blur-md">
+              <div className="sticky bottom-0 mt-6 flex flex-col gap-4 border-t border-white/10 bg-[rgba(10,12,20,0.96)] py-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-zinc-400">Фактически получено</p>
                   <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
                 </div>
 
-                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row sm:items-center">
                   <button
                     onClick={() => {
                       setShowModal(false)
                       resetForm()
                     }}
-                    className={`${SMALL_RADIUS} px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white w-full sm:w-auto`}
+                    className="w-full rounded-[16px] px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white sm:w-auto"
                   >
                     Отмена
                   </button>
 
                   <button
                     onClick={() => void saveOperation()}
-                    className="rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(27,164,85,0.26),0_1px_0_rgba(255,255,255,0.18)_inset] transition hover:brightness-110 active:scale-[0.99] w-full sm:w-auto"
+                    className="w-full rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(27,164,85,0.26)] transition hover:brightness-110 sm:w-auto"
                   >
                     {editingOperationId ? "Сохранить изменения" : "Сохранить"}
                   </button>
@@ -2097,6 +1777,12 @@ export default function App() {
           </div>
         </div>
       )}
+
+      <BottomNav
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        onAdd={openCreateModal}
+      />
     </div>
   )
 }
