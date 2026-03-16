@@ -61,6 +61,13 @@ const serviceOptions: ServiceType[] = [
   "Другое",
 ]
 
+const quickServiceButtons: Array<{ type: ServiceType; label: string }> = [
+  { type: "Запись", label: "Запись" },
+  { type: "Сведение", label: "Сведение" },
+  { type: "Мастеринг", label: "Мастеринг" },
+  { type: "Дистрибуция", label: "Дистрибуция" },
+]
+
 function makeId() {
   return Date.now() + Math.floor(Math.random() * 100000)
 }
@@ -354,7 +361,7 @@ function SelectInput({
   )
 }
 
-function MobileOperationCard({
+function MobileSwipeOperationCard({
   operation,
   onEdit,
   onDelete,
@@ -363,89 +370,130 @@ function MobileOperationCard({
   onEdit: (operation: Operation) => void
   onDelete: (id: number) => void
 }) {
+  const [offset, setOffset] = React.useState(0)
+  const startXRef = React.useRef<number | null>(null)
+  const currentXRef = React.useRef(0)
+
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    startXRef.current = e.touches[0].clientX
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (startXRef.current === null) return
+    const dx = e.touches[0].clientX - startXRef.current
+    currentXRef.current = dx
+
+    if (dx < 0) {
+      setOffset(Math.max(dx, -120))
+    }
+    if (dx > 0 && offset < 0) {
+      setOffset(Math.min(dx - 120, 0))
+    }
+  }
+
+  function handleTouchEnd() {
+    if (currentXRef.current < -45) {
+      setOffset(-120)
+    } else {
+      setOffset(0)
+    }
+    startXRef.current = null
+    currentXRef.current = 0
+  }
+
   return (
-    <GlassCard className="p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-base font-semibold text-white">{operation.client}</p>
-          <p className="mt-1 text-sm text-zinc-400">
-            {formatDisplayDate(operation.date)}
-          </p>
-        </div>
-
-        <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-2 text-right">
-          <p className="text-xs text-zinc-400">Получено</p>
-          <p className="text-sm font-semibold text-white">
-            {formatMoney(getPaymentsTotal(operation))}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3">
-        <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-          <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
-            Кто работал
-          </p>
-          <p className="text-sm text-white">{operation.owner}</p>
-        </div>
-
-        <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-          <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
-            Оплаты
-          </p>
-          <div className="space-y-1">
-            {operation.payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="text-zinc-300">{payment.type}</span>
-                <span className="font-medium whitespace-nowrap text-white">
-                  {formatMoney(payment.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-          <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
-            Услуги
-          </p>
-          <div className="space-y-1">
-            {operation.services.map((service) => (
-              <div
-                key={service.id}
-                className="flex items-start justify-between gap-3 text-sm"
-              >
-                <span className="text-zinc-300">
-                  {service.type}
-                  {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
-                </span>
-                <span className="font-medium whitespace-nowrap text-white">
-                  {formatMoney(service.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 flex gap-2">
+    <div className="relative overflow-hidden rounded-[30px]">
+      <div className="absolute inset-y-0 right-0 flex w-[120px] items-stretch">
         <button
           onClick={() => onEdit(operation)}
-          className="flex-1 rounded-[16px] border border-white/10 bg-white/10 px-3 py-3 text-sm text-zinc-200 transition hover:bg-white/15"
+          className="flex-1 bg-white/10 text-sm text-white"
         >
-          Редактировать
+          Ред.
         </button>
         <button
           onClick={() => onDelete(operation.id)}
-          className="flex-1 rounded-[16px] border border-red-400/10 bg-red-500/15 px-3 py-3 text-sm text-red-300 transition hover:bg-red-500/25"
+          className="flex-1 bg-red-500/20 text-sm text-red-200"
         >
-          Удалить
+          Удал.
         </button>
       </div>
-    </GlassCard>
+
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ transform: `translateX(${offset}px)` }}
+        className="relative transition-transform duration-200"
+      >
+        <GlassCard className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-base font-semibold text-white">{operation.client}</p>
+              <p className="mt-1 text-sm text-zinc-400">
+                {formatDisplayDate(operation.date)}
+              </p>
+            </div>
+
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-2 text-right">
+              <p className="text-xs text-zinc-400">Получено</p>
+              <p className="text-sm font-semibold text-white">
+                {formatMoney(getPaymentsTotal(operation))}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
+              <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+                Кто работал
+              </p>
+              <p className="text-sm text-white">{operation.owner}</p>
+            </div>
+
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
+              <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+                Оплаты
+              </p>
+              <div className="space-y-1">
+                {operation.payments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex items-center justify-between gap-3 text-sm"
+                  >
+                    <span className="text-zinc-300">{payment.type}</span>
+                    <span className="font-medium whitespace-nowrap text-white">
+                      {formatMoney(payment.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
+              <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+                Услуги
+              </p>
+              <div className="space-y-1">
+                {operation.services.map((service) => (
+                  <div
+                    key={service.id}
+                    className="flex items-start justify-between gap-3 text-sm"
+                  >
+                    <span className="text-zinc-300">
+                      {service.type}
+                      {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
+                    </span>
+                    <span className="font-medium whitespace-nowrap text-white">
+                      {formatMoney(service.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+    </div>
   )
 }
 
@@ -652,6 +700,16 @@ export default function App() {
     return operations.filter((operation) => toMonthKey(operation.date) === selectedMonth)
   }, [operations, selectedMonth])
 
+  const uniqueClients = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        operations
+          .map((operation) => operation.client.trim())
+          .filter(Boolean)
+      )
+    ).sort((a, b) => a.localeCompare(b, "ru"))
+  }, [operations])
+
   const sortedSelectedMonthOperations = React.useMemo(() => {
     return [...selectedMonthOperations].sort(
       (a, b) => parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
@@ -760,7 +818,8 @@ export default function App() {
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 500,
+        duration: 900,
+        easing: "easeOutQuart",
       },
       plugins: {
         legend: {
@@ -851,6 +910,10 @@ export default function App() {
 
   const addServiceRow = React.useCallback(() => {
     setServiceRows((prev) => [...prev, makeServiceRow()])
+  }, [])
+
+  const addQuickService = React.useCallback((type: ServiceType) => {
+    setServiceRows((prev) => [...prev, makeServiceRow(type)])
   }, [])
 
   const updateServiceRow = React.useCallback((id: number, patch: Partial<ServiceItem>) => {
@@ -1207,6 +1270,15 @@ export default function App() {
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
   }, [normalizedMonths, operations, selectedMonth])
 
+  const topClient = React.useMemo(() => {
+    const map = new Map<string, number>()
+    selectedMonthOperations.forEach((operation) => {
+      map.set(operation.client, (map.get(operation.client) || 0) + getPaymentsTotal(operation))
+    })
+    const rows = Array.from(map.entries()).sort((a, b) => b[1] - a[1])
+    return rows[0] || null
+  }, [selectedMonthOperations])
+
   return (
     <div className="min-h-screen bg-[#070a11] pb-28 text-white md:pb-0">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(77,101,246,0.25),transparent_24%),radial-gradient(circle_at_top_right,rgba(39,197,255,0.14),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(140,90,255,0.12),transparent_24%)]" />
@@ -1268,21 +1340,72 @@ export default function App() {
               <p className="text-sm text-zinc-400">Осталось до цели</p>
               <p className="mt-1 text-2xl font-bold">{formatMoney(leftToMonthGoal)}</p>
             </GlassCard>
-
-            <GlassCard className="p-4">
-              <p className="text-sm text-zinc-400">Азат</p>
-              <p className="mt-1 text-2xl font-bold">{formatMoney(azatIncome)}</p>
-            </GlassCard>
-
-            <GlassCard className="p-4">
-              <p className="text-sm text-zinc-400">Марс</p>
-              <p className="mt-1 text-2xl font-bold">{formatMoney(marsIncome)}</p>
-            </GlassCard>
           </div>
         </aside>
 
         <main className="flex-1 p-4 lg:p-8">
           <section id="dashboard-section">
+            <GlassCard className="mb-6 p-5 sm:p-6">
+              <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.7fr_1fr]">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.2em] text-zinc-500">
+                    SoundRoom Finance
+                  </p>
+                  <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
+                    Финансовая панель студии,
+                    <br />
+                    которая ощущается как банковское приложение
+                  </h1>
+                  <p className="mt-3 max-w-[700px] text-sm text-zinc-400 sm:text-base">
+                    Здесь ты видишь доход месяца, цель, прогресс, сильные и слабые
+                    дни, лучших клиентов и все операции в одном месте.
+                  </p>
+
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <button
+                      onClick={openCreateModal}
+                      className="rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-5 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(79,101,255,0.28)]"
+                    >
+                      + Новая операция
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setActiveTab("operations")
+                        const el = document.getElementById("operations-section")
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+                      }}
+                      className="rounded-[20px] border border-white/10 bg-white/[0.05] px-5 py-3 font-semibold text-white"
+                    >
+                      Смотреть операции
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                  <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4">
+                    <p className="text-sm text-zinc-400">Доход месяца</p>
+                    <p className="mt-2 text-3xl font-bold text-green-400">
+                      {formatMoney(monthIncome)}
+                    </p>
+                    <p className="mt-2 text-xs text-zinc-500">
+                      {formatMonthLabel(selectedMonth)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4">
+                    <p className="text-sm text-zinc-400">Топ клиент месяца</p>
+                    <p className="mt-2 text-xl font-semibold text-white">
+                      {topClient ? topClient[0] : "Пока нет"}
+                    </p>
+                    <p className="mt-2 text-sm text-zinc-400">
+                      {topClient ? formatMoney(topClient[1]) : "Нет оплат"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+
             <div className="mb-6 flex flex-wrap items-center gap-3">
               {normalizedMonths.map((monthKey) => (
                 <button
@@ -1348,6 +1471,20 @@ export default function App() {
 
               <div className="space-y-6">
                 <GlassCard className="p-6">
+                  <p className="text-lg font-semibold">Кто сделал больше</p>
+                  <div className="mt-4 grid gap-3">
+                    <div className="rounded-[18px] border border-white/8 bg-white/[0.05] p-3">
+                      <p className="text-sm text-zinc-400">Азат</p>
+                      <p className="mt-1 text-xl font-bold">{formatMoney(azatIncome)}</p>
+                    </div>
+                    <div className="rounded-[18px] border border-white/8 bg-white/[0.05] p-3">
+                      <p className="text-sm text-zinc-400">Марс</p>
+                      <p className="mt-1 text-xl font-bold">{formatMoney(marsIncome)}</p>
+                    </div>
+                  </div>
+                </GlassCard>
+
+                <GlassCard className="p-6">
                   <p className="text-lg font-semibold">Самые прибыльные дни</p>
                   <div className="mt-4 space-y-3">
                     {dailyStats.bestDays.length === 0 ? (
@@ -1365,16 +1502,6 @@ export default function App() {
                         </div>
                       ))
                     )}
-                  </div>
-                </GlassCard>
-
-                <GlassCard className="p-6">
-                  <p className="text-lg font-semibold">Просадочные дни</p>
-                  <div className="mt-4">
-                    <p className="text-4xl font-bold text-red-400">{dailyStats.weakDays}</p>
-                    <p className="mt-2 text-sm text-zinc-400">
-                      дней без клиентов в этом месяце
-                    </p>
                   </div>
                 </GlassCard>
 
@@ -1424,7 +1551,9 @@ export default function App() {
               <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xl font-semibold">История операций</p>
-                  <p className="text-sm text-zinc-400">Все операции выбранного месяца</p>
+                  <p className="text-sm text-zinc-400">
+                    На телефоне можно свайпнуть карточку влево
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -1463,7 +1592,7 @@ export default function App() {
                 <>
                   <div className="space-y-4 md:hidden">
                     {sortedSelectedMonthOperations.map((operation) => (
-                      <MobileOperationCard
+                      <MobileSwipeOperationCard
                         key={operation.id}
                         operation={operation}
                         onEdit={openEditModal}
@@ -1584,16 +1713,6 @@ export default function App() {
                   </button>
                 </div>
               </GlassCard>
-
-              <GlassCard className="p-6">
-                <p className="text-xl font-semibold">Сводка</p>
-                <div className="mt-4 space-y-3 text-sm text-zinc-300">
-                  <p>Месяц: {formatMonthLabel(selectedMonth)}</p>
-                  <p>Операций: {sortedSelectedMonthOperations.length}</p>
-                  <p>Доход: {formatMoney(monthIncome)}</p>
-                  <p>Цель: {formatMoney(monthGoal)}</p>
-                </div>
-              </GlassCard>
             </div>
           </section>
         </main>
@@ -1616,10 +1735,16 @@ export default function App() {
                 <div>
                   <FieldLabel>Клиент</FieldLabel>
                   <TextInput
+                    list="clients-list"
                     placeholder="Клиент"
                     value={client}
                     onChange={(e) => setClient(e.target.value)}
                   />
+                  <datalist id="clients-list">
+                    {uniqueClients.map((item) => (
+                      <option key={item} value={item} />
+                    ))}
+                  </datalist>
                 </div>
 
                 <div>
@@ -1649,6 +1774,17 @@ export default function App() {
               <div className="mt-7 space-y-4">
                 <div>
                   <p className="text-lg font-semibold">Услуги</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {quickServiceButtons.map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={() => addQuickService(item.type)}
+                        className="rounded-[16px] border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-white transition hover:bg-white/[0.09]"
+                      >
+                        + {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {serviceRows.map((row, index) => (
