@@ -26,7 +26,7 @@ type ServiceType =
 type ServiceItem = {
   id: number
   type: ServiceType
-  hours: number
+  hours: number | ""
   amount: number
 }
 
@@ -152,7 +152,7 @@ function makeServiceRow(type: ServiceType = "Запись"): ServiceItem {
   return {
     id: makeId(),
     type,
-    hours: 1,
+    hours: type === "Запись" ? 1 : "",
     amount: type === "Запись" ? 1000 : 0,
   }
 }
@@ -167,7 +167,7 @@ function makePaymentRow(type: PaymentType = "Нал"): PaymentItem {
 
 function normalizeServiceRow(row: ServiceItem): ServiceItem {
   if (row.type === "Запись") {
-    const hours = Number(row.hours) || 1
+    const hours = row.hours === "" ? 0 : Number(row.hours) || 0
     return {
       ...row,
       hours,
@@ -177,7 +177,7 @@ function normalizeServiceRow(row: ServiceItem): ServiceItem {
 
   return {
     ...row,
-    hours: Number(row.hours) || 0,
+    hours: row.hours === "" ? "" : Number(row.hours) || 0,
     amount: Number(row.amount) || 0,
   }
 }
@@ -214,8 +214,10 @@ function normalizeServices(rawServices: unknown): ServiceItem[] {
   return rawServices.map((item, index) => {
     const raw = item as Partial<ServiceItem>
     const type = (raw.type as ServiceType) || "Запись"
-    const hours = Number(raw.hours) || (type === "Запись" ? 1 : 0)
-    const amount = type === "Запись" ? hours * 1000 : Number(raw.amount) || 0
+    const hoursRaw = raw.hours === "" ? "" : Number(raw.hours)
+    const hours =
+      type === "Запись" ? (Number.isFinite(hoursRaw) && Number(hoursRaw) > 0 ? Number(hoursRaw) : 1) : ""
+    const amount = type === "Запись" ? Number(hours) * 1000 : Number(raw.amount) || 0
 
     return {
       id: Number(raw.id) || makeId() + index,
@@ -477,7 +479,6 @@ function MonthTabs({
         <div className="flex w-max gap-3 py-1">
           {months.map((monthKey) => {
             const active = monthKey === selectedMonth
-
             return (
               <button
                 key={monthKey}
@@ -562,7 +563,7 @@ function OperationMobileCard({
               >
                 <span className="text-zinc-300">
                   {service.type}
-                  {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
+                  {service.type === "Запись" ? ` — ${service.hours || 0} ч` : ""}
                 </span>
                 <span className="whitespace-nowrap font-medium text-white">
                   {formatMoney(service.amount)}
@@ -1055,6 +1056,12 @@ export default function App() {
         ? operation.services.map((service) => ({
             ...service,
             id: service.id || makeId(),
+            hours:
+              service.type === "Запись"
+                ? Number(service.hours) > 0
+                  ? Number(service.hours)
+                  : ""
+                : "",
           }))
         : [makeServiceRow()]
     )
@@ -1082,7 +1089,23 @@ export default function App() {
     setServiceRows((prev) =>
       prev.map((row) => {
         if (row.id !== id) return row
-        return normalizeServiceRow({ ...row, ...patch })
+
+        const next = { ...row, ...patch }
+
+        if (next.type === "Запись") {
+          const hoursValue = next.hours === "" ? "" : Number(next.hours) || 0
+          return {
+            ...next,
+            hours: hoursValue,
+            amount: hoursValue === "" ? 0 : Number(hoursValue) * 1000,
+          }
+        }
+
+        return {
+          ...next,
+          hours: "",
+          amount: Number(next.amount) || 0,
+        }
       })
     )
   }, [])
@@ -1500,7 +1523,7 @@ export default function App() {
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-28 pt-5 lg:px-8 lg:pb-8">
+          <main className="mx-auto w-full max-w-[1440px] flex-1 overflow-x-hidden px-4 pb-28 pt-5 lg:px-8 lg:pb-8">
             <MonthTabs
               months={normalizedMonths}
               selectedMonth={selectedMonth}
@@ -1748,7 +1771,7 @@ export default function App() {
                                       <div key={service.id} className="text-zinc-300">
                                         {service.type}
                                         {service.type === "Запись"
-                                          ? ` — ${service.hours} ч`
+                                          ? ` — ${service.hours || 0} ч`
                                           : ""}{" "}
                                         — {formatMoney(service.amount)}
                                       </div>
@@ -1931,8 +1954,8 @@ export default function App() {
 
       {showModal && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center bg-[rgba(5,5,9,0.76)] p-2 sm:p-4 backdrop-blur-[14px]">
-          <div className="relative w-full max-w-[98vw] rounded-[34px] bg-[linear-gradient(180deg,rgba(24,27,35,0.98),rgba(12,14,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 sm:max-w-[95vw] lg:max-w-[900px]">
-            <div className="max-h-[92vh] overflow-y-auto px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
+          <div className="relative flex h-[94vh] w-full max-w-[98vw] flex-col rounded-[34px] bg-[linear-gradient(180deg,rgba(24,27,35,0.98),rgba(12,14,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 sm:max-w-[95vw] lg:max-w-[860px]">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-32 pt-5 sm:px-6 sm:pt-6">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
                   {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
@@ -1982,15 +2005,15 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="mt-7 space-y-4">
+              <div className="mt-6 space-y-4">
                 <div>
-                  <p className="text-lg font-semibold">Услуги</p>
+                  <p className="text-xl font-semibold">Услуги</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {quickServiceButtons.map((item) => (
                       <button
                         key={item.label}
                         onClick={() => addQuickService(item.type)}
-                        className="rounded-[16px] bg-white/[0.05] px-4 py-2 text-sm text-white ring-1 ring-white/6 transition hover:bg-white/[0.09]"
+                        className="rounded-[16px] bg-white/[0.05] px-4 py-2.5 text-sm text-white ring-1 ring-white/6 transition hover:bg-white/[0.09]"
                       >
                         + {item.label}
                       </button>
@@ -1998,172 +2021,203 @@ export default function App() {
                   </div>
                 </div>
 
-                {serviceRows.map((row, index) => (
-                  <SoftCard key={row.id} className="p-4">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="font-semibold">Услуга {index + 1}</p>
-                      {serviceRows.length > 1 && (
-                        <button
-                          onClick={() => removeServiceRow(row.id)}
-                          className="text-sm text-red-400 transition hover:text-red-300"
-                        >
-                          Удалить услугу
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                      <div>
-                        <FieldLabel>Тип услуги</FieldLabel>
-                        <SelectInput
-                          value={row.type}
-                          onChange={(e) => {
-                            const selectedType = e.target.value as ServiceType
-                            updateServiceRow(row.id, {
-                              type: selectedType,
-                              hours: selectedType === "Запись" ? row.hours || 1 : 0,
-                              amount:
-                                selectedType === "Запись"
-                                  ? (row.hours || 1) * 1000
-                                  : row.amount,
-                            })
-                          }}
-                        >
-                          {serviceOptions.map((option) => (
-                            <option key={option} value={option} className="bg-[#151823]">
-                              {option}
-                            </option>
-                          ))}
-                        </SelectInput>
-                      </div>
-
-                      <div>
-                        <FieldLabel>{row.type === "Запись" ? "Часы" : "Сумма"}</FieldLabel>
-                        {row.type === "Запись" ? (
-                          <TextInput
-                            type="number"
-                            min={1}
-                            value={String(row.hours)}
-                            onChange={(e) =>
-                              updateServiceRow(row.id, {
-                                hours: Number(e.target.value) || 1,
-                              })
-                            }
-                          />
-                        ) : (
-                          <TextInput
-                            type="number"
-                            min={0}
-                            value={row.amount === 0 ? "" : String(row.amount)}
-                            onChange={(e) =>
-                              updateServiceRow(row.id, {
-                                amount: Number(e.target.value) || 0,
-                              })
-                            }
-                            placeholder="Сумма"
-                          />
+                <div className="space-y-3">
+                  {serviceRows.map((row, index) => (
+                    <SoftCard key={row.id} className="p-4">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="text-base font-semibold">Услуга {index + 1}</p>
+                        {serviceRows.length > 1 && (
+                          <button
+                            onClick={() => removeServiceRow(row.id)}
+                            className="text-sm text-red-400 transition hover:text-red-300"
+                          >
+                            Удалить
+                          </button>
                         )}
                       </div>
 
-                      <div>
-                        <FieldLabel>Итог</FieldLabel>
-                        <div className="flex min-h-[52px] items-center rounded-[18px] bg-white/[0.04] px-4 py-3 font-semibold text-white ring-1 ring-white/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)]">
-                          {formatMoney(
-                            row.type === "Запись" ? row.hours * 1000 : row.amount
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
+                        <div>
+                          <FieldLabel>Тип услуги</FieldLabel>
+                          <SelectInput
+                            value={row.type}
+                            onChange={(e) => {
+                              const selectedType = e.target.value as ServiceType
+                              updateServiceRow(row.id, {
+                                type: selectedType,
+                                hours: selectedType === "Запись" ? row.hours || "" : "",
+                                amount:
+                                  selectedType === "Запись"
+                                    ? Number(row.hours || 0) * 1000
+                                    : row.amount,
+                              })
+                            }}
+                          >
+                            {serviceOptions.map((option) => (
+                              <option key={option} value={option} className="bg-[#151823]">
+                                {option}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </div>
+
+                        <div>
+                          <FieldLabel>{row.type === "Запись" ? "Часы" : "Сумма"}</FieldLabel>
+                          {row.type === "Запись" ? (
+                            <TextInput
+                              type="number"
+                              inputMode="numeric"
+                              min={1}
+                              placeholder="1"
+                              value={row.hours === "" ? "" : String(row.hours)}
+                              onChange={(e) => {
+                                const value = e.target.value
+                                updateServiceRow(row.id, {
+                                  hours: value === "" ? "" : Number(value),
+                                })
+                              }}
+                            />
+                          ) : (
+                            <TextInput
+                              type="number"
+                              min={0}
+                              value={row.amount === 0 ? "" : String(row.amount)}
+                              onChange={(e) =>
+                                updateServiceRow(row.id, {
+                                  amount: Number(e.target.value) || 0,
+                                })
+                              }
+                              placeholder="Сумма"
+                            />
+                          )}
+                        </div>
+
+                        <div>
+                          <FieldLabel>Итог</FieldLabel>
+                          <div className="flex min-h-[52px] items-center rounded-[18px] bg-white/[0.04] px-4 py-3 font-semibold text-white ring-1 ring-white/6">
+                            {formatMoney(
+                              row.type === "Запись"
+                                ? (row.hours === "" ? 0 : Number(row.hours)) * 1000
+                                : row.amount
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="hidden md:flex md:items-end">
+                          {serviceRows.length > 1 && (
+                            <button
+                              onClick={() => removeServiceRow(row.id)}
+                              className="h-[52px] rounded-[16px] bg-red-500/[0.12] px-4 text-sm font-medium text-red-200 ring-1 ring-red-300/10"
+                            >
+                              Удалить
+                            </button>
                           )}
                         </div>
                       </div>
-                    </div>
-                  </SoftCard>
-                ))}
+                    </SoftCard>
+                  ))}
+                </div>
 
                 <button
                   onClick={addServiceRow}
-                  className="rounded-[20px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
+                  className="rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
                 >
                   + Добавить услугу
                 </button>
               </div>
 
-              <div className="mt-8 space-y-4">
+              <div className="mt-7 space-y-4">
                 <div>
-                  <p className="text-lg font-semibold">Оплата</p>
+                  <p className="text-xl font-semibold">Оплата</p>
                   <p className="mt-1 text-sm text-zinc-400">
                     Для Онлайн сумма всегда фиксированная: {formatMoney(ONLINE_NET_AMOUNT)}
                   </p>
                 </div>
 
-                {paymentRows.map((row, index) => (
-                  <SoftCard key={row.id} className="p-4">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="font-semibold">Оплата {index + 1}</p>
-                      {paymentRows.length > 1 && (
-                        <button
-                          onClick={() => removePaymentRow(row.id)}
-                          className="text-sm text-red-400 transition hover:text-red-300"
-                        >
-                          Удалить оплату
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <FieldLabel>Тип оплаты</FieldLabel>
-                        <SelectInput
-                          value={row.type}
-                          onChange={(e) => {
-                            const selectedType = e.target.value as PaymentType
-                            updatePaymentRow(row.id, {
-                              type: selectedType,
-                              amount:
-                                selectedType === "Онлайн"
-                                  ? ONLINE_NET_AMOUNT
-                                  : row.amount,
-                            })
-                          }}
-                        >
-                          {paymentOptions.map((option) => (
-                            <option key={option} value={option} className="bg-[#151823]">
-                              {option}
-                            </option>
-                          ))}
-                        </SelectInput>
-                      </div>
-
-                      <div>
-                        <FieldLabel>Сумма</FieldLabel>
-                        {row.type === "Онлайн" ? (
-                          <div className="flex min-h-[52px] items-center rounded-[18px] bg-white/[0.04] px-4 py-3 font-semibold text-white ring-1 ring-white/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)]">
-                            {formatMoney(ONLINE_NET_AMOUNT)}
-                          </div>
-                        ) : (
-                          <TextInput
-                            type="number"
-                            min={0}
-                            value={row.amount === 0 ? "" : String(row.amount)}
-                            onChange={(e) =>
-                              updatePaymentRow(row.id, {
-                                amount: Number(e.target.value) || 0,
-                              })
-                            }
-                            placeholder="Сумма оплаты"
-                          />
+                <div className="space-y-3">
+                  {paymentRows.map((row, index) => (
+                    <SoftCard key={row.id} className="p-4">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <p className="text-base font-semibold">Оплата {index + 1}</p>
+                        {paymentRows.length > 1 && (
+                          <button
+                            onClick={() => removePaymentRow(row.id)}
+                            className="text-sm text-red-400 transition hover:text-red-300"
+                          >
+                            Удалить
+                          </button>
                         )}
                       </div>
-                    </div>
-                  </SoftCard>
-                ))}
+
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
+                        <div>
+                          <FieldLabel>Тип оплаты</FieldLabel>
+                          <SelectInput
+                            value={row.type}
+                            onChange={(e) => {
+                              const selectedType = e.target.value as PaymentType
+                              updatePaymentRow(row.id, {
+                                type: selectedType,
+                                amount:
+                                  selectedType === "Онлайн"
+                                    ? ONLINE_NET_AMOUNT
+                                    : row.amount,
+                              })
+                            }}
+                          >
+                            {paymentOptions.map((option) => (
+                              <option key={option} value={option} className="bg-[#151823]">
+                                {option}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </div>
+
+                        <div>
+                          <FieldLabel>Сумма</FieldLabel>
+                          {row.type === "Онлайн" ? (
+                            <div className="flex min-h-[52px] items-center rounded-[18px] bg-white/[0.04] px-4 py-3 font-semibold text-white ring-1 ring-white/6">
+                              {formatMoney(ONLINE_NET_AMOUNT)}
+                            </div>
+                          ) : (
+                            <TextInput
+                              type="number"
+                              min={0}
+                              value={row.amount === 0 ? "" : String(row.amount)}
+                              onChange={(e) =>
+                                updatePaymentRow(row.id, {
+                                  amount: Number(e.target.value) || 0,
+                                })
+                              }
+                              placeholder="Сумма оплаты"
+                            />
+                          )}
+                        </div>
+
+                        <div className="hidden md:flex md:items-end">
+                          {paymentRows.length > 1 && (
+                            <button
+                              onClick={() => removePaymentRow(row.id)}
+                              className="h-[52px] rounded-[16px] bg-red-500/[0.12] px-4 text-sm font-medium text-red-200 ring-1 ring-red-300/10"
+                            >
+                              Удалить
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </SoftCard>
+                  ))}
+                </div>
 
                 <button
                   onClick={addPaymentRow}
-                  className="rounded-[20px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
+                  className="rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
                 >
                   + Добавить оплату
                 </button>
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
                 <SoftCard className="p-4">
                   <p className="text-sm text-zinc-400">Итог по услугам</p>
                   <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
@@ -2175,39 +2229,39 @@ export default function App() {
                     {formatMoney(currentPaymentsTotal)}
                   </p>
                 </SoftCard>
+
+                <SoftCard className="p-4">
+                  <p className="text-sm text-zinc-400">Фактически получено</p>
+                  <p className="mt-2 text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
+                </SoftCard>
               </div>
 
               {currentPaymentsTotal !== currentServicesTotal && (
-                <div className="mt-4 rounded-[22px] bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 shadow-[0_10px_24px_rgba(0,0,0,0.12)] ring-1 ring-yellow-300/10">
+                <div className="mt-4 rounded-[22px] bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 ring-1 ring-yellow-300/10">
                   Внимание: сумма оплат и сумма услуг не совпадают. Это нормально,
                   если внесена только предоплата или оплата частями.
                 </div>
               )}
+            </div>
 
-              <div className="mt-6 flex flex-col gap-4 border-t border-white/8 pt-4 sm:flex-row sm:items-end sm:justify-between">
-                <SoftCard className="ml-0 w-full max-w-[260px] p-4">
-                  <p className="text-sm text-zinc-400">Фактически получено</p>
-                  <p className="mt-2 text-3xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
-                </SoftCard>
+            <div className="sticky bottom-0 z-20 border-t border-white/8 bg-[linear-gradient(180deg,rgba(13,15,20,0.65),rgba(10,12,18,0.94))] px-4 py-4 backdrop-blur-[18px] sm:px-6">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <button
+                  onClick={() => {
+                    setShowModal(false)
+                    resetForm()
+                  }}
+                  className="w-full rounded-[18px] px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white sm:w-auto"
+                >
+                  Отмена
+                </button>
 
-                <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row sm:items-center">
-                  <button
-                    onClick={() => {
-                      setShowModal(false)
-                      resetForm()
-                    }}
-                    className="w-full rounded-[18px] px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white sm:w-auto"
-                  >
-                    Отмена
-                  </button>
-
-                  <button
-                    onClick={() => void saveOperation()}
-                    className="w-full rounded-[22px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-6 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(27,164,85,0.28),inset_0_1px_0_rgba(255,255,255,0.16)] transition hover:brightness-110 sm:w-auto"
-                  >
-                    {editingOperationId ? "Сохранить изменения" : "Сохранить"}
-                  </button>
-                </div>
+                <button
+                  onClick={() => void saveOperation()}
+                  className="w-full rounded-[22px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-6 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(27,164,85,0.28),inset_0_1px_0_rgba(255,255,255,0.16)] transition hover:brightness-110 sm:w-auto"
+                >
+                  {editingOperationId ? "Сохранить изменения" : "Сохранить"}
+                </button>
               </div>
             </div>
           </div>
