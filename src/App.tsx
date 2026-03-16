@@ -773,6 +773,103 @@ function ModalRowCard({
   )
 }
 
+function MobileOperationCard({
+  operation,
+  onEdit,
+  onDelete,
+}: {
+  operation: Operation
+  onEdit: (operation: Operation) => void
+  onDelete: (id: number) => void
+}) {
+  return (
+    <div
+      className={`${SURFACE_RADIUS} bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-4 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset,0_14px_30px_rgba(0,0,0,0.18)]`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-base font-semibold text-white">{operation.client}</p>
+          <p className="mt-1 text-sm text-zinc-400">
+            {formatDisplayDate(operation.date)}
+          </p>
+        </div>
+
+        <div className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-right">
+          <p className="text-xs text-zinc-400">Получено</p>
+          <p className="text-sm font-semibold text-white">
+            {formatMoney(getPaymentsTotal(operation))}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3">
+        <div className="rounded-[18px] bg-white/[0.04] p-3">
+          <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+            Кто работал
+          </p>
+          <p className="text-sm text-white">{operation.owner}</p>
+        </div>
+
+        <div className="rounded-[18px] bg-white/[0.04] p-3">
+          <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+            Оплаты
+          </p>
+          <div className="space-y-1">
+            {operation.payments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-zinc-300">{payment.type}</span>
+                <span className="font-medium text-white whitespace-nowrap">
+                  {formatMoney(payment.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] bg-white/[0.04] p-3">
+          <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
+            Услуги
+          </p>
+          <div className="space-y-1">
+            {operation.services.map((service) => (
+              <div
+                key={service.id}
+                className="flex items-start justify-between gap-3 text-sm"
+              >
+                <span className="text-zinc-300">
+                  {service.type}
+                  {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
+                </span>
+                <span className="font-medium text-white whitespace-nowrap">
+                  {formatMoney(service.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <button
+          onClick={() => onEdit(operation)}
+          className="flex-1 rounded-[16px] bg-white/10 px-3 py-3 text-sm text-zinc-200 transition hover:bg-white/15"
+        >
+          Редактировать
+        </button>
+        <button
+          onClick={() => onDelete(operation.id)}
+          className="flex-1 rounded-[16px] bg-red-500/15 px-3 py-3 text-sm text-red-300 transition hover:bg-red-500/25"
+        >
+          Удалить
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const initialMonthKey = React.useMemo(() => getInitialMonthKey(), [])
 
@@ -890,6 +987,12 @@ export default function App() {
   const selectedMonthOperations = React.useMemo(() => {
     return operations.filter((operation) => toMonthKey(operation.date) === selectedMonth)
   }, [operations, selectedMonth])
+
+  const sortedSelectedMonthOperations = React.useMemo(() => {
+    return [...selectedMonthOperations].sort(
+      (a, b) => parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
+    )
+  }, [selectedMonthOperations])
 
   const monthIncome = React.useMemo(() => {
     return selectedMonthOperations.reduce(
@@ -1610,7 +1713,9 @@ export default function App() {
                         className={`flex items-center justify-between gap-4 ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                       >
                         <span>{serviceName}</span>
-                        <span className="font-semibold whitespace-nowrap">{formatMoney(amount)}</span>
+                        <span className="font-semibold whitespace-nowrap">
+                          {formatMoney(amount)}
+                        </span>
                       </div>
                     ))
                   )}
@@ -1626,7 +1731,9 @@ export default function App() {
                       className={`flex items-center justify-between gap-4 ${CONTROL_RADIUS} bg-white/[0.05] p-3 shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
                     >
                       <span>{paymentName}</span>
-                      <span className="font-semibold whitespace-nowrap">{formatMoney(amount)}</span>
+                      <span className="font-semibold whitespace-nowrap">
+                        {formatMoney(amount)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1662,36 +1769,43 @@ export default function App() {
               </div>
             </div>
 
-            {selectedMonthOperations.length === 0 ? (
+            {sortedSelectedMonthOperations.length === 0 ? (
               <div
                 className={`${SURFACE_RADIUS} bg-white/[0.03] py-14 text-center text-zinc-400 shadow-[0_1px_0_rgba(255,255,255,0.03)_inset]`}
               >
                 Пока нет операций за этот месяц
               </div>
             ) : (
-              <div
-                className={`overflow-x-auto ${SURFACE_RADIUS} bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
-              >
-                <table className="w-full min-w-[860px] text-left">
-                  <thead className="bg-white/[0.045] text-sm text-zinc-400">
-                    <tr>
-                      <th className="px-4 py-3">Дата</th>
-                      <th className="px-4 py-3">Клиент</th>
-                      <th className="px-4 py-3">Оплаты</th>
-                      <th className="px-4 py-3">Услуги</th>
-                      <th className="px-4 py-3">Получено</th>
-                      <th className="px-4 py-3">Кто работал</th>
-                      <th className="px-4 py-3">Действия</th>
-                    </tr>
-                  </thead>
+              <>
+                <div className="space-y-4 md:hidden">
+                  {sortedSelectedMonthOperations.map((operation) => (
+                    <MobileOperationCard
+                      key={operation.id}
+                      operation={operation}
+                      onEdit={openEditModal}
+                      onDelete={(id) => void deleteOperation(id)}
+                    />
+                  ))}
+                </div>
 
-                  <tbody>
-                    {[...selectedMonthOperations]
-                      .sort(
-                        (a, b) =>
-                          parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
-                      )
-                      .map((operation) => (
+                <div
+                  className={`hidden md:block overflow-x-auto ${SURFACE_RADIUS} bg-white/[0.025] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset]`}
+                >
+                  <table className="w-full min-w-[860px] text-left">
+                    <thead className="bg-white/[0.045] text-sm text-zinc-400">
+                      <tr>
+                        <th className="px-4 py-3">Дата</th>
+                        <th className="px-4 py-3">Клиент</th>
+                        <th className="px-4 py-3">Оплаты</th>
+                        <th className="px-4 py-3">Услуги</th>
+                        <th className="px-4 py-3">Получено</th>
+                        <th className="px-4 py-3">Кто работал</th>
+                        <th className="px-4 py-3">Действия</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {sortedSelectedMonthOperations.map((operation) => (
                         <tr
                           key={operation.id}
                           className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
@@ -1740,9 +1854,10 @@ export default function App() {
                           </td>
                         </tr>
                       ))}
-                  </tbody>
-                </table>
-              </div>
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </GlassCard>
         </main>
