@@ -174,3 +174,39 @@ select:-webkit-autofill {
   transition: background-color 9999s ease-in-out 0s;
   border-radius: 20px;
 }
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 70px;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  background: #0f1118;
+  border-top: 1px solid #1f2430;
+
+  z-index: 1000;
+}
+
+.bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  font-size: 12px;
+  color: #9aa4b2;
+
+  background: none;
+  border: none;
+}
+
+.bottom-nav button svg {
+  margin-bottom: 4px;
+}
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}

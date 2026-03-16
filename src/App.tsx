@@ -12,6 +12,16 @@ import {
 } from "chart.js"
 import { Bar } from "react-chartjs-2"
 import logoWhite from "./assets/logo-white.png"
+import BottomNav from "./components/BottomNav"
+
+function App() {
+  return (
+    <>
+      <MainPages />
+      <BottomNav />
+    </>
+  )
+}
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
