@@ -305,21 +305,52 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <p className="mb-2 text-sm text-zinc-400">{children}</p>
 }
 
-function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+function TextInput({
+  className = "",
+  style,
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition placeholder:text-zinc-500 focus:border-white/20 focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))] ${props.className || ""}`}
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))",
+        color: "#ffffff",
+        WebkitTextFillColor: "#ffffff",
+        colorScheme: "dark",
+        WebkitAppearance: "none",
+        appearance: "none",
+        ...style,
+      }}
+      className={`w-full rounded-[20px] border border-white/10 px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition placeholder:text-zinc-500 focus:border-white/20 ${className}`}
     />
   )
 }
 
-function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+function SelectInput({
+  className = "",
+  style,
+  children,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`w-full rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition focus:border-white/20 focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))] ${props.className || ""}`}
-    />
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))",
+        color: "#ffffff",
+        WebkitTextFillColor: "#ffffff",
+        colorScheme: "dark",
+        WebkitAppearance: "none",
+        appearance: "none",
+        ...style,
+      }}
+      className={`w-full rounded-[20px] border border-white/10 px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition focus:border-white/20 ${className}`}
+    >
+      {children}
+    </select>
   )
 }
 
@@ -422,19 +453,24 @@ function BottomNav({
   activeTab,
   onChange,
   onAdd,
+  hidden = false,
 }: {
   activeTab: "dashboard" | "operations" | "analytics" | "settings"
   onChange: (tab: "dashboard" | "operations" | "analytics" | "settings") => void
   onAdd: () => void
+  hidden?: boolean
 }) {
+  if (hidden) return null
+
   const itemClass = (tab: "dashboard" | "operations" | "analytics" | "settings") =>
     `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[20px] px-2 py-2 text-[11px] transition ${
-      activeTab === tab
-        ? "text-white"
-        : "text-zinc-400 hover:text-white"
+      activeTab === tab ? "text-white" : "text-zinc-400 hover:text-white"
     }`
 
-  const scrollToSection = (id: string, tab: "dashboard" | "operations" | "analytics" | "settings") => {
+  const scrollToSection = (
+    id: string,
+    tab: "dashboard" | "operations" | "analytics" | "settings"
+  ) => {
     onChange(tab)
     const element = document.getElementById(id)
     if (element) {
@@ -445,12 +481,18 @@ function BottomNav({
   return (
     <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[600] flex justify-center md:hidden">
       <div className="pointer-events-auto mx-4 flex w-full max-w-[390px] items-center gap-2 rounded-[30px] border border-white/10 bg-[rgba(13,16,24,0.62)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[24px]">
-        <button className={itemClass("dashboard")} onClick={() => scrollToSection("dashboard-section", "dashboard")}>
+        <button
+          className={itemClass("dashboard")}
+          onClick={() => scrollToSection("dashboard-section", "dashboard")}
+        >
           <HomeIcon />
           <span>Главная</span>
         </button>
 
-        <button className={itemClass("operations")} onClick={() => scrollToSection("operations-section", "operations")}>
+        <button
+          className={itemClass("operations")}
+          onClick={() => scrollToSection("operations-section", "operations")}
+        >
           <ReceiptIcon />
           <span>Операции</span>
         </button>
@@ -462,12 +504,18 @@ function BottomNav({
           <PlusIcon />
         </button>
 
-        <button className={itemClass("analytics")} onClick={() => scrollToSection("analytics-section", "analytics")}>
+        <button
+          className={itemClass("analytics")}
+          onClick={() => scrollToSection("analytics-section", "analytics")}
+        >
           <ChartIcon />
           <span>Аналитика</span>
         </button>
 
-        <button className={itemClass("settings")} onClick={() => scrollToSection("settings-section", "settings")}>
+        <button
+          className={itemClass("settings")}
+          onClick={() => scrollToSection("settings-section", "settings")}
+        >
           <SettingsIcon />
           <span>Ещё</span>
         </button>
@@ -1827,6 +1875,7 @@ export default function App() {
         activeTab={activeTab}
         onChange={setActiveTab}
         onAdd={openCreateModal}
+        hidden={showModal}
       />
     </div>
   )
