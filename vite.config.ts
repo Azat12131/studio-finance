@@ -13,12 +13,14 @@ export default defineConfig({
         "icons/icon-512.png"
       ],
       manifest: {
+        id: "/",
         name: "SoundRoom",
         short_name: "SoundRoom",
         description: "Учёт операций и доходов студии",
         theme_color: "#0f1118",
         background_color: "#0f1118",
         display: "standalone",
+        orientation: "portrait",
         start_url: "/",
         scope: "/",
         icons: [
@@ -31,6 +33,12 @@ export default defineConfig({
             src: "/icons/icon-512.png",
             sizes: "512x512",
             type: "image/png"
+          },
+          {
+            src: "/icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable"
           }
         ]
       },
