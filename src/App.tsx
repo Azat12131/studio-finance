@@ -46,7 +46,6 @@ type Operation = {
 }
 
 type MonthGoals = Record<string, number>
-
 type AppTab = "dashboard" | "operations" | "analytics" | "settings"
 
 const RENT_GOAL = 20000
@@ -473,14 +472,14 @@ function MonthTabs({
   onChange: (month: string) => void
 }) {
   return (
-    <div className="mb-6 flex gap-3 overflow-x-auto pb-1">
+    <div className="mb-6 flex gap-3 overflow-x-auto pb-2 pt-1">
       {months.map((monthKey) => {
         const active = monthKey === selectedMonth
         return (
           <button
             key={monthKey}
             onClick={() => onChange(monthKey)}
-            className={`shrink-0 rounded-[18px] px-4 py-2.5 text-sm font-medium capitalize transition ${
+            className={`shrink-0 rounded-[18px] px-4 py-3 text-sm font-medium capitalize transition ${
               active
                 ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
                 : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/6 hover:bg-white/[0.08]"
@@ -1456,7 +1455,7 @@ export default function App() {
         />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(8,10,16,0.62)] backdrop-blur-[20px]">
+          <header className="border-b border-white/5 bg-[rgba(8,10,16,0.62)] backdrop-blur-[20px]">
             <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-4 lg:px-8">
               <div className="flex items-center gap-3">
                 <div className="lg:hidden">
@@ -1505,62 +1504,97 @@ export default function App() {
 
             {activeTab === "dashboard" && (
               <div className="space-y-6">
-                <SoftCard className="p-5 sm:p-6">
-                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.55fr_1fr]">
-                    <div>
-                      <p className="text-sm uppercase tracking-[0.22em] text-zinc-500">
-                        Финансы студии
-                      </p>
-                      <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
-                        Главный экран должен показывать
-                        <br />
-                        самое важное
-                      </h2>
-                      <p className="mt-3 max-w-[720px] text-sm text-zinc-400 sm:text-base">
-                        Доход за месяц, прогресс до цели, аренду, лучшего клиента,
-                        последние операции и быстрые действия — без странных лишних блоков.
-                      </p>
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                  <SoftCard className="p-6">
+                    <SectionTitle title="Прогресс месяца" />
+                    <div className="space-y-5">
+                      <div>
+                        <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-zinc-400">Цель месяца</span>
+                          <span className="font-medium text-white">
+                            {formatMoney(monthGoal)}
+                          </span>
+                        </div>
 
-                      <div className="mt-5 flex flex-wrap gap-3">
-                        <button
-                          onClick={openCreateModal}
-                          className="rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-5 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(79,101,255,0.28)]"
-                        >
-                          + Новая операция
-                        </button>
+                        <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+                          <div
+                            className="h-full rounded-full bg-[linear-gradient(90deg,#6d84ff,#36c9ff)]"
+                            style={{
+                              width: `${Math.min((monthIncome / Math.max(monthGoal, 1)) * 100, 100)}%`,
+                            }}
+                          />
+                        </div>
 
-                        <button
-                          onClick={() => setActiveTab("operations")}
-                          className="rounded-[20px] bg-white/[0.05] px-5 py-3 font-semibold text-white ring-1 ring-white/6"
-                        >
-                          Перейти к операциям
-                        </button>
+                        <div className="mt-2 flex items-center justify-between text-xs">
+                          <span className="text-zinc-500">Собрано</span>
+                          <span className="text-zinc-300">{formatMoney(monthIncome)}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-zinc-400">Аренда</span>
+                          <span className="font-medium text-white">
+                            {formatMoney(RENT_GOAL)}
+                          </span>
+                        </div>
+
+                        <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+                          <div
+                            className="h-full rounded-full bg-[linear-gradient(90deg,#22c55e,#7CFF91)]"
+                            style={{
+                              width: `${Math.min((monthIncome / Math.max(RENT_GOAL, 1)) * 100, 100)}%`,
+                            }}
+                          />
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between text-xs">
+                          <span className="text-zinc-500">Осталось до аренды</span>
+                          <span className="text-zinc-300">{formatMoney(leftToRent)}</span>
+                        </div>
                       </div>
                     </div>
+                  </SoftCard>
 
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-                      <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/6">
-                        <p className="text-sm text-zinc-400">Доход месяца</p>
-                        <p className="mt-2 text-3xl font-bold text-green-400">
-                          {formatMoney(monthIncome)}
-                        </p>
-                        <p className="mt-2 text-xs text-zinc-500">
-                          {formatMonthLabel(selectedMonth)}
-                        </p>
+                  <SoftCard className="p-6">
+                    <SectionTitle title="Кто сколько заработал" />
+                    <div className="grid gap-4">
+                      <div className="rounded-[22px] bg-white/[0.04] p-5 ring-1 ring-white/6">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-zinc-400">Азат</span>
+                          <span className="text-2xl font-bold text-white">
+                            {formatMoney(azatIncome)}
+                          </span>
+                        </div>
+                        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
+                          <div
+                            className="h-full rounded-full bg-[linear-gradient(90deg,#6d84ff,#36c9ff)]"
+                            style={{
+                              width: `${monthIncome > 0 ? (azatIncome / monthIncome) * 100 : 0}%`,
+                            }}
+                          />
+                        </div>
                       </div>
 
-                      <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/6">
-                        <p className="text-sm text-zinc-400">Топ клиент месяца</p>
-                        <p className="mt-2 text-xl font-semibold text-white">
-                          {topClient ? topClient[0] : "Пока нет"}
-                        </p>
-                        <p className="mt-2 text-sm text-zinc-400">
-                          {topClient ? formatMoney(topClient[1]) : "Нет оплат"}
-                        </p>
+                      <div className="rounded-[22px] bg-white/[0.04] p-5 ring-1 ring-white/6">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-zinc-400">Марс</span>
+                          <span className="text-2xl font-bold text-white">
+                            {formatMoney(marsIncome)}
+                          </span>
+                        </div>
+                        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
+                          <div
+                            className="h-full rounded-full bg-[linear-gradient(90deg,#8b5cf6,#d946ef)]"
+                            style={{
+                              width: `${monthIncome > 0 ? (marsIncome / monthIncome) * 100 : 0}%`,
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </SoftCard>
+                  </SoftCard>
+                </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   <StatCard
@@ -1569,106 +1603,53 @@ export default function App() {
                     valueClassName="text-green-400"
                     subtext={formatMonthLabel(selectedMonth)}
                   />
-                  <StatCard label="Аренда" value={formatMoney(RENT_GOAL)} />
-                  <StatCard
-                    label="Осталось до аренды"
-                    value={formatMoney(leftToRent)}
-                    valueClassName="text-yellow-300"
-                  />
                   <StatCard
                     label="Осталось до цели"
                     value={formatMoney(leftToMonthGoal)}
                     valueClassName="text-cyan-300"
                   />
+                  <StatCard
+                    label="Топ клиент"
+                    value={topClient ? topClient[0] : "Пока нет"}
+                    subtext={topClient ? formatMoney(topClient[1]) : "Нет оплат"}
+                  />
+                  <StatCard
+                    label="Чистая прибыль после аренды"
+                    value={formatMoney(profitAfterRent)}
+                    valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                  <SoftCard className="p-5 sm:p-6">
-                    <SectionTitle
-                      title="Последние операции"
-                      subtitle="Нажми на операцию, чтобы сразу открыть редактирование"
-                      action={
-                        <button
-                          onClick={() => setActiveTab("operations")}
-                          className="rounded-[16px] bg-white/[0.05] px-4 py-2 text-sm font-medium text-white ring-1 ring-white/6"
-                        >
-                          Все операции
-                        </button>
-                      }
-                    />
+                <SoftCard className="p-5 sm:p-6">
+                  <SectionTitle
+                    title="Последние операции"
+                    subtitle="Нажми на операцию, чтобы сразу открыть редактирование"
+                    action={
+                      <button
+                        onClick={() => setActiveTab("operations")}
+                        className="rounded-[16px] bg-white/[0.05] px-4 py-2 text-sm font-medium text-white ring-1 ring-white/6"
+                      >
+                        Все операции
+                      </button>
+                    }
+                  />
 
-                    {recentOperations.length === 0 ? (
-                      <div className="rounded-[22px] bg-white/[0.03] py-12 text-center text-zinc-400 ring-1 ring-white/6">
-                        Пока нет операций за этот месяц
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {recentOperations.map((operation) => (
-                          <RecentOperationRow
-                            key={operation.id}
-                            operation={operation}
-                            onEdit={openEditModal}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </SoftCard>
-
-                  <div className="space-y-6">
-                    <SoftCard className="p-5">
-                      <SectionTitle title="Кто сделал больше" />
-                      <div className="grid gap-3">
-                        <div className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6">
-                          <p className="text-sm text-zinc-400">Азат</p>
-                          <p className="mt-2 text-2xl font-bold">{formatMoney(azatIncome)}</p>
-                        </div>
-                        <div className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6">
-                          <p className="text-sm text-zinc-400">Марс</p>
-                          <p className="mt-2 text-2xl font-bold">{formatMoney(marsIncome)}</p>
-                        </div>
-                      </div>
-                    </SoftCard>
-
-                    <SoftCard className="p-5">
-                      <SectionTitle title="Прогресс месяца" />
-                      <div className="space-y-4">
-                        <div>
-                          <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                            <span className="text-zinc-400">Цель месяца</span>
-                            <span className="font-medium text-white">
-                              {formatMoney(monthGoal)}
-                            </span>
-                          </div>
-                          <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
-                            <div
-                              className="h-full rounded-full bg-[linear-gradient(90deg,#6d84ff,#36c9ff)]"
-                              style={{
-                                width: `${Math.min((monthIncome / Math.max(monthGoal, 1)) * 100, 100)}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                            <span className="text-zinc-400">Аренда</span>
-                            <span className="font-medium text-white">
-                              {formatMoney(RENT_GOAL)}
-                            </span>
-                          </div>
-                          <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
-                            <div
-                              className="h-full rounded-full bg-[linear-gradient(90deg,#22c55e,#7CFF91)]"
-                              style={{
-                                width: `${Math.min((monthIncome / Math.max(RENT_GOAL, 1)) * 100, 100)}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </SoftCard>
-                  </div>
-                </div>
+                  {recentOperations.length === 0 ? (
+                    <div className="rounded-[22px] bg-white/[0.03] py-12 text-center text-zinc-400 ring-1 ring-white/6">
+                      Пока нет операций за этот месяц
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentOperations.map((operation) => (
+                        <RecentOperationRow
+                          key={operation.id}
+                          operation={operation}
+                          onEdit={openEditModal}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </SoftCard>
               </div>
             )}
 
