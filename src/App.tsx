@@ -207,8 +207,7 @@ function normalizeServices(rawServices: unknown): ServiceItem[] {
     const raw = item as Partial<ServiceItem>
     const type = (raw.type as ServiceType) || "Запись"
     const hours = Number(raw.hours) || (type === "Запись" ? 1 : 0)
-    const amount =
-      type === "Запись" ? hours * 1000 : Number(raw.amount) || 0
+    const amount = type === "Запись" ? hours * 1000 : Number(raw.amount) || 0
 
     return {
       id: Number(raw.id) || makeId() + index,
@@ -217,6 +216,55 @@ function normalizeServices(rawServices: unknown): ServiceItem[] {
       amount,
     }
   })
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5.5 9.5V20h13V9.5" />
+      <path d="M10 20v-5h4v5" />
+    </svg>
+  )
+}
+
+function ReceiptIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5L5 21V5a2 2 0 0 1 2-2Z" />
+      <path d="M9 8h6" />
+      <path d="M9 12h6" />
+    </svg>
+  )
+}
+
+function ChartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 20V10" />
+      <path d="M10 20V4" />
+      <path d="M16 20v-7" />
+      <path d="M22 20v-12" />
+    </svg>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3.5 13.8 5l2.4-.3.8 2.3 2 1.3-1 2 1 2-2 1.3-.8 2.3-2.4-.3L12 20.5l-1.8-1.5-2.4.3-.8-2.3-2-1.3 1-2-1-2 2-1.3.8-2.3 2.4.3L12 3.5Z" />
+      <circle cx="12" cy="12" r="3.2" />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  )
 }
 
 function GlassCard({
@@ -228,9 +276,10 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.018))] shadow-[0_16px_40px_rgba(0,0,0,0.28)] backdrop-blur-[24px] ${className}`}
+      className={`relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] shadow-[0_18px_50px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[24px] ${className}`}
     >
-      {children}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.07),transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.005))]" />
+      <div className="relative z-[1]">{children}</div>
     </div>
   )
 }
@@ -260,7 +309,7 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 text-white outline-none transition placeholder:text-zinc-500 focus:border-white/20 focus:bg-[#262a35] ${props.className || ""}`}
+      className={`w-full rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition placeholder:text-zinc-500 focus:border-white/20 focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))] ${props.className || ""}`}
     />
   )
 }
@@ -269,7 +318,7 @@ function SelectInput(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`w-full rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 text-white outline-none transition focus:border-white/20 focus:bg-[#262a35] ${props.className || ""}`}
+      className={`w-full rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition focus:border-white/20 focus:bg-[linear-gradient(180deg,rgba(255,255,255,0.075),rgba(255,255,255,0.03))] ${props.className || ""}`}
     />
   )
 }
@@ -284,7 +333,7 @@ function MobileOperationCard({
   onDelete: (id: number) => void
 }) {
   return (
-    <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.18)]">
+    <GlassCard className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-base font-semibold text-white">{operation.client}</p>
@@ -293,7 +342,7 @@ function MobileOperationCard({
           </p>
         </div>
 
-        <div className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-right">
+        <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-2 text-right">
           <p className="text-xs text-zinc-400">Получено</p>
           <p className="text-sm font-semibold text-white">
             {formatMoney(getPaymentsTotal(operation))}
@@ -302,14 +351,14 @@ function MobileOperationCard({
       </div>
 
       <div className="mt-4 grid gap-3">
-        <div className="rounded-[18px] bg-white/[0.04] p-3">
+        <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
           <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
             Кто работал
           </p>
           <p className="text-sm text-white">{operation.owner}</p>
         </div>
 
-        <div className="rounded-[18px] bg-white/[0.04] p-3">
+        <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
           <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
             Оплаты
           </p>
@@ -320,7 +369,7 @@ function MobileOperationCard({
                 className="flex items-center justify-between gap-3 text-sm"
               >
                 <span className="text-zinc-300">{payment.type}</span>
-                <span className="font-medium text-white whitespace-nowrap">
+                <span className="font-medium whitespace-nowrap text-white">
                   {formatMoney(payment.amount)}
                 </span>
               </div>
@@ -328,7 +377,7 @@ function MobileOperationCard({
           </div>
         </div>
 
-        <div className="rounded-[18px] bg-white/[0.04] p-3">
+        <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
           <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
             Услуги
           </p>
@@ -342,7 +391,7 @@ function MobileOperationCard({
                   {service.type}
                   {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
                 </span>
-                <span className="font-medium text-white whitespace-nowrap">
+                <span className="font-medium whitespace-nowrap text-white">
                   {formatMoney(service.amount)}
                 </span>
               </div>
@@ -354,18 +403,18 @@ function MobileOperationCard({
       <div className="mt-4 flex gap-2">
         <button
           onClick={() => onEdit(operation)}
-          className="flex-1 rounded-[16px] bg-white/10 px-3 py-3 text-sm text-zinc-200 transition hover:bg-white/15"
+          className="flex-1 rounded-[16px] border border-white/10 bg-white/10 px-3 py-3 text-sm text-zinc-200 transition hover:bg-white/15"
         >
           Редактировать
         </button>
         <button
           onClick={() => onDelete(operation.id)}
-          className="flex-1 rounded-[16px] bg-red-500/15 px-3 py-3 text-sm text-red-300 transition hover:bg-red-500/25"
+          className="flex-1 rounded-[16px] border border-red-400/10 bg-red-500/15 px-3 py-3 text-sm text-red-300 transition hover:bg-red-500/25"
         >
           Удалить
         </button>
       </div>
-    </div>
+    </GlassCard>
   )
 }
 
@@ -379,39 +428,47 @@ function BottomNav({
   onAdd: () => void
 }) {
   const itemClass = (tab: "dashboard" | "operations" | "analytics" | "settings") =>
-    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-xs transition ${
+    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[20px] px-2 py-2 text-[11px] transition ${
       activeTab === tab
-        ? "bg-white/10 text-white"
-        : "text-zinc-400 hover:bg-white/[0.04] hover:text-white"
+        ? "text-white"
+        : "text-zinc-400 hover:text-white"
     }`
 
+  const scrollToSection = (id: string, tab: "dashboard" | "operations" | "analytics" | "settings") => {
+    onChange(tab)
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
+  }
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[500] border-t border-white/10 bg-[rgba(8,10,16,0.92)] px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] pt-3 backdrop-blur-xl md:hidden">
-      <div className="mx-auto flex max-w-xl items-center gap-2 rounded-[28px] border border-white/10 bg-[rgba(18,20,28,0.95)] p-2 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
-        <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
-          <span className="text-lg">🏠</span>
+    <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[600] flex justify-center md:hidden">
+      <div className="pointer-events-auto mx-4 flex w-full max-w-[390px] items-center gap-2 rounded-[30px] border border-white/10 bg-[rgba(13,16,24,0.62)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[24px]">
+        <button className={itemClass("dashboard")} onClick={() => scrollToSection("dashboard-section", "dashboard")}>
+          <HomeIcon />
           <span>Главная</span>
         </button>
 
-        <button className={itemClass("operations")} onClick={() => onChange("operations")}>
-          <span className="text-lg">🧾</span>
+        <button className={itemClass("operations")} onClick={() => scrollToSection("operations-section", "operations")}>
+          <ReceiptIcon />
           <span>Операции</span>
         </button>
 
         <button
           onClick={onAdd}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-2xl font-bold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34)]"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(180deg,#7d8dff,#4d65f6)] text-white shadow-[0_18px_38px_rgba(79,101,255,0.42),inset_0_1px_0_rgba(255,255,255,0.25)]"
         >
-          +
+          <PlusIcon />
         </button>
 
-        <button className={itemClass("analytics")} onClick={() => onChange("analytics")}>
-          <span className="text-lg">📊</span>
+        <button className={itemClass("analytics")} onClick={() => scrollToSection("analytics-section", "analytics")}>
+          <ChartIcon />
           <span>Аналитика</span>
         </button>
 
-        <button className={itemClass("settings")} onClick={() => onChange("settings")}>
-          <span className="text-lg">⚙️</span>
+        <button className={itemClass("settings")} onClick={() => scrollToSection("settings-section", "settings")}>
+          <SettingsIcon />
           <span>Ещё</span>
         </button>
       </div>
@@ -529,6 +586,12 @@ export default function App() {
       void supabase.removeChannel(channel)
     }
   }, [loadData])
+
+  React.useEffect(() => {
+    if (operationDate === "") {
+      setOperationDate(formatInputDate(new Date()))
+    }
+  }, [operationDate])
 
   const normalizedMonths = React.useMemo(() => {
     const all = new Set<string>(months)
@@ -1096,25 +1159,12 @@ export default function App() {
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
   }, [normalizedMonths, operations, selectedMonth])
 
-  const visibleContent = React.useMemo(() => {
-    if (activeTab === "dashboard") return "dashboard"
-    if (activeTab === "operations") return "operations"
-    if (activeTab === "analytics") return "analytics"
-    return "settings"
-  }, [activeTab])
-
-  React.useEffect(() => {
-    if (operationDate === "") {
-      setOperationDate(formatInputDate(new Date()))
-    }
-  }, [operationDate])
-
   return (
-    <div className="min-h-screen bg-[#0a0c12] pb-28 text-white md:pb-0">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(75,108,255,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(52,211,235,0.14),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(119,63,255,0.14),transparent_26%)]" />
+    <div className="min-h-screen bg-[#070a11] pb-28 text-white md:pb-0">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(77,101,246,0.25),transparent_24%),radial-gradient(circle_at_top_right,rgba(39,197,255,0.14),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(140,90,255,0.12),transparent_24%)]" />
 
       <div className="relative z-[1] flex min-h-screen flex-col lg:flex-row">
-        <aside className="w-full border-r border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px] lg:w-[290px] lg:p-6">
+        <aside className="w-full border-r border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px] lg:w-[290px] lg:p-6">
           <div className="mb-8">
             <div className="w-[86px] shrink-0">
               <img
@@ -1128,21 +1178,21 @@ export default function App() {
           <div className="hidden md:block">
             <button
               onClick={openCreateModal}
-              className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_16px_34px_rgba(79,101,255,0.34)] transition hover:-translate-y-[1px]"
+              className="w-full rounded-[22px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_18px_38px_rgba(79,101,255,0.42),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:-translate-y-[1px]"
             >
               + Добавить операцию
             </button>
 
             <button
               onClick={() => void createNewMonth()}
-              className="mt-3 w-full rounded-[20px] bg-white/[0.06] px-4 py-4 text-base font-semibold text-white transition hover:bg-white/[0.08]"
+              className="mt-3 w-full rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-4 text-base font-semibold text-white transition hover:bg-white/[0.08]"
             >
               + Новый месяц
             </button>
 
             <button
               onClick={() => void deleteSelectedMonth()}
-              className="mt-3 w-full rounded-[20px] bg-red-500/10 px-4 py-4 text-base font-semibold text-red-200 transition hover:bg-red-500/15"
+              className="mt-3 w-full rounded-[22px] border border-red-300/10 bg-[linear-gradient(180deg,rgba(255,80,110,0.16),rgba(255,80,110,0.08))] px-4 py-4 text-base font-semibold text-red-200 transition hover:bg-red-500/15"
             >
               − Удалить месяц
             </button>
@@ -1184,59 +1234,57 @@ export default function App() {
         </aside>
 
         <main className="flex-1 p-4 lg:p-8">
-          <div className="mb-6 flex flex-wrap items-center gap-3">
-            {normalizedMonths.map((monthKey) => (
-              <button
-                key={monthKey}
-                onClick={() => setSelectedMonth(monthKey)}
-                className={`rounded-[18px] px-4 py-2.5 text-sm font-medium capitalize transition ${
-                  selectedMonth === monthKey
-                    ? "bg-white/[0.14] text-white"
-                    : "bg-white/[0.05] text-zinc-300 hover:bg-white/[0.08]"
-                }`}
-              >
-                {formatMonthLabel(monthKey)}
-              </button>
-            ))}
-          </div>
-
-          <GlassCard className="mb-6 p-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <p className="text-sm text-zinc-400">Цель выбранного месяца</p>
-              <TextInput
-                type="number"
-                value={monthGoal}
-                onChange={(e) => void updateMonthGoal(e.target.value)}
-                className="w-full sm:w-[220px]"
-              />
+          <section id="dashboard-section">
+            <div className="mb-6 flex flex-wrap items-center gap-3">
+              {normalizedMonths.map((monthKey) => (
+                <button
+                  key={monthKey}
+                  onClick={() => setSelectedMonth(monthKey)}
+                  className={`rounded-[18px] px-4 py-2.5 text-sm font-medium capitalize transition ${
+                    selectedMonth === monthKey
+                      ? "border border-white/10 bg-white/[0.14] text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
+                      : "border border-white/8 bg-white/[0.045] text-zinc-300 hover:bg-white/[0.08]"
+                  }`}
+                >
+                  {formatMonthLabel(monthKey)}
+                </button>
+              ))}
             </div>
-          </GlassCard>
 
-          {(visibleContent === "dashboard" || visibleContent === "operations") && (
-            <>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                <SummaryCard
-                  label="Доход"
-                  value={formatMoney(monthIncome)}
-                  valueClassName="text-green-400"
-                />
-                <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
-                <SummaryCard
-                  label="Осталось до аренды"
-                  value={formatMoney(leftToRent)}
-                  valueClassName="text-yellow-300"
-                />
-                <SummaryCard
-                  label="Чистая прибыль после аренды"
-                  value={formatMoney(profitAfterRent)}
-                  valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+            <GlassCard className="mb-6 p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <p className="text-sm text-zinc-400">Цель выбранного месяца</p>
+                <TextInput
+                  type="number"
+                  value={monthGoal}
+                  onChange={(e) => void updateMonthGoal(e.target.value)}
+                  className="w-full sm:w-[220px]"
                 />
               </div>
-            </>
-          )}
+            </GlassCard>
 
-          {(visibleContent === "dashboard" || visibleContent === "analytics") && (
-            <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              <SummaryCard
+                label="Доход"
+                value={formatMoney(monthIncome)}
+                valueClassName="text-green-400"
+              />
+              <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
+              <SummaryCard
+                label="Осталось до аренды"
+                value={formatMoney(leftToRent)}
+                valueClassName="text-yellow-300"
+              />
+              <SummaryCard
+                label="Чистая прибыль после аренды"
+                value={formatMoney(profitAfterRent)}
+                valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+              />
+            </div>
+          </section>
+
+          <section id="analytics-section" className="mt-6">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
               <GlassCard className="p-4 sm:p-6">
                 <div className="mb-5">
                   <p className="text-xl font-semibold">График по дням</p>
@@ -1260,7 +1308,7 @@ export default function App() {
                       dailyStats.bestDays.map((day) => (
                         <div
                           key={day.dateKey}
-                          className="rounded-[18px] bg-white/[0.05] p-3"
+                          className="rounded-[18px] border border-white/8 bg-white/[0.05] p-3"
                         >
                           <p className="text-sm text-zinc-400">
                             {formatDisplayDate(day.dateKey)}
@@ -1291,7 +1339,7 @@ export default function App() {
                       serviceRevenueRows.map(([serviceName, amount]) => (
                         <div
                           key={serviceName}
-                          className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.05] p-3"
+                          className="flex items-center justify-between gap-4 rounded-[18px] border border-white/8 bg-white/[0.05] p-3"
                         >
                           <span>{serviceName}</span>
                           <span className="font-semibold whitespace-nowrap">
@@ -1309,7 +1357,7 @@ export default function App() {
                     {paymentRevenueRows.map(([paymentName, amount]) => (
                       <div
                         key={paymentName}
-                        className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.05] p-3"
+                        className="flex items-center justify-between gap-4 rounded-[18px] border border-white/8 bg-white/[0.05] p-3"
                       >
                         <span>{paymentName}</span>
                         <span className="font-semibold whitespace-nowrap">
@@ -1321,10 +1369,10 @@ export default function App() {
                 </GlassCard>
               </div>
             </div>
-          )}
+          </section>
 
-          {(visibleContent === "dashboard" || visibleContent === "operations") && (
-            <GlassCard className="mt-6 p-4 sm:p-6">
+          <section id="operations-section" className="mt-6">
+            <GlassCard className="p-4 sm:p-6">
               <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="text-xl font-semibold">История операций</p>
@@ -1334,7 +1382,7 @@ export default function App() {
                 <div className="flex flex-wrap gap-3">
                   <button
                     onClick={openCreateModal}
-                    className="rounded-[16px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2 text-sm font-medium text-white md:hidden"
+                    className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2 text-sm font-medium text-white shadow-[0_14px_30px_rgba(79,101,255,0.28)] md:hidden"
                   >
                     + Операция
                   </button>
@@ -1342,7 +1390,7 @@ export default function App() {
                   {lastAdded && (
                     <button
                       onClick={() => void undoAdd()}
-                      className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
+                      className="rounded-[16px] border border-yellow-300/10 bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
                     >
                       Отменить добавление
                     </button>
@@ -1351,7 +1399,7 @@ export default function App() {
                   {lastDeleted && (
                     <button
                       onClick={() => void undoDelete()}
-                      className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
+                      className="rounded-[16px] border border-yellow-300/10 bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
                     >
                       Отменить удаление
                     </button>
@@ -1360,7 +1408,7 @@ export default function App() {
               </div>
 
               {sortedSelectedMonthOperations.length === 0 ? (
-                <div className="rounded-[28px] bg-white/[0.03] py-14 text-center text-zinc-400">
+                <div className="rounded-[28px] border border-white/8 bg-white/[0.03] py-14 text-center text-zinc-400">
                   Пока нет операций за этот месяц
                 </div>
               ) : (
@@ -1376,7 +1424,7 @@ export default function App() {
                     ))}
                   </div>
 
-                  <div className="hidden overflow-x-auto rounded-[28px] bg-white/[0.025] md:block">
+                  <div className="hidden overflow-x-auto rounded-[28px] border border-white/8 bg-white/[0.025] md:block">
                     <table className="w-full min-w-[860px] text-left">
                       <thead className="bg-white/[0.045] text-sm text-zinc-400">
                         <tr>
@@ -1428,13 +1476,13 @@ export default function App() {
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => openEditModal(operation)}
-                                  className="rounded-[14px] bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15"
+                                  className="rounded-[14px] border border-white/10 bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15"
                                 >
                                   Редактировать
                                 </button>
                                 <button
                                   onClick={() => void deleteOperation(operation.id)}
-                                  className="rounded-[14px] bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25"
+                                  className="rounded-[14px] border border-red-300/10 bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25"
                                 >
                                   Удалить
                                 </button>
@@ -1448,37 +1496,41 @@ export default function App() {
                 </>
               )}
             </GlassCard>
-          )}
+          </section>
 
-          {visibleContent === "settings" && (
-            <div className="mt-6 grid gap-6">
+          <section id="settings-section" className="mt-6">
+            <div className="grid gap-6">
               <GlassCard className="p-6">
                 <p className="text-xl font-semibold">Быстрые действия</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <button
                     onClick={openCreateModal}
-                    className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-left font-semibold text-white"
+                    className="rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-left font-semibold text-white shadow-[0_14px_30px_rgba(79,101,255,0.28)]"
                   >
                     + Добавить операцию
                   </button>
 
                   <button
                     onClick={() => void createNewMonth()}
-                    className="rounded-[18px] bg-white/[0.06] px-4 py-4 text-left font-semibold text-white"
+                    className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-4 text-left font-semibold text-white"
                   >
                     + Создать новый месяц
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("analytics")}
-                    className="rounded-[18px] bg-white/[0.06] px-4 py-4 text-left font-semibold text-white"
+                    onClick={() => {
+                      setActiveTab("analytics")
+                      const el = document.getElementById("analytics-section")
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }}
+                    className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-4 text-left font-semibold text-white"
                   >
                     Открыть аналитику
                   </button>
 
                   <button
                     onClick={() => void deleteSelectedMonth()}
-                    className="rounded-[18px] bg-red-500/10 px-4 py-4 text-left font-semibold text-red-200"
+                    className="rounded-[20px] border border-red-300/10 bg-[linear-gradient(180deg,rgba(255,80,110,0.16),rgba(255,80,110,0.08))] px-4 py-4 text-left font-semibold text-red-200"
                   >
                     Удалить выбранный месяц
                   </button>
@@ -1495,13 +1547,13 @@ export default function App() {
                 </div>
               </GlassCard>
             </div>
-          )}
+          </section>
         </main>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-2 sm:p-4 backdrop-blur-[12px]">
-          <div className="relative w-full max-w-[98vw] rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_30px_80px_rgba(0,0,0,0.6)] sm:max-w-[95vw] lg:max-w-[860px]">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-2 sm:p-4 backdrop-blur-[14px]">
+          <div className="relative w-full max-w-[98vw] rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.08)] sm:max-w-[95vw] lg:max-w-[900px]">
             <div className="max-h-[92vh] overflow-y-auto px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
@@ -1538,7 +1590,7 @@ export default function App() {
                     onChange={(e) => setOwner(e.target.value as Owner)}
                   >
                     {ownerOptions.map((option) => (
-                      <option key={option} value={option}>
+                      <option key={option} value={option} className="bg-[#151823]">
                         {option}
                       </option>
                     ))}
@@ -1546,22 +1598,13 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="mt-6 space-y-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-7 space-y-4">
+                <div>
                   <p className="text-lg font-semibold">Услуги</p>
-                  <button
-                    onClick={addServiceRow}
-                    className="rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
-                  >
-                    + Добавить услугу
-                  </button>
                 </div>
 
                 {serviceRows.map((row, index) => (
-                  <div
-                    key={row.id}
-                    className="rounded-[24px] border border-white/10 bg-white/[0.035] p-4"
-                  >
+                  <GlassCard key={row.id} className="p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="font-semibold">Услуга {index + 1}</p>
                       {serviceRows.length > 1 && (
@@ -1592,7 +1635,7 @@ export default function App() {
                           }}
                         >
                           {serviceOptions.map((option) => (
-                            <option key={option} value={option}>
+                            <option key={option} value={option} className="bg-[#151823]">
                               {option}
                             </option>
                           ))}
@@ -1607,7 +1650,7 @@ export default function App() {
                           <TextInput
                             type="number"
                             min={1}
-                            value={row.hours}
+                            value={String(row.hours)}
                             onChange={(e) =>
                               updateServiceRow(row.id, {
                                 hours: Number(e.target.value) || 1,
@@ -1618,52 +1661,47 @@ export default function App() {
                           <TextInput
                             type="number"
                             min={0}
-                            value={row.amount}
+                            value={row.amount === 0 ? "" : String(row.amount)}
                             onChange={(e) =>
                               updateServiceRow(row.id, {
                                 amount: Number(e.target.value) || 0,
                               })
                             }
+                            placeholder="Сумма"
                           />
                         )}
                       </div>
 
                       <div>
                         <FieldLabel>Итог</FieldLabel>
-                        <div className="flex min-h-[50px] items-center rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 font-semibold text-white">
+                        <div className="flex min-h-[52px] items-center rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)]">
                           {formatMoney(
                             row.type === "Запись" ? row.hours * 1000 : row.amount
                           )}
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </GlassCard>
                 ))}
+
+                <button
+                  onClick={addServiceRow}
+                  className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-3 text-sm font-medium text-white shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
+                >
+                  + Добавить услугу
+                </button>
               </div>
 
               <div className="mt-8 space-y-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-lg font-semibold">Оплата</p>
-                    <p className="mt-1 text-sm text-zinc-400">
-                      Для Онлайн сумма всегда фиксированная:{" "}
-                      {formatMoney(ONLINE_NET_AMOUNT)}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={addPaymentRow}
-                    className="rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
-                  >
-                    + Добавить оплату
-                  </button>
+                <div>
+                  <p className="text-lg font-semibold">Оплата</p>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    Для Онлайн сумма всегда фиксированная: {formatMoney(ONLINE_NET_AMOUNT)}
+                  </p>
                 </div>
 
                 {paymentRows.map((row, index) => (
-                  <div
-                    key={row.id}
-                    className="rounded-[24px] border border-white/10 bg-white/[0.035] p-4"
-                  >
+                  <GlassCard key={row.id} className="p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="font-semibold">Оплата {index + 1}</p>
                       {paymentRows.length > 1 && (
@@ -1693,7 +1731,7 @@ export default function App() {
                           }}
                         >
                           {paymentOptions.map((option) => (
-                            <option key={option} value={option}>
+                            <option key={option} value={option} className="bg-[#151823]">
                               {option}
                             </option>
                           ))}
@@ -1703,14 +1741,14 @@ export default function App() {
                       <div>
                         <FieldLabel>Сумма</FieldLabel>
                         {row.type === "Онлайн" ? (
-                          <div className="flex min-h-[50px] items-center rounded-[18px] border border-white/10 bg-[#20232d] px-4 py-3 font-semibold text-white">
+                          <div className="flex min-h-[52px] items-center rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)]">
                             {formatMoney(ONLINE_NET_AMOUNT)}
                           </div>
                         ) : (
                           <TextInput
                             type="number"
                             min={0}
-                            value={row.amount}
+                            value={row.amount === 0 ? "" : String(row.amount)}
                             onChange={(e) =>
                               updatePaymentRow(row.id, {
                                 amount: Number(e.target.value) || 0,
@@ -1721,8 +1759,15 @@ export default function App() {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </GlassCard>
                 ))}
+
+                <button
+                  onClick={addPaymentRow}
+                  className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-3 text-sm font-medium text-white shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
+                >
+                  + Добавить оплату
+                </button>
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1742,17 +1787,17 @@ export default function App() {
               </div>
 
               {currentPaymentsTotal !== currentServicesTotal && (
-                <div className="mt-4 rounded-[20px] bg-[rgba(120,92,18,0.18)] p-4 text-sm text-yellow-100">
+                <div className="mt-4 rounded-[22px] border border-yellow-300/10 bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
                   Внимание: сумма оплат и сумма услуг не совпадают. Это нормально,
                   если внесена только предоплата или оплата частями.
                 </div>
               )}
 
-              <div className="sticky bottom-0 mt-6 flex flex-col gap-4 border-t border-white/10 bg-[rgba(10,12,20,0.96)] py-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
-                <div>
+              <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-4 sm:flex-row sm:items-end sm:justify-between">
+                <GlassCard className="ml-0 w-full max-w-[260px] p-4">
                   <p className="text-sm text-zinc-400">Фактически получено</p>
-                  <p className="text-2xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
-                </div>
+                  <p className="mt-2 text-3xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
+                </GlassCard>
 
                 <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row sm:items-center">
                   <button
@@ -1760,14 +1805,14 @@ export default function App() {
                       setShowModal(false)
                       resetForm()
                     }}
-                    className="w-full rounded-[16px] px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white sm:w-auto"
+                    className="w-full rounded-[18px] px-4 py-3 text-zinc-400 transition hover:bg-white/[0.05] hover:text-white sm:w-auto"
                   >
                     Отмена
                   </button>
 
                   <button
                     onClick={() => void saveOperation()}
-                    className="w-full rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-5 py-3 font-semibold text-white shadow-[0_14px_30px_rgba(27,164,85,0.26)] transition hover:brightness-110 sm:w-auto"
+                    className="w-full rounded-[22px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-6 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(27,164,85,0.28),inset_0_1px_0_rgba(255,255,255,0.16)] transition hover:brightness-110 sm:w-auto"
                   >
                     {editingOperationId ? "Сохранить изменения" : "Сохранить"}
                   </button>
