@@ -472,9 +472,9 @@ function MonthTabs({
   onChange: (month: string) => void
 }) {
   return (
-    <div className="relative mb-7 overflow-visible">
-      <div className="-mx-4 overflow-x-auto overflow-y-visible px-4 pt-1 pb-4 lg:mx-0 lg:px-0">
-        <div className="flex w-max gap-3">
+    <div className="mb-6">
+      <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:px-0">
+        <div className="flex w-max gap-3 py-1">
           {months.map((monthKey) => {
             const active = monthKey === selectedMonth
 
@@ -484,8 +484,8 @@ function MonthTabs({
                 onClick={() => onChange(monthKey)}
                 className={`shrink-0 rounded-[20px] px-5 py-3 text-sm font-medium capitalize transition ${
                   active
-                    ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_18px_34px_rgba(79,101,255,0.34),0_0_0_1px_rgba(255,255,255,0.08)]"
-                    : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/8 shadow-[0_10px_24px_rgba(0,0,0,0.2)] hover:bg-white/[0.08]"
+                    ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_8px_20px_rgba(79,101,255,0.22)] ring-1 ring-white/10"
+                    : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/8 shadow-[0_6px_16px_rgba(0,0,0,0.16)] hover:bg-white/[0.08]"
                 }`}
               >
                 {formatMonthLabel(monthKey)}
