@@ -473,8 +473,6 @@ function MonthTabs({
 }) {
   return (
     <div className="relative mb-7 overflow-visible">
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-[radial-gradient(circle_at_center,rgba(77,101,246,0.16),transparent_70%)] blur-xl" />
-
       <div className="-mx-4 overflow-x-auto overflow-y-visible px-4 pt-1 pb-4 lg:mx-0 lg:px-0">
         <div className="flex w-max gap-3">
           {months.map((monthKey) => {
