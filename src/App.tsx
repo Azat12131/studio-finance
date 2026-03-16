@@ -47,6 +47,8 @@ type Operation = {
 
 type MonthGoals = Record<string, number>
 
+type AppTab = "dashboard" | "operations" | "analytics" | "settings"
+
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
 const ONLINE_NET_AMOUNT = 487.5
@@ -227,7 +229,15 @@ function normalizeServices(rawServices: unknown): ServiceItem[] {
 
 function HomeIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5.5 9.5V20h13V9.5" />
       <path d="M10 20v-5h4v5" />
@@ -237,7 +247,15 @@ function HomeIcon() {
 
 function ReceiptIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5L5 21V5a2 2 0 0 1 2-2Z" />
       <path d="M9 8h6" />
       <path d="M9 12h6" />
@@ -247,7 +265,15 @@ function ReceiptIcon() {
 
 function ChartIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M4 20V10" />
       <path d="M10 20V4" />
       <path d="M16 20v-7" />
@@ -258,7 +284,15 @@ function ChartIcon() {
 
 function SettingsIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 3.5 13.8 5l2.4-.3.8 2.3 2 1.3-1 2 1 2-2 1.3-.8 2.3-2.4-.3L12 20.5l-1.8-1.5-2.4.3-.8-2.3-2-1.3 1-2-1-2 2-1.3.8-2.3 2.4.3L12 3.5Z" />
       <circle cx="12" cy="12" r="3.2" />
     </svg>
@@ -267,14 +301,59 @@ function SettingsIcon() {
 
 function PlusIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 5v14" />
       <path d="M5 12h14" />
     </svg>
   )
 }
 
-function GlassCard({
+function TrashIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </svg>
+  )
+}
+
+function EditIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+    </svg>
+  )
+}
+
+function SoftCard({
   children,
   className = "",
 }: {
@@ -283,28 +362,51 @@ function GlassCard({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] shadow-[0_18px_50px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[24px] ${className}`}
+      className={`relative overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,rgba(255,255,255,0.065),rgba(255,255,255,0.02))] shadow-[0_22px_55px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[24px] ${className}`}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.07),transparent_26%),linear-gradient(180deg,rgba(255,255,255,0.025),rgba(255,255,255,0.005))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(69,136,255,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(147,51,234,0.08),transparent_22%)]" />
       <div className="relative z-[1]">{children}</div>
     </div>
   )
 }
 
-function SummaryCard({
+function StatCard({
   label,
   value,
   valueClassName = "",
+  subtext,
 }: {
   label: string
   value: string
   valueClassName?: string
+  subtext?: string
 }) {
   return (
-    <GlassCard className="p-5 sm:p-6">
+    <SoftCard className="p-5">
       <p className="text-sm text-zinc-400">{label}</p>
-      <h2 className={`mt-2 text-3xl font-bold ${valueClassName}`}>{value}</h2>
-    </GlassCard>
+      <p className={`mt-3 text-3xl font-bold ${valueClassName}`}>{value}</p>
+      {subtext ? <p className="mt-2 text-xs text-zinc-500">{subtext}</p> : null}
+    </SoftCard>
+  )
+}
+
+function SectionTitle({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string
+  subtitle?: string
+  action?: React.ReactNode
+}) {
+  return (
+    <div className="mb-5 flex items-start justify-between gap-4">
+      <div>
+        <h2 className="text-2xl font-bold text-white">{title}</h2>
+        {subtitle ? <p className="mt-1 text-sm text-zinc-400">{subtitle}</p> : null}
+      </div>
+      {action}
+    </div>
   )
 }
 
@@ -322,7 +424,7 @@ function TextInput({
       {...props}
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))",
+          "linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02))",
         color: "#ffffff",
         WebkitTextFillColor: "#ffffff",
         colorScheme: "dark",
@@ -330,7 +432,7 @@ function TextInput({
         appearance: "none",
         ...style,
       }}
-      className={`w-full rounded-[20px] border border-white/10 px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition placeholder:text-zinc-500 focus:border-white/20 ${className}`}
+      className={`w-full rounded-[18px] bg-white/[0.03] px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)] ring-1 ring-white/6 transition placeholder:text-zinc-500 focus:ring-white/12 ${className}`}
     />
   )
 }
@@ -346,7 +448,7 @@ function SelectInput({
       {...props}
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.025))",
+          "linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02))",
         color: "#ffffff",
         WebkitTextFillColor: "#ffffff",
         colorScheme: "dark",
@@ -354,14 +456,45 @@ function SelectInput({
         appearance: "none",
         ...style,
       }}
-      className={`w-full rounded-[20px] border border-white/10 px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)] transition focus:border-white/20 ${className}`}
+      className={`w-full rounded-[18px] bg-white/[0.03] px-4 py-3 text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)] ring-1 ring-white/6 transition focus:ring-white/12 ${className}`}
     >
       {children}
     </select>
   )
 }
 
-function MobileSwipeOperationCard({
+function MonthTabs({
+  months,
+  selectedMonth,
+  onChange,
+}: {
+  months: string[]
+  selectedMonth: string
+  onChange: (month: string) => void
+}) {
+  return (
+    <div className="mb-6 flex gap-3 overflow-x-auto pb-1">
+      {months.map((monthKey) => {
+        const active = monthKey === selectedMonth
+        return (
+          <button
+            key={monthKey}
+            onClick={() => onChange(monthKey)}
+            className={`shrink-0 rounded-[18px] px-4 py-2.5 text-sm font-medium capitalize transition ${
+              active
+                ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
+                : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/6 hover:bg-white/[0.08]"
+            }`}
+          >
+            {formatMonthLabel(monthKey)}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function OperationMobileCard({
   operation,
   onEdit,
   onDelete,
@@ -370,130 +503,180 @@ function MobileSwipeOperationCard({
   onEdit: (operation: Operation) => void
   onDelete: (id: number) => void
 }) {
-  const [offset, setOffset] = React.useState(0)
-  const startXRef = React.useRef<number | null>(null)
-  const currentXRef = React.useRef(0)
-
-  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
-    startXRef.current = e.touches[0].clientX
-  }
-
-  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
-    if (startXRef.current === null) return
-    const dx = e.touches[0].clientX - startXRef.current
-    currentXRef.current = dx
-
-    if (dx < 0) {
-      setOffset(Math.max(dx, -120))
-    }
-    if (dx > 0 && offset < 0) {
-      setOffset(Math.min(dx - 120, 0))
-    }
-  }
-
-  function handleTouchEnd() {
-    if (currentXRef.current < -45) {
-      setOffset(-120)
-    } else {
-      setOffset(0)
-    }
-    startXRef.current = null
-    currentXRef.current = 0
-  }
-
   return (
-    <div className="relative overflow-hidden rounded-[30px]">
-      <div className="absolute inset-y-0 right-0 flex w-[120px] items-stretch">
+    <SoftCard className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-lg font-semibold text-white">{operation.client}</p>
+          <p className="mt-1 text-sm text-zinc-400">{formatDisplayDate(operation.date)}</p>
+        </div>
+
+        <div className="rounded-[16px] bg-white/[0.05] px-3 py-2 text-right ring-1 ring-white/6">
+          <p className="text-[11px] text-zinc-400">Получено</p>
+          <p className="text-sm font-semibold text-white">
+            {formatMoney(getPaymentsTotal(operation))}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+          <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+            Кто работал
+          </p>
+          <p className="text-sm text-white">{operation.owner}</p>
+        </div>
+
+        <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+          <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+            Оплаты
+          </p>
+          <div className="space-y-1.5">
+            {operation.payments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex items-center justify-between gap-3 text-sm"
+              >
+                <span className="text-zinc-300">{payment.type}</span>
+                <span className="whitespace-nowrap font-medium text-white">
+                  {formatMoney(payment.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+          <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+            Услуги
+          </p>
+          <div className="space-y-1.5">
+            {operation.services.map((service) => (
+              <div
+                key={service.id}
+                className="flex items-start justify-between gap-3 text-sm"
+              >
+                <span className="text-zinc-300">
+                  {service.type}
+                  {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
+                </span>
+                <span className="whitespace-nowrap font-medium text-white">
+                  {formatMoney(service.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
         <button
           onClick={() => onEdit(operation)}
-          className="flex-1 bg-white/10 text-sm text-white"
+          className="flex items-center justify-center gap-2 rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.1]"
         >
-          Ред.
+          <EditIcon />
+          Редактировать
         </button>
+
         <button
           onClick={() => onDelete(operation.id)}
-          className="flex-1 bg-red-500/20 text-sm text-red-200"
+          className="flex items-center justify-center gap-2 rounded-[18px] bg-red-500/[0.12] px-4 py-3 text-sm font-medium text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18]"
         >
-          Удал.
+          <TrashIcon />
+          Удалить
         </button>
       </div>
+    </SoftCard>
+  )
+}
 
-      <div
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ transform: `translateX(${offset}px)` }}
-        className="relative transition-transform duration-200"
-      >
-        <GlassCard className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-base font-semibold text-white">{operation.client}</p>
-              <p className="mt-1 text-sm text-zinc-400">
-                {formatDisplayDate(operation.date)}
-              </p>
-            </div>
-
-            <div className="rounded-[16px] border border-white/10 bg-white/[0.04] px-3 py-2 text-right">
-              <p className="text-xs text-zinc-400">Получено</p>
-              <p className="text-sm font-semibold text-white">
-                {formatMoney(getPaymentsTotal(operation))}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3">
-            <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-              <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
-                Кто работал
-              </p>
-              <p className="text-sm text-white">{operation.owner}</p>
-            </div>
-
-            <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-              <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
-                Оплаты
-              </p>
-              <div className="space-y-1">
-                {operation.payments.map((payment) => (
-                  <div
-                    key={payment.id}
-                    className="flex items-center justify-between gap-3 text-sm"
-                  >
-                    <span className="text-zinc-300">{payment.type}</span>
-                    <span className="font-medium whitespace-nowrap text-white">
-                      {formatMoney(payment.amount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[18px] border border-white/8 bg-white/[0.035] p-3">
-              <p className="mb-2 text-xs uppercase tracking-wide text-zinc-500">
-                Услуги
-              </p>
-              <div className="space-y-1">
-                {operation.services.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex items-start justify-between gap-3 text-sm"
-                  >
-                    <span className="text-zinc-300">
-                      {service.type}
-                      {service.type === "Запись" ? ` — ${service.hours} ч` : ""}
-                    </span>
-                    <span className="font-medium whitespace-nowrap text-white">
-                      {formatMoney(service.amount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </GlassCard>
+function RecentOperationRow({
+  operation,
+  onEdit,
+}: {
+  operation: Operation
+  onEdit: (operation: Operation) => void
+}) {
+  return (
+    <button
+      onClick={() => onEdit(operation)}
+      className="flex w-full items-center justify-between gap-3 rounded-[20px] bg-white/[0.04] px-4 py-4 text-left ring-1 ring-white/6 transition hover:bg-white/[0.07]"
+    >
+      <div className="min-w-0">
+        <p className="truncate font-medium text-white">{operation.client}</p>
+        <p className="mt-1 text-sm text-zinc-400">
+          {formatDisplayDate(operation.date)} · {operation.owner}
+        </p>
       </div>
-    </div>
+      <p className="shrink-0 font-semibold text-white">
+        {formatMoney(getPaymentsTotal(operation))}
+      </p>
+    </button>
+  )
+}
+
+function SidebarNav({
+  activeTab,
+  onChange,
+  onAdd,
+  onCreateMonth,
+  logo,
+}: {
+  activeTab: AppTab
+  onChange: (tab: AppTab) => void
+  onAdd: () => void
+  onCreateMonth: () => void
+  logo: string
+}) {
+  const items: Array<{ key: AppTab; label: string; icon: React.ReactNode }> = [
+    { key: "dashboard", label: "Главная", icon: <HomeIcon /> },
+    { key: "operations", label: "Операции", icon: <ReceiptIcon /> },
+    { key: "analytics", label: "Аналитика", icon: <ChartIcon /> },
+    { key: "settings", label: "Настройки", icon: <SettingsIcon /> },
+  ]
+
+  return (
+    <aside className="hidden w-[280px] shrink-0 border-r border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012))] p-6 backdrop-blur-[24px] lg:flex lg:flex-col">
+      <div className="mb-8">
+        <img src={logo} alt="logo" className="h-auto w-[88px] object-contain opacity-95" />
+      </div>
+
+      <div className="space-y-2">
+        {items.map((item) => {
+          const active = item.key === activeTab
+          return (
+            <button
+              key={item.key}
+              onClick={() => onChange(item.key)}
+              className={`flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-medium transition ${
+                active
+                  ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_16px_34px_rgba(79,101,255,0.28)]"
+                  : "bg-white/[0.03] text-zinc-300 ring-1 ring-white/6 hover:bg-white/[0.06] hover:text-white"
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="mt-8 space-y-3">
+        <button
+          onClick={onAdd}
+          className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_18px_38px_rgba(79,101,255,0.34)]"
+        >
+          + Добавить операцию
+        </button>
+
+        <button
+          onClick={onCreateMonth}
+          className="w-full rounded-[20px] bg-white/[0.04] px-4 py-4 text-base font-semibold text-white ring-1 ring-white/6 transition hover:bg-white/[0.07]"
+        >
+          + Новый месяц
+        </button>
+      </div>
+    </aside>
   )
 }
 
@@ -503,44 +686,27 @@ function BottomNav({
   onAdd,
   hidden = false,
 }: {
-  activeTab: "dashboard" | "operations" | "analytics" | "settings"
-  onChange: (tab: "dashboard" | "operations" | "analytics" | "settings") => void
+  activeTab: AppTab
+  onChange: (tab: AppTab) => void
   onAdd: () => void
   hidden?: boolean
 }) {
   if (hidden) return null
 
-  const itemClass = (tab: "dashboard" | "operations" | "analytics" | "settings") =>
-    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[20px] px-2 py-2 text-[11px] transition ${
-      activeTab === tab ? "text-white" : "text-zinc-400 hover:text-white"
+  const itemClass = (tab: AppTab) =>
+    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-[11px] transition ${
+      activeTab === tab ? "text-white" : "text-zinc-400"
     }`
 
-  const scrollToSection = (
-    id: string,
-    tab: "dashboard" | "operations" | "analytics" | "settings"
-  ) => {
-    onChange(tab)
-    const element = document.getElementById(id)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" })
-    }
-  }
-
   return (
-    <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[600] flex justify-center md:hidden">
-      <div className="pointer-events-auto mx-4 flex w-full max-w-[390px] items-center gap-2 rounded-[30px] border border-white/10 bg-[rgba(13,16,24,0.62)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[24px]">
-        <button
-          className={itemClass("dashboard")}
-          onClick={() => scrollToSection("dashboard-section", "dashboard")}
-        >
+    <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[600] flex justify-center lg:hidden">
+      <div className="pointer-events-auto mx-4 flex w-full max-w-[430px] items-center gap-2 rounded-[28px] bg-[rgba(13,16,24,0.72)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 backdrop-blur-[24px]">
+        <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
           <HomeIcon />
           <span>Главная</span>
         </button>
 
-        <button
-          className={itemClass("operations")}
-          onClick={() => scrollToSection("operations-section", "operations")}
-        >
+        <button className={itemClass("operations")} onClick={() => onChange("operations")}>
           <ReceiptIcon />
           <span>Операции</span>
         </button>
@@ -552,18 +718,12 @@ function BottomNav({
           <PlusIcon />
         </button>
 
-        <button
-          className={itemClass("analytics")}
-          onClick={() => scrollToSection("analytics-section", "analytics")}
-        >
+        <button className={itemClass("analytics")} onClick={() => onChange("analytics")}>
           <ChartIcon />
           <span>Аналитика</span>
         </button>
 
-        <button
-          className={itemClass("settings")}
-          onClick={() => scrollToSection("settings-section", "settings")}
-        >
+        <button className={itemClass("settings")} onClick={() => onChange("settings")}>
           <SettingsIcon />
           <span>Ещё</span>
         </button>
@@ -594,9 +754,7 @@ export default function App() {
   const [lastDeleted, setLastDeleted] = React.useState<Operation | null>(null)
   const [lastAdded, setLastAdded] = React.useState<Operation | null>(null)
 
-  const [activeTab, setActiveTab] = React.useState<
-    "dashboard" | "operations" | "analytics" | "settings"
-  >("dashboard")
+  const [activeTab, setActiveTab] = React.useState<AppTab>("dashboard")
 
   const resetForm = React.useCallback(() => {
     setClient("")
@@ -776,11 +934,11 @@ export default function App() {
         : 0
 
     const colors = values.map((item) => {
-      if (item.amount === 0) return "rgba(239,68,68,0.85)"
+      if (item.amount === 0) return "rgba(239,68,68,0.72)"
       if (positiveAverage > 0 && item.amount < positiveAverage * 0.6) {
-        return "rgba(250,204,21,0.88)"
+        return "rgba(250,204,21,0.82)"
       }
-      return "rgba(34,197,94,0.86)"
+      return "rgba(34,197,94,0.82)"
     })
 
     const bestDays = [...values]
@@ -806,8 +964,8 @@ export default function App() {
           label: "Выручка по дням",
           data: dailyStats.values.map((item) => item.amount),
           backgroundColor: dailyStats.colors,
-          borderRadius: 14,
-          barThickness: 18,
+          borderRadius: 12,
+          barThickness: 16,
         },
       ],
     }
@@ -828,7 +986,7 @@ export default function App() {
           },
         },
         tooltip: {
-          backgroundColor: "rgba(15,15,19,0.96)",
+          backgroundColor: "rgba(12,14,20,0.96)",
           borderColor: "rgba(255,255,255,0.08)",
           borderWidth: 1,
           titleColor: "#fff",
@@ -846,7 +1004,7 @@ export default function App() {
             color: "#8b8b95",
           },
           grid: {
-            color: "rgba(255,255,255,0.035)",
+            color: "rgba(255,255,255,0.03)",
           },
         },
         y: {
@@ -857,7 +1015,7 @@ export default function App() {
             },
           },
           grid: {
-            color: "rgba(255,255,255,0.035)",
+            color: "rgba(255,255,255,0.03)",
           },
         },
       },
@@ -1061,6 +1219,7 @@ export default function App() {
 
       setOperations((prev) => [...prev, newOperation])
       setLastAdded(newOperation)
+      setActiveTab("operations")
     }
 
     setMonthGoals((prev) => ({
@@ -1279,448 +1438,514 @@ export default function App() {
     return rows[0] || null
   }, [selectedMonthOperations])
 
+  const recentOperations = React.useMemo(() => {
+    return sortedSelectedMonthOperations.slice(0, 5)
+  }, [sortedSelectedMonthOperations])
+
   return (
-    <div className="min-h-screen bg-[#070a11] pb-28 text-white md:pb-0">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(77,101,246,0.25),transparent_24%),radial-gradient(circle_at_top_right,rgba(39,197,255,0.14),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(140,90,255,0.12),transparent_24%)]" />
+    <div className="min-h-screen bg-[#070a11] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(77,101,246,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(39,197,255,0.14),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(140,90,255,0.12),transparent_24%)]" />
 
-      <div className="relative z-[1] flex min-h-screen flex-col lg:flex-row">
-        <aside className="w-full border-r border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.012))] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.22)] backdrop-blur-[26px] lg:w-[290px] lg:p-6">
-          <div className="mb-8">
-            <div className="w-[86px] shrink-0">
-              <img
-                src={logoWhite}
-                alt="logo"
-                className="block h-auto w-full object-contain opacity-95"
-              />
-            </div>
-          </div>
+      <div className="relative z-[1] flex min-h-screen">
+        <SidebarNav
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          onAdd={openCreateModal}
+          onCreateMonth={() => void createNewMonth()}
+          logo={logoWhite}
+        />
 
-          <div className="hidden md:block">
-            <button
-              onClick={openCreateModal}
-              className="w-full rounded-[22px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_18px_38px_rgba(79,101,255,0.42),inset_0_1px_0_rgba(255,255,255,0.22)] transition hover:-translate-y-[1px]"
-            >
-              + Добавить операцию
-            </button>
-
-            <button
-              onClick={() => void createNewMonth()}
-              className="mt-3 w-full rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-4 text-base font-semibold text-white transition hover:bg-white/[0.08]"
-            >
-              + Новый месяц
-            </button>
-
-            <button
-              onClick={() => void deleteSelectedMonth()}
-              className="mt-3 w-full rounded-[22px] border border-red-300/10 bg-[linear-gradient(180deg,rgba(255,80,110,0.16),rgba(255,80,110,0.08))] px-4 py-4 text-base font-semibold text-red-200 transition hover:bg-red-500/15"
-            >
-              − Удалить месяц
-            </button>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <GlassCard className="p-4">
-              <p className="text-sm text-zinc-400">Аренда</p>
-              <p className="mt-1 text-2xl font-bold">{formatMoney(RENT_GOAL)}</p>
-            </GlassCard>
-
-            <GlassCard className="p-4">
-              <p className="text-sm text-zinc-400">До аренды осталось</p>
-              <p className="mt-1 text-2xl font-bold text-yellow-300">
-                {formatMoney(leftToRent)}
-              </p>
-            </GlassCard>
-
-            <GlassCard className="p-4">
-              <p className="text-sm text-zinc-400">Цель месяца</p>
-              <p className="mt-1 text-2xl font-bold">{formatMoney(monthGoal)}</p>
-            </GlassCard>
-
-            <GlassCard className="p-4">
-              <p className="text-sm text-zinc-400">Осталось до цели</p>
-              <p className="mt-1 text-2xl font-bold">{formatMoney(leftToMonthGoal)}</p>
-            </GlassCard>
-          </div>
-        </aside>
-
-        <main className="flex-1 p-4 lg:p-8">
-          <section id="dashboard-section">
-            <GlassCard className="mb-6 p-5 sm:p-6">
-              <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1.7fr_1fr]">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 border-b border-white/5 bg-[rgba(8,10,16,0.62)] backdrop-blur-[20px]">
+            <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-4 lg:px-8">
+              <div className="flex items-center gap-3">
+                <div className="lg:hidden">
+                  <img
+                    src={logoWhite}
+                    alt="logo"
+                    className="h-auto w-[56px] object-contain opacity-95"
+                  />
+                </div>
                 <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-zinc-500">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
                     SoundRoom Finance
                   </p>
-                  <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
-                    Финансовая панель студии,
-                    <br />
-                    которая ощущается как банковское приложение
+                  <h1 className="mt-1 text-lg font-semibold text-white sm:text-xl">
+                    {activeTab === "dashboard" && "Главная"}
+                    {activeTab === "operations" && "Операции"}
+                    {activeTab === "analytics" && "Аналитика"}
+                    {activeTab === "settings" && "Настройки"}
                   </h1>
-                  <p className="mt-3 max-w-[700px] text-sm text-zinc-400 sm:text-base">
-                    Здесь ты видишь доход месяца, цель, прогресс, сильные и слабые
-                    дни, лучших клиентов и все операции в одном месте.
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <button
-                      onClick={openCreateModal}
-                      className="rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-5 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(79,101,255,0.28)]"
-                    >
-                      + Новая операция
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("operations")
-                        const el = document.getElementById("operations-section")
-                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
-                      }}
-                      className="rounded-[20px] border border-white/10 bg-white/[0.05] px-5 py-3 font-semibold text-white"
-                    >
-                      Смотреть операции
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-                  <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4">
-                    <p className="text-sm text-zinc-400">Доход месяца</p>
-                    <p className="mt-2 text-3xl font-bold text-green-400">
-                      {formatMoney(monthIncome)}
-                    </p>
-                    <p className="mt-2 text-xs text-zinc-500">
-                      {formatMonthLabel(selectedMonth)}
-                    </p>
-                  </div>
-
-                  <div className="rounded-[24px] border border-white/10 bg-white/[0.045] p-4">
-                    <p className="text-sm text-zinc-400">Топ клиент месяца</p>
-                    <p className="mt-2 text-xl font-semibold text-white">
-                      {topClient ? topClient[0] : "Пока нет"}
-                    </p>
-                    <p className="mt-2 text-sm text-zinc-400">
-                      {topClient ? formatMoney(topClient[1]) : "Нет оплат"}
-                    </p>
-                  </div>
                 </div>
               </div>
-            </GlassCard>
 
-            <div className="mb-6 flex flex-wrap items-center gap-3">
-              {normalizedMonths.map((monthKey) => (
+              <div className="hidden sm:flex sm:items-center sm:gap-3">
                 <button
-                  key={monthKey}
-                  onClick={() => setSelectedMonth(monthKey)}
-                  className={`rounded-[18px] px-4 py-2.5 text-sm font-medium capitalize transition ${
-                    selectedMonth === monthKey
-                      ? "border border-white/10 bg-white/[0.14] text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)]"
-                      : "border border-white/8 bg-white/[0.045] text-zinc-300 hover:bg-white/[0.08]"
-                  }`}
+                  onClick={() => void createNewMonth()}
+                  className="rounded-[18px] bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
                 >
-                  {formatMonthLabel(monthKey)}
+                  + Новый месяц
                 </button>
-              ))}
-            </div>
-
-            <GlassCard className="mb-6 p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <p className="text-sm text-zinc-400">Цель выбранного месяца</p>
-                <TextInput
-                  type="number"
-                  value={monthGoal}
-                  onChange={(e) => void updateMonthGoal(e.target.value)}
-                  className="w-full sm:w-[220px]"
-                />
+                <button
+                  onClick={openCreateModal}
+                  className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
+                >
+                  + Операция
+                </button>
               </div>
-            </GlassCard>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-              <SummaryCard
-                label="Доход"
-                value={formatMoney(monthIncome)}
-                valueClassName="text-green-400"
-              />
-              <SummaryCard label="Аренда" value={formatMoney(RENT_GOAL)} />
-              <SummaryCard
-                label="Осталось до аренды"
-                value={formatMoney(leftToRent)}
-                valueClassName="text-yellow-300"
-              />
-              <SummaryCard
-                label="Чистая прибыль после аренды"
-                value={formatMoney(profitAfterRent)}
-                valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
-              />
             </div>
-          </section>
+          </header>
 
-          <section id="analytics-section" className="mt-6">
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
-              <GlassCard className="p-4 sm:p-6">
-                <div className="mb-5">
-                  <p className="text-xl font-semibold">График по дням</p>
-                  <p className="text-sm text-zinc-400">
-                    Красный — 0 клиентов, жёлтый — слабый день, зелёный — нормальный
-                  </p>
-                </div>
+          <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-28 pt-5 lg:px-8 lg:pb-8">
+            <MonthTabs
+              months={normalizedMonths}
+              selectedMonth={selectedMonth}
+              onChange={setSelectedMonth}
+            />
 
-                <div className="h-[280px] sm:h-[360px]">
-                  <Bar data={chartData} options={chartOptions} />
-                </div>
-              </GlassCard>
-
+            {activeTab === "dashboard" && (
               <div className="space-y-6">
-                <GlassCard className="p-6">
-                  <p className="text-lg font-semibold">Кто сделал больше</p>
-                  <div className="mt-4 grid gap-3">
-                    <div className="rounded-[18px] border border-white/8 bg-white/[0.05] p-3">
-                      <p className="text-sm text-zinc-400">Азат</p>
-                      <p className="mt-1 text-xl font-bold">{formatMoney(azatIncome)}</p>
+                <SoftCard className="p-5 sm:p-6">
+                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.55fr_1fr]">
+                    <div>
+                      <p className="text-sm uppercase tracking-[0.22em] text-zinc-500">
+                        Финансы студии
+                      </p>
+                      <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
+                        Главный экран должен показывать
+                        <br />
+                        самое важное
+                      </h2>
+                      <p className="mt-3 max-w-[720px] text-sm text-zinc-400 sm:text-base">
+                        Доход за месяц, прогресс до цели, аренду, лучшего клиента,
+                        последние операции и быстрые действия — без странных лишних блоков.
+                      </p>
+
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        <button
+                          onClick={openCreateModal}
+                          className="rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-5 py-3 font-semibold text-white shadow-[0_16px_32px_rgba(79,101,255,0.28)]"
+                        >
+                          + Новая операция
+                        </button>
+
+                        <button
+                          onClick={() => setActiveTab("operations")}
+                          className="rounded-[20px] bg-white/[0.05] px-5 py-3 font-semibold text-white ring-1 ring-white/6"
+                        >
+                          Перейти к операциям
+                        </button>
+                      </div>
                     </div>
-                    <div className="rounded-[18px] border border-white/8 bg-white/[0.05] p-3">
-                      <p className="text-sm text-zinc-400">Марс</p>
-                      <p className="mt-1 text-xl font-bold">{formatMoney(marsIncome)}</p>
+
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                      <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/6">
+                        <p className="text-sm text-zinc-400">Доход месяца</p>
+                        <p className="mt-2 text-3xl font-bold text-green-400">
+                          {formatMoney(monthIncome)}
+                        </p>
+                        <p className="mt-2 text-xs text-zinc-500">
+                          {formatMonthLabel(selectedMonth)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/6">
+                        <p className="text-sm text-zinc-400">Топ клиент месяца</p>
+                        <p className="mt-2 text-xl font-semibold text-white">
+                          {topClient ? topClient[0] : "Пока нет"}
+                        </p>
+                        <p className="mt-2 text-sm text-zinc-400">
+                          {topClient ? formatMoney(topClient[1]) : "Нет оплат"}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </GlassCard>
+                </SoftCard>
 
-                <GlassCard className="p-6">
-                  <p className="text-lg font-semibold">Самые прибыльные дни</p>
-                  <div className="mt-4 space-y-3">
-                    {dailyStats.bestDays.length === 0 ? (
-                      <p className="text-sm text-zinc-400">Пока нет данных</p>
-                    ) : (
-                      dailyStats.bestDays.map((day) => (
-                        <div
-                          key={day.dateKey}
-                          className="rounded-[18px] border border-white/8 bg-white/[0.05] p-3"
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <StatCard
+                    label="Доход"
+                    value={formatMoney(monthIncome)}
+                    valueClassName="text-green-400"
+                    subtext={formatMonthLabel(selectedMonth)}
+                  />
+                  <StatCard label="Аренда" value={formatMoney(RENT_GOAL)} />
+                  <StatCard
+                    label="Осталось до аренды"
+                    value={formatMoney(leftToRent)}
+                    valueClassName="text-yellow-300"
+                  />
+                  <StatCard
+                    label="Осталось до цели"
+                    value={formatMoney(leftToMonthGoal)}
+                    valueClassName="text-cyan-300"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                  <SoftCard className="p-5 sm:p-6">
+                    <SectionTitle
+                      title="Последние операции"
+                      subtitle="Нажми на операцию, чтобы сразу открыть редактирование"
+                      action={
+                        <button
+                          onClick={() => setActiveTab("operations")}
+                          className="rounded-[16px] bg-white/[0.05] px-4 py-2 text-sm font-medium text-white ring-1 ring-white/6"
                         >
-                          <p className="text-sm text-zinc-400">
-                            {formatDisplayDate(day.dateKey)}
-                          </p>
-                          <p className="text-xl font-bold">{formatMoney(day.amount)}</p>
+                          Все операции
+                        </button>
+                      }
+                    />
+
+                    {recentOperations.length === 0 ? (
+                      <div className="rounded-[22px] bg-white/[0.03] py-12 text-center text-zinc-400 ring-1 ring-white/6">
+                        Пока нет операций за этот месяц
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {recentOperations.map((operation) => (
+                          <RecentOperationRow
+                            key={operation.id}
+                            operation={operation}
+                            onEdit={openEditModal}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </SoftCard>
+
+                  <div className="space-y-6">
+                    <SoftCard className="p-5">
+                      <SectionTitle title="Кто сделал больше" />
+                      <div className="grid gap-3">
+                        <div className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6">
+                          <p className="text-sm text-zinc-400">Азат</p>
+                          <p className="mt-2 text-2xl font-bold">{formatMoney(azatIncome)}</p>
                         </div>
-                      ))
+                        <div className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6">
+                          <p className="text-sm text-zinc-400">Марс</p>
+                          <p className="mt-2 text-2xl font-bold">{formatMoney(marsIncome)}</p>
+                        </div>
+                      </div>
+                    </SoftCard>
+
+                    <SoftCard className="p-5">
+                      <SectionTitle title="Прогресс месяца" />
+                      <div className="space-y-4">
+                        <div>
+                          <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                            <span className="text-zinc-400">Цель месяца</span>
+                            <span className="font-medium text-white">
+                              {formatMoney(monthGoal)}
+                            </span>
+                          </div>
+                          <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+                            <div
+                              className="h-full rounded-full bg-[linear-gradient(90deg,#6d84ff,#36c9ff)]"
+                              style={{
+                                width: `${Math.min((monthIncome / Math.max(monthGoal, 1)) * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                            <span className="text-zinc-400">Аренда</span>
+                            <span className="font-medium text-white">
+                              {formatMoney(RENT_GOAL)}
+                            </span>
+                          </div>
+                          <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
+                            <div
+                              className="h-full rounded-full bg-[linear-gradient(90deg,#22c55e,#7CFF91)]"
+                              style={{
+                                width: `${Math.min((monthIncome / Math.max(RENT_GOAL, 1)) * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </SoftCard>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "operations" && (
+              <div className="space-y-6">
+                <SoftCard className="p-5 sm:p-6">
+                  <SectionTitle
+                    title="История операций"
+                    subtitle="Без свайпов. Просто нормальные карточки и понятные действия."
+                    action={
+                      <button
+                        onClick={openCreateModal}
+                        className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)] md:hidden"
+                      >
+                        + Операция
+                      </button>
+                    }
+                  />
+
+                  <div className="mb-5 flex flex-wrap gap-3">
+                    {lastAdded && (
+                      <button
+                        onClick={() => void undoAdd()}
+                        className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 ring-1 ring-yellow-300/10 transition hover:bg-yellow-500/25"
+                      >
+                        Отменить добавление
+                      </button>
+                    )}
+
+                    {lastDeleted && (
+                      <button
+                        onClick={() => void undoDelete()}
+                        className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 ring-1 ring-yellow-300/10 transition hover:bg-yellow-500/25"
+                      >
+                        Отменить удаление
+                      </button>
                     )}
                   </div>
-                </GlassCard>
 
-                <GlassCard className="p-6">
-                  <p className="text-lg font-semibold">Доход по услугам</p>
-                  <div className="mt-4 space-y-3">
-                    {serviceRevenueRows.length === 0 ? (
-                      <p className="text-sm text-zinc-400">Пока нет данных</p>
-                    ) : (
-                      serviceRevenueRows.map(([serviceName, amount]) => (
+                  {sortedSelectedMonthOperations.length === 0 ? (
+                    <div className="rounded-[24px] bg-white/[0.03] py-14 text-center text-zinc-400 ring-1 ring-white/6">
+                      Пока нет операций за этот месяц
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-4 md:hidden">
+                        {sortedSelectedMonthOperations.map((operation) => (
+                          <OperationMobileCard
+                            key={operation.id}
+                            operation={operation}
+                            onEdit={openEditModal}
+                            onDelete={(id) => void deleteOperation(id)}
+                          />
+                        ))}
+                      </div>
+
+                      <div className="hidden overflow-x-auto rounded-[28px] bg-white/[0.025] ring-1 ring-white/6 md:block">
+                        <table className="w-full min-w-[920px] text-left">
+                          <thead className="bg-white/[0.04] text-sm text-zinc-400">
+                            <tr>
+                              <th className="px-4 py-3">Дата</th>
+                              <th className="px-4 py-3">Клиент</th>
+                              <th className="px-4 py-3">Оплаты</th>
+                              <th className="px-4 py-3">Услуги</th>
+                              <th className="px-4 py-3">Получено</th>
+                              <th className="px-4 py-3">Кто работал</th>
+                              <th className="px-4 py-3">Действия</th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            {sortedSelectedMonthOperations.map((operation) => (
+                              <tr
+                                key={operation.id}
+                                className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
+                              >
+                                <td className="px-4 py-4">{formatDisplayDate(operation.date)}</td>
+                                <td className="px-4 py-4">{operation.client}</td>
+                                <td className="px-4 py-4">
+                                  <div className="space-y-1">
+                                    {operation.payments.map((payment) => (
+                                      <div key={payment.id} className="text-zinc-300">
+                                        {payment.type} — {formatMoney(payment.amount)}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4">
+                                  <div className="space-y-1">
+                                    {operation.services.map((service) => (
+                                      <div key={service.id} className="text-zinc-300">
+                                        {service.type}
+                                        {service.type === "Запись"
+                                          ? ` — ${service.hours} ч`
+                                          : ""}{" "}
+                                        — {formatMoney(service.amount)}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4 font-semibold">
+                                  {formatMoney(getPaymentsTotal(operation))}
+                                </td>
+                                <td className="px-4 py-4">{operation.owner}</td>
+                                <td className="px-4 py-4">
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => openEditModal(operation)}
+                                      className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-sm text-zinc-200 ring-1 ring-white/6 transition hover:bg-white/[0.1]"
+                                    >
+                                      Редактировать
+                                    </button>
+                                    <button
+                                      onClick={() => void deleteOperation(operation.id)}
+                                      className="rounded-[14px] bg-red-500/15 px-3 py-2 text-sm text-red-300 ring-1 ring-red-300/10 transition hover:bg-red-500/25"
+                                    >
+                                      Удалить
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  )}
+                </SoftCard>
+              </div>
+            )}
+
+            {activeTab === "analytics" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
+                  <SoftCard className="p-5 sm:p-6">
+                    <SectionTitle
+                      title="График по дням"
+                      subtitle="Красный — 0 клиентов, жёлтый — слабый день, зелёный — нормальный"
+                    />
+                    <div className="h-[280px] sm:h-[360px]">
+                      <Bar data={chartData} options={chartOptions} />
+                    </div>
+                  </SoftCard>
+
+                  <div className="space-y-6">
+                    <SoftCard className="p-6">
+                      <SectionTitle title="Самые прибыльные дни" />
+                      <div className="space-y-3">
+                        {dailyStats.bestDays.length === 0 ? (
+                          <p className="text-sm text-zinc-400">Пока нет данных</p>
+                        ) : (
+                          dailyStats.bestDays.map((day) => (
+                            <div
+                              key={day.dateKey}
+                              className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6"
+                            >
+                              <p className="text-sm text-zinc-400">
+                                {formatDisplayDate(day.dateKey)}
+                              </p>
+                              <p className="mt-2 text-2xl font-bold">
+                                {formatMoney(day.amount)}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </SoftCard>
+
+                    <SoftCard className="p-6">
+                      <SectionTitle title="Слабые дни" />
+                      <div className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6">
+                        <p className="text-sm text-zinc-400">
+                          Дней без выручки в месяце
+                        </p>
+                        <p className="mt-2 text-3xl font-bold">{dailyStats.weakDays}</p>
+                      </div>
+                    </SoftCard>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                  <SoftCard className="p-6">
+                    <SectionTitle title="Доход по услугам" />
+                    <div className="space-y-3">
+                      {serviceRevenueRows.length === 0 ? (
+                        <p className="text-sm text-zinc-400">Пока нет данных</p>
+                      ) : (
+                        serviceRevenueRows.map(([serviceName, amount]) => (
+                          <div
+                            key={serviceName}
+                            className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.04] p-4 ring-1 ring-white/6"
+                          >
+                            <span>{serviceName}</span>
+                            <span className="whitespace-nowrap font-semibold">
+                              {formatMoney(amount)}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </SoftCard>
+
+                  <SoftCard className="p-6">
+                    <SectionTitle title="Доход по оплате" />
+                    <div className="space-y-3">
+                      {paymentRevenueRows.map(([paymentName, amount]) => (
                         <div
-                          key={serviceName}
-                          className="flex items-center justify-between gap-4 rounded-[18px] border border-white/8 bg-white/[0.05] p-3"
+                          key={paymentName}
+                          className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.04] p-4 ring-1 ring-white/6"
                         >
-                          <span>{serviceName}</span>
-                          <span className="font-semibold whitespace-nowrap">
+                          <span>{paymentName}</span>
+                          <span className="whitespace-nowrap font-semibold">
                             {formatMoney(amount)}
                           </span>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </GlassCard>
-
-                <GlassCard className="p-6">
-                  <p className="text-lg font-semibold">Доход по оплате</p>
-                  <div className="mt-4 space-y-3">
-                    {paymentRevenueRows.map(([paymentName, amount]) => (
-                      <div
-                        key={paymentName}
-                        className="flex items-center justify-between gap-4 rounded-[18px] border border-white/8 bg-white/[0.05] p-3"
-                      >
-                        <span>{paymentName}</span>
-                        <span className="font-semibold whitespace-nowrap">
-                          {formatMoney(amount)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </GlassCard>
-              </div>
-            </div>
-          </section>
-
-          <section id="operations-section" className="mt-6">
-            <GlassCard className="p-4 sm:p-6">
-              <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <p className="text-xl font-semibold">История операций</p>
-                  <p className="text-sm text-zinc-400">
-                    На телефоне можно свайпнуть карточку влево
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={openCreateModal}
-                    className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2 text-sm font-medium text-white shadow-[0_14px_30px_rgba(79,101,255,0.28)] md:hidden"
-                  >
-                    + Операция
-                  </button>
-
-                  {lastAdded && (
-                    <button
-                      onClick={() => void undoAdd()}
-                      className="rounded-[16px] border border-yellow-300/10 bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
-                    >
-                      Отменить добавление
-                    </button>
-                  )}
-
-                  {lastDeleted && (
-                    <button
-                      onClick={() => void undoDelete()}
-                      className="rounded-[16px] border border-yellow-300/10 bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 transition hover:bg-yellow-500/25"
-                    >
-                      Отменить удаление
-                    </button>
-                  )}
+                      ))}
+                    </div>
+                  </SoftCard>
                 </div>
               </div>
+            )}
 
-              {sortedSelectedMonthOperations.length === 0 ? (
-                <div className="rounded-[28px] border border-white/8 bg-white/[0.03] py-14 text-center text-zinc-400">
-                  Пока нет операций за этот месяц
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-4 md:hidden">
-                    {sortedSelectedMonthOperations.map((operation) => (
-                      <MobileSwipeOperationCard
-                        key={operation.id}
-                        operation={operation}
-                        onEdit={openEditModal}
-                        onDelete={(id) => void deleteOperation(id)}
+            {activeTab === "settings" && (
+              <div className="space-y-6">
+                <SoftCard className="p-5 sm:p-6">
+                  <SectionTitle
+                    title="Настройки месяца"
+                    subtitle="Тут всё, что касается цели и управления месяцем"
+                  />
+
+                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_auto]">
+                    <div className="max-w-[360px]">
+                      <FieldLabel>Цель выбранного месяца</FieldLabel>
+                      <TextInput
+                        type="number"
+                        value={monthGoal}
+                        onChange={(e) => void updateMonthGoal(e.target.value)}
                       />
-                    ))}
+                    </div>
+
+                    <div className="flex flex-col gap-3 xl:justify-end">
+                      <button
+                        onClick={() => void createNewMonth()}
+                        className="rounded-[18px] bg-white/[0.05] px-5 py-3 font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+                      >
+                        + Создать новый месяц
+                      </button>
+
+                      <button
+                        onClick={() => void deleteSelectedMonth()}
+                        className="rounded-[18px] bg-red-500/[0.12] px-5 py-3 font-medium text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18]"
+                      >
+                        Удалить выбранный месяц
+                      </button>
+                    </div>
                   </div>
+                </SoftCard>
 
-                  <div className="hidden overflow-x-auto rounded-[28px] border border-white/8 bg-white/[0.025] md:block">
-                    <table className="w-full min-w-[860px] text-left">
-                      <thead className="bg-white/[0.045] text-sm text-zinc-400">
-                        <tr>
-                          <th className="px-4 py-3">Дата</th>
-                          <th className="px-4 py-3">Клиент</th>
-                          <th className="px-4 py-3">Оплаты</th>
-                          <th className="px-4 py-3">Услуги</th>
-                          <th className="px-4 py-3">Получено</th>
-                          <th className="px-4 py-3">Кто работал</th>
-                          <th className="px-4 py-3">Действия</th>
-                        </tr>
-                      </thead>
-
-                      <tbody>
-                        {sortedSelectedMonthOperations.map((operation) => (
-                          <tr
-                            key={operation.id}
-                            className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
-                          >
-                            <td className="px-4 py-4">{formatDisplayDate(operation.date)}</td>
-                            <td className="px-4 py-4">{operation.client}</td>
-                            <td className="px-4 py-4">
-                              <div className="space-y-1">
-                                {operation.payments.map((payment) => (
-                                  <div key={payment.id} className="text-zinc-300">
-                                    {payment.type} — {formatMoney(payment.amount)}
-                                  </div>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="space-y-1">
-                                {operation.services.map((service) => (
-                                  <div key={service.id} className="text-zinc-300">
-                                    {service.type}
-                                    {service.type === "Запись"
-                                      ? ` — ${service.hours} ч`
-                                      : ""}{" "}
-                                    — {formatMoney(service.amount)}
-                                  </div>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 font-semibold">
-                              {formatMoney(getPaymentsTotal(operation))}
-                            </td>
-                            <td className="px-4 py-4">{operation.owner}</td>
-                            <td className="px-4 py-4">
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => openEditModal(operation)}
-                                  className="rounded-[14px] border border-white/10 bg-white/10 px-3 py-1.5 text-sm text-zinc-200 transition hover:bg-white/15"
-                                >
-                                  Редактировать
-                                </button>
-                                <button
-                                  onClick={() => void deleteOperation(operation.id)}
-                                  className="rounded-[14px] border border-red-300/10 bg-red-500/15 px-3 py-1.5 text-sm text-red-300 transition hover:bg-red-500/25"
-                                >
-                                  Удалить
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-            </GlassCard>
-          </section>
-
-          <section id="settings-section" className="mt-6">
-            <div className="grid gap-6">
-              <GlassCard className="p-6">
-                <p className="text-xl font-semibold">Быстрые действия</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <button
-                    onClick={openCreateModal}
-                    className="rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-left font-semibold text-white shadow-[0_14px_30px_rgba(79,101,255,0.28)]"
-                  >
-                    + Добавить операцию
-                  </button>
-
-                  <button
-                    onClick={() => void createNewMonth()}
-                    className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-4 text-left font-semibold text-white"
-                  >
-                    + Создать новый месяц
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setActiveTab("analytics")
-                      const el = document.getElementById("analytics-section")
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
-                    }}
-                    className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-4 text-left font-semibold text-white"
-                  >
-                    Открыть аналитику
-                  </button>
-
-                  <button
-                    onClick={() => void deleteSelectedMonth()}
-                    className="rounded-[20px] border border-red-300/10 bg-[linear-gradient(180deg,rgba(255,80,110,0.16),rgba(255,80,110,0.08))] px-4 py-4 text-left font-semibold text-red-200"
-                  >
-                    Удалить выбранный месяц
-                  </button>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <StatCard label="Доход месяца" value={formatMoney(monthIncome)} />
+                  <StatCard label="Цель месяца" value={formatMoney(monthGoal)} />
+                  <StatCard label="Аренда" value={formatMoney(RENT_GOAL)} />
+                  <StatCard
+                    label="Чистая прибыль после аренды"
+                    value={formatMoney(profitAfterRent)}
+                    valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+                  />
                 </div>
-              </GlassCard>
-            </div>
-          </section>
-        </main>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-[rgba(5,5,9,0.74)] p-2 sm:p-4 backdrop-blur-[14px]">
-          <div className="relative w-full max-w-[98vw] rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(34,34,40,0.98),rgba(16,16,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.08)] sm:max-w-[95vw] lg:max-w-[900px]">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-[rgba(5,5,9,0.76)] p-2 sm:p-4 backdrop-blur-[14px]">
+          <div className="relative w-full max-w-[98vw] rounded-[34px] bg-[linear-gradient(180deg,rgba(24,27,35,0.98),rgba(12,14,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 sm:max-w-[95vw] lg:max-w-[900px]">
             <div className="max-h-[92vh] overflow-y-auto px-4 pb-6 pt-5 sm:px-6 sm:pt-6">
               <div className="mb-5">
                 <h2 className="text-2xl font-bold">
@@ -1779,7 +2004,7 @@ export default function App() {
                       <button
                         key={item.label}
                         onClick={() => addQuickService(item.type)}
-                        className="rounded-[16px] border border-white/10 bg-white/[0.05] px-4 py-2 text-sm text-white transition hover:bg-white/[0.09]"
+                        className="rounded-[16px] bg-white/[0.05] px-4 py-2 text-sm text-white ring-1 ring-white/6 transition hover:bg-white/[0.09]"
                       >
                         + {item.label}
                       </button>
@@ -1788,7 +2013,7 @@ export default function App() {
                 </div>
 
                 {serviceRows.map((row, index) => (
-                  <GlassCard key={row.id} className="p-4">
+                  <SoftCard key={row.id} className="p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="font-semibold">Услуга {index + 1}</p>
                       {serviceRows.length > 1 && (
@@ -1827,9 +2052,7 @@ export default function App() {
                       </div>
 
                       <div>
-                        <FieldLabel>
-                          {row.type === "Запись" ? "Часы" : "Сумма"}
-                        </FieldLabel>
+                        <FieldLabel>{row.type === "Запись" ? "Часы" : "Сумма"}</FieldLabel>
                         {row.type === "Запись" ? (
                           <TextInput
                             type="number"
@@ -1858,19 +2081,19 @@ export default function App() {
 
                       <div>
                         <FieldLabel>Итог</FieldLabel>
-                        <div className="flex min-h-[52px] items-center rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)]">
+                        <div className="flex min-h-[52px] items-center rounded-[18px] bg-white/[0.04] px-4 py-3 font-semibold text-white ring-1 ring-white/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)]">
                           {formatMoney(
                             row.type === "Запись" ? row.hours * 1000 : row.amount
                           )}
                         </div>
                       </div>
                     </div>
-                  </GlassCard>
+                  </SoftCard>
                 ))}
 
                 <button
                   onClick={addServiceRow}
-                  className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-3 text-sm font-medium text-white shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
+                  className="rounded-[20px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
                 >
                   + Добавить услугу
                 </button>
@@ -1885,7 +2108,7 @@ export default function App() {
                 </div>
 
                 {paymentRows.map((row, index) => (
-                  <GlassCard key={row.id} className="p-4">
+                  <SoftCard key={row.id} className="p-4">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="font-semibold">Оплата {index + 1}</p>
                       {paymentRows.length > 1 && (
@@ -1925,7 +2148,7 @@ export default function App() {
                       <div>
                         <FieldLabel>Сумма</FieldLabel>
                         {row.type === "Онлайн" ? (
-                          <div className="flex min-h-[52px] items-center rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.025))] px-4 py-3 font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_10px_24px_rgba(0,0,0,0.12)]">
+                          <div className="flex min-h-[52px] items-center rounded-[18px] bg-white/[0.04] px-4 py-3 font-semibold text-white ring-1 ring-white/6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_10px_24px_rgba(0,0,0,0.12)]">
                             {formatMoney(ONLINE_NET_AMOUNT)}
                           </div>
                         ) : (
@@ -1943,45 +2166,43 @@ export default function App() {
                         )}
                       </div>
                     </div>
-                  </GlassCard>
+                  </SoftCard>
                 ))}
 
                 <button
                   onClick={addPaymentRow}
-                  className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.025))] px-4 py-3 text-sm font-medium text-white shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
+                  className="rounded-[20px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 shadow-[0_12px_26px_rgba(0,0,0,0.16)] transition hover:bg-white/[0.08]"
                 >
                   + Добавить оплату
                 </button>
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <GlassCard className="p-4">
+                <SoftCard className="p-4">
                   <p className="text-sm text-zinc-400">Итог по услугам</p>
-                  <p className="mt-2 text-2xl font-bold">
-                    {formatMoney(currentServicesTotal)}
-                  </p>
-                </GlassCard>
+                  <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
+                </SoftCard>
 
-                <GlassCard className="p-4">
+                <SoftCard className="p-4">
                   <p className="text-sm text-zinc-400">Получено оплатой</p>
                   <p className="mt-2 text-2xl font-bold text-green-400">
                     {formatMoney(currentPaymentsTotal)}
                   </p>
-                </GlassCard>
+                </SoftCard>
               </div>
 
               {currentPaymentsTotal !== currentServicesTotal && (
-                <div className="mt-4 rounded-[22px] border border-yellow-300/10 bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+                <div className="mt-4 rounded-[22px] bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 shadow-[0_10px_24px_rgba(0,0,0,0.12)] ring-1 ring-yellow-300/10">
                   Внимание: сумма оплат и сумма услуг не совпадают. Это нормально,
                   если внесена только предоплата или оплата частями.
                 </div>
               )}
 
-              <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-4 sm:flex-row sm:items-end sm:justify-between">
-                <GlassCard className="ml-0 w-full max-w-[260px] p-4">
+              <div className="mt-6 flex flex-col gap-4 border-t border-white/8 pt-4 sm:flex-row sm:items-end sm:justify-between">
+                <SoftCard className="ml-0 w-full max-w-[260px] p-4">
                   <p className="text-sm text-zinc-400">Фактически получено</p>
                   <p className="mt-2 text-3xl font-bold">{formatMoney(currentPaymentsTotal)}</p>
-                </GlassCard>
+                </SoftCard>
 
                 <div className="flex w-full flex-col-reverse gap-3 sm:w-auto sm:flex-row sm:items-center">
                   <button
