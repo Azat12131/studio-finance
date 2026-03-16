@@ -472,23 +472,30 @@ function MonthTabs({
   onChange: (month: string) => void
 }) {
   return (
-    <div className="mb-6 flex gap-3 overflow-x-auto pb-2 pt-1">
-      {months.map((monthKey) => {
-        const active = monthKey === selectedMonth
-        return (
-          <button
-            key={monthKey}
-            onClick={() => onChange(monthKey)}
-            className={`shrink-0 rounded-[18px] px-4 py-3 text-sm font-medium capitalize transition ${
-              active
-                ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
-                : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/6 hover:bg-white/[0.08]"
-            }`}
-          >
-            {formatMonthLabel(monthKey)}
-          </button>
-        )
-      })}
+    <div className="relative mb-7 overflow-visible">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-[radial-gradient(circle_at_center,rgba(77,101,246,0.16),transparent_70%)] blur-xl" />
+
+      <div className="-mx-4 overflow-x-auto overflow-y-visible px-4 pt-1 pb-4 lg:mx-0 lg:px-0">
+        <div className="flex w-max gap-3">
+          {months.map((monthKey) => {
+            const active = monthKey === selectedMonth
+
+            return (
+              <button
+                key={monthKey}
+                onClick={() => onChange(monthKey)}
+                className={`shrink-0 rounded-[20px] px-5 py-3 text-sm font-medium capitalize transition ${
+                  active
+                    ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_18px_34px_rgba(79,101,255,0.34),0_0_0_1px_rgba(255,255,255,0.08)]"
+                    : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/8 shadow-[0_10px_24px_rgba(0,0,0,0.2)] hover:bg-white/[0.08]"
+                }`}
+              >
+                {formatMonthLabel(monthKey)}
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
