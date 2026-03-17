@@ -609,7 +609,7 @@ function MonthTabs({
                 onClick={() => onChange(monthKey)}
                 className={`shrink-0 rounded-[24px] px-5 py-4 text-sm font-medium capitalize transition ${
                   active
-                    ? "bg-[linear-gradient(180deg,#7c8bff,#5a74ff)] text-white shadow-[0_10px_22px_rgba(92,124,255,0.22)] ring-1 ring-white/10"
+                    ? "bg-[linear-gradient(180deg,#7c8bff,#5a74ff)] text-white ring-1 ring-white/10"
                     : "bg-white/[0.03] text-zinc-200 ring-1 ring-[#2f66d9] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:bg-white/[0.05]"
                 }`}
               >
