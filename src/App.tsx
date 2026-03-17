@@ -23,6 +23,13 @@ type ServiceType =
   | "Мастеринг"
   | "Другое"
 
+type AppointmentStatus =
+  | "Ожидание"
+  | "Подтвердил"
+  | "Пришел"
+  | "Не пришел"
+  | "Завершено"
+
 type ServiceItem = {
   id: number
   type: ServiceType
@@ -45,8 +52,33 @@ type Operation = {
   payments: PaymentItem[]
 }
 
+type Appointment = {
+  id: number
+  date: string
+  startTime: string
+  endTime: string
+  client: string
+  phone: string
+  owner: Owner
+  room: string
+  status: AppointmentStatus
+  comment: string
+  services: ServiceItem[]
+  payments: PaymentItem[]
+}
+
+type FinancialEntry = {
+  id: number
+  source: "operation" | "appointment"
+  date: string
+  client: string
+  owner: Owner
+  services: ServiceItem[]
+  payments: PaymentItem[]
+}
+
 type MonthGoals = Record<string, number>
-type AppTab = "dashboard" | "operations" | "analytics" | "settings"
+type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
 
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
@@ -60,6 +92,13 @@ const serviceOptions: ServiceType[] = [
   "Дистрибуция",
   "Мастеринг",
   "Другое",
+]
+const appointmentStatusOptions: AppointmentStatus[] = [
+  "Ожидание",
+  "Подтвердил",
+  "Пришел",
+  "Не пришел",
+  "Завершено",
 ]
 
 const quickServiceButtons: Array<{ type: ServiceType; label: string }> = [
@@ -124,24 +163,28 @@ function getDaysInMonth(monthKey: string) {
   return new Date(year, month, 0).getDate()
 }
 
-function getPaymentsTotal(operation: Operation) {
-  return operation.payments.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+function getPaymentsTotal(entry: { payments: PaymentItem[] }) {
+  return entry.payments.reduce((sum, item) => sum + Number(item.amount || 0), 0)
 }
 
-function getServiceRevenueMap(operations: Operation[]) {
+function getServicesTotal(entry: { services: ServiceItem[] }) {
+  return entry.services.reduce((sum, item) => sum + Number(item.amount || 0), 0)
+}
+
+function getServiceRevenueMap(entries: FinancialEntry[]) {
   const map = new Map<ServiceType, number>()
-  operations.forEach((operation) => {
-    operation.services.forEach((service) => {
+  entries.forEach((entry) => {
+    entry.services.forEach((service) => {
       map.set(service.type, (map.get(service.type) || 0) + Number(service.amount || 0))
     })
   })
   return map
 }
 
-function getPaymentRevenueMap(operations: Operation[]) {
+function getPaymentRevenueMap(entries: FinancialEntry[]) {
   const map = new Map<PaymentType, number>()
-  operations.forEach((operation) => {
-    operation.payments.forEach((payment) => {
+  entries.forEach((entry) => {
+    entry.payments.forEach((payment) => {
       map.set(payment.type, (map.get(payment.type) || 0) + Number(payment.amount || 0))
     })
   })
@@ -232,6 +275,27 @@ function normalizeServices(rawServices: unknown): ServiceItem[] {
   })
 }
 
+function appointmentToFinancialEntry(appointment: Appointment): FinancialEntry {
+  return {
+    id: appointment.id,
+    source: "appointment",
+    date: appointment.date,
+    client: appointment.client,
+    owner: appointment.owner,
+    services: appointment.services,
+    payments: appointment.payments,
+  }
+}
+
+function getStatusPillClass(status: AppointmentStatus) {
+  if (status === "Ожидание") return "bg-white/[0.06] text-zinc-200 ring-1 ring-white/8"
+  if (status === "Подтвердил")
+    return "bg-violet-500/15 text-violet-200 ring-1 ring-violet-300/10"
+  if (status === "Пришел") return "bg-green-500/15 text-green-200 ring-1 ring-green-300/10"
+  if (status === "Не пришел") return "bg-red-500/15 text-red-200 ring-1 ring-red-300/10"
+  return "bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/10"
+}
+
 function HomeIcon() {
   return (
     <svg
@@ -304,19 +368,21 @@ function SettingsIcon() {
   )
 }
 
-function PlusIcon() {
+function CalendarIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-6 w-6"
+      className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2.2"
+      strokeWidth="1.9"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M12 5v14" />
-      <path d="M5 12h14" />
+      <rect x="3" y="5" width="18" height="16" rx="3" />
+      <path d="M16 3v4" />
+      <path d="M8 3v4" />
+      <path d="M3 10h18" />
     </svg>
   )
 }
@@ -354,6 +420,38 @@ function EditIcon() {
     >
       <path d="M12 20h9" />
       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+    </svg>
+  )
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m9 18 6-6-6-6" />
     </svg>
   )
 }
@@ -482,6 +580,32 @@ function DateInput({
   )
 }
 
+function TimeInput({
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      type="time"
+      style={{ colorScheme: "dark" }}
+      className={`h-[50px] w-full rounded-[18px] border border-white/10 bg-[#121826] px-4 text-[15px] text-white outline-none transition hover:border-white/20 focus:border-[#3b82f6] ${className}`}
+    />
+  )
+}
+
+function TextArea({
+  className = "",
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      {...props}
+      className={`w-full rounded-[18px] bg-white/[0.035] px-4 py-3 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] ring-1 ring-white/8 transition hover:ring-white/12 focus:ring-white/14 placeholder:text-zinc-500 ${className}`}
+    />
+  )
+}
+
 function MonthTabs({
   months,
   selectedMonth,
@@ -517,122 +641,26 @@ function MonthTabs({
   )
 }
 
-function OperationMobileCard({
-  operation,
-  onEdit,
-  onDelete,
-}: {
-  operation: Operation
-  onEdit: (operation: Operation) => void
-  onDelete: (id: number) => void
-}) {
-  return (
-    <SoftCard className="p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-lg font-semibold text-white">{operation.client}</p>
-          <p className="mt-1 text-sm text-zinc-400">{formatDisplayDate(operation.date)}</p>
-        </div>
-
-        <div className="rounded-[16px] bg-white/[0.05] px-3 py-2 text-right ring-1 ring-white/6">
-          <p className="text-[11px] text-zinc-400">Получено</p>
-          <p className="text-sm font-semibold text-white">
-            {formatMoney(getPaymentsTotal(operation))}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3">
-        <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-          <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-            Кто работал
-          </p>
-          <p className="text-sm text-white">{operation.owner}</p>
-        </div>
-
-        <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-          <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-            Оплаты
-          </p>
-          <div className="space-y-1.5">
-            {operation.payments.map((payment) => (
-              <div
-                key={payment.id}
-                className="flex items-center justify-between gap-3 text-sm"
-              >
-                <span className="text-zinc-300">{payment.type}</span>
-                <span className="whitespace-nowrap font-medium text-white">
-                  {formatMoney(payment.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-          <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-            Услуги
-          </p>
-          <div className="space-y-1.5">
-            {operation.services.map((service) => (
-              <div
-                key={service.id}
-                className="flex items-start justify-between gap-3 text-sm"
-              >
-                <span className="text-zinc-300">
-                  {service.type}
-                  {service.type === "Запись" ? ` — ${service.hours || 0} ч` : ""}
-                </span>
-                <span className="whitespace-nowrap font-medium text-white">
-                  {formatMoney(service.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <button
-          onClick={() => onEdit(operation)}
-          className="flex items-center justify-center gap-2 rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.1]"
-        >
-          <EditIcon />
-          Редактировать
-        </button>
-
-        <button
-          onClick={() => onDelete(operation.id)}
-          className="flex items-center justify-center gap-2 rounded-[18px] bg-red-500/[0.12] px-4 py-3 text-sm font-medium text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18]"
-        >
-          <TrashIcon />
-          Удалить
-        </button>
-      </div>
-    </SoftCard>
-  )
-}
-
 function RecentOperationRow({
-  operation,
-  onEdit,
+  entry,
+  onOpen,
 }: {
-  operation: Operation
-  onEdit: (operation: Operation) => void
+  entry: FinancialEntry
+  onOpen: (entry: FinancialEntry) => void
 }) {
   return (
     <button
-      onClick={() => onEdit(operation)}
+      onClick={() => onOpen(entry)}
       className="flex w-full items-center justify-between gap-3 rounded-[20px] bg-white/[0.04] px-4 py-4 text-left ring-1 ring-white/6 transition hover:bg-white/[0.07]"
     >
       <div className="min-w-0">
-        <p className="truncate font-medium text-white">{operation.client}</p>
+        <p className="truncate font-medium text-white">{entry.client}</p>
         <p className="mt-1 text-sm text-zinc-400">
-          {formatDisplayDate(operation.date)} · {operation.owner}
+          {formatDisplayDate(entry.date)} · {entry.owner}
         </p>
       </div>
       <p className="shrink-0 font-semibold text-white">
-        {formatMoney(getPaymentsTotal(operation))}
+        {formatMoney(getPaymentsTotal(entry))}
       </p>
     </button>
   )
@@ -653,7 +681,8 @@ function SidebarNav({
 }) {
   const items: Array<{ key: AppTab; label: string; icon: React.ReactNode }> = [
     { key: "dashboard", label: "Главная", icon: <HomeIcon /> },
-    { key: "operations", label: "Операции", icon: <ReceiptIcon /> },
+    { key: "schedule", label: "График", icon: <CalendarIcon /> },
+    { key: "operations", label: "Финансы", icon: <ReceiptIcon /> },
     { key: "analytics", label: "Аналитика", icon: <ChartIcon /> },
     { key: "settings", label: "Настройки", icon: <SettingsIcon /> },
   ]
@@ -689,7 +718,7 @@ function SidebarNav({
           onClick={onAdd}
           className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_18px_38px_rgba(79,101,255,0.34)]"
         >
-          + Добавить операцию
+          + Новая запись
         </button>
 
         <button
@@ -706,12 +735,10 @@ function SidebarNav({
 function BottomNav({
   activeTab,
   onChange,
-  onAdd,
   hidden = false,
 }: {
   activeTab: AppTab
   onChange: (tab: AppTab) => void
-  onAdd: () => void
   hidden?: boolean
 }) {
   if (hidden) return null
@@ -723,22 +750,20 @@ function BottomNav({
 
   return (
     <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[600] flex justify-center lg:hidden">
-      <div className="pointer-events-auto mx-4 flex w-full max-w-[430px] items-center gap-2 rounded-[28px] bg-[rgba(13,16,24,0.72)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 backdrop-blur-[24px]">
+      <div className="pointer-events-auto mx-4 flex w-full max-w-[460px] items-center gap-2 rounded-[28px] bg-[rgba(13,16,24,0.72)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 backdrop-blur-[24px]">
         <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
           <HomeIcon />
           <span>Главная</span>
         </button>
 
-        <button className={itemClass("operations")} onClick={() => onChange("operations")}>
-          <ReceiptIcon />
-          <span>Операции</span>
+        <button className={itemClass("schedule")} onClick={() => onChange("schedule")}>
+          <CalendarIcon />
+          <span>График</span>
         </button>
 
-        <button
-          onClick={onAdd}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[22px] bg-[linear-gradient(180deg,#7d8dff,#4d65f6)] text-white shadow-[0_18px_38px_rgba(79,101,255,0.42),inset_0_1px_0_rgba(255,255,255,0.25)]"
-        >
-          <PlusIcon />
+        <button className={itemClass("operations")} onClick={() => onChange("operations")}>
+          <ReceiptIcon />
+          <span>Финансы</span>
         </button>
 
         <button className={itemClass("analytics")} onClick={() => onChange("analytics")}>
@@ -758,45 +783,61 @@ function BottomNav({
 export default function App() {
   const initialMonthKey = React.useMemo(() => getInitialMonthKey(), [])
 
-  const [operations, setOperations] = React.useState<Operation[]>([])
+  const [legacyOperations, setLegacyOperations] = React.useState<Operation[]>([])
+  const [appointments, setAppointments] = React.useState<Appointment[]>([])
+
   const [monthGoals, setMonthGoals] = React.useState<MonthGoals>({
     [initialMonthKey]: DEFAULT_MONTH_GOAL,
   })
   const [months, setMonths] = React.useState<string[]>([initialMonthKey])
   const [selectedMonth, setSelectedMonth] = React.useState(initialMonthKey)
 
-  const [showModal, setShowModal] = React.useState(false)
-  const [editingOperationId, setEditingOperationId] = React.useState<number | null>(null)
-
-  const [client, setClient] = React.useState("")
-  const [owner, setOwner] = React.useState<Owner>("Азат")
-  const [operationDate, setOperationDate] = React.useState("")
-  const [serviceRows, setServiceRows] = React.useState<ServiceItem[]>([makeServiceRow()])
-  const [paymentRows, setPaymentRows] = React.useState<PaymentItem[]>([makePaymentRow("Нал")])
-
-  const [lastDeleted, setLastDeleted] = React.useState<Operation | null>(null)
-  const [lastAdded, setLastAdded] = React.useState<Operation | null>(null)
-
   const [activeTab, setActiveTab] = React.useState<AppTab>("dashboard")
 
-  const resetForm = React.useCallback(() => {
-    setClient("")
-    setOwner("Азат")
-    setOperationDate(formatInputDate(new Date()))
-    setServiceRows([makeServiceRow()])
-    setPaymentRows([makePaymentRow("Нал")])
-    setEditingOperationId(null)
-  }, [])
+  const [selectedDate, setSelectedDate] = React.useState(formatInputDate(new Date()))
+  const [showAppointmentModal, setShowAppointmentModal] = React.useState(false)
+  const [editingAppointmentId, setEditingAppointmentId] = React.useState<number | null>(null)
+
+  const [appointmentClient, setAppointmentClient] = React.useState("")
+  const [appointmentPhone, setAppointmentPhone] = React.useState("")
+  const [appointmentOwner, setAppointmentOwner] = React.useState<Owner>("Азат")
+  const [appointmentRoom, setAppointmentRoom] = React.useState("")
+  const [appointmentStatus, setAppointmentStatus] =
+    React.useState<AppointmentStatus>("Ожидание")
+  const [appointmentDate, setAppointmentDate] = React.useState(formatInputDate(new Date()))
+  const [appointmentStartTime, setAppointmentStartTime] = React.useState("14:00")
+  const [appointmentEndTime, setAppointmentEndTime] = React.useState("15:00")
+  const [appointmentComment, setAppointmentComment] = React.useState("")
+  const [appointmentServices, setAppointmentServices] = React.useState<ServiceItem[]>([
+    makeServiceRow(),
+  ])
+  const [appointmentPayments, setAppointmentPayments] = React.useState<PaymentItem[]>([
+    makePaymentRow("Нал"),
+  ])
+
+  const resetAppointmentForm = React.useCallback(() => {
+    const today = formatInputDate(new Date())
+    setAppointmentClient("")
+    setAppointmentPhone("")
+    setAppointmentOwner("Азат")
+    setAppointmentRoom("")
+    setAppointmentStatus("Ожидание")
+    setAppointmentDate(selectedDate || today)
+    setAppointmentStartTime("14:00")
+    setAppointmentEndTime("15:00")
+    setAppointmentComment("")
+    setAppointmentServices([makeServiceRow()])
+    setAppointmentPayments([makePaymentRow("Нал")])
+    setEditingAppointmentId(null)
+  }, [selectedDate])
 
   const loadData = React.useCallback(async () => {
-    const { data: operationsData, error: operationsError } = await supabase
-      .from("operations")
-      .select("*")
-      .order("date", { ascending: false })
-
-    const { data: goalsData, error: goalsError } = await supabase
-      .from("month_goals")
-      .select("*")
+    const [{ data: operationsData, error: operationsError }, { data: goalsData, error: goalsError }, { data: appointmentsData, error: appointmentsError }] =
+      await Promise.all([
+        supabase.from("operations").select("*").order("date", { ascending: false }),
+        supabase.from("month_goals").select("*"),
+        supabase.from("appointments").select("*").order("date", { ascending: false }),
+      ])
 
     if (operationsError) {
       console.error("Error loading operations", operationsError)
@@ -808,11 +849,31 @@ export default function App() {
       return
     }
 
+    if (appointmentsError) {
+      console.error("Error loading appointments", appointmentsError)
+      return
+    }
+
     const mappedOperations: Operation[] = (operationsData || []).map((item) => ({
       id: Number(item.id),
       date: String(item.date),
       client: String(item.client || "Без клиента"),
       owner: (item.owner as Owner) || "Азат",
+      services: normalizeServices(item.services),
+      payments: normalizePayments(item.payments),
+    }))
+
+    const mappedAppointments: Appointment[] = (appointmentsData || []).map((item) => ({
+      id: Number(item.id),
+      date: String(item.date),
+      startTime: String(item.start_time || "14:00"),
+      endTime: String(item.end_time || "15:00"),
+      client: String(item.client || "Без клиента"),
+      phone: String(item.phone || ""),
+      owner: (item.owner as Owner) || "Азат",
+      room: String(item.room || ""),
+      status: (item.status as AppointmentStatus) || "Ожидание",
+      comment: String(item.comment || ""),
       services: normalizeServices(item.services),
       payments: normalizePayments(item.payments),
     }))
@@ -829,9 +890,14 @@ export default function App() {
       monthSet.add(toMonthKey(operation.date))
     })
 
+    mappedAppointments.forEach((appointment) => {
+      monthSet.add(toMonthKey(appointment.date))
+    })
+
     const nextMonths = Array.from(monthSet).sort().reverse()
 
-    setOperations(mappedOperations)
+    setLegacyOperations(mappedOperations)
+    setAppointments(mappedAppointments)
     setMonths(nextMonths)
     setMonthGoals({
       [initialMonthKey]: DEFAULT_MONTH_GOAL,
@@ -846,7 +912,7 @@ export default function App() {
     void loadData()
 
     const channel = supabase
-      .channel("operations-and-goals-realtime")
+      .channel("all-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "operations" },
@@ -857,6 +923,11 @@ export default function App() {
         { event: "*", schema: "public", table: "month_goals" },
         () => void loadData()
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments" },
+        () => void loadData()
+      )
       .subscribe()
 
     return () => {
@@ -864,41 +935,39 @@ export default function App() {
     }
   }, [loadData])
 
-  React.useEffect(() => {
-    if (operationDate === "") {
-      setOperationDate(formatInputDate(new Date()))
-    }
-  }, [operationDate])
-
   const normalizedMonths = React.useMemo(() => {
     const all = new Set<string>(months)
-    operations.forEach((operation) => all.add(toMonthKey(operation.date)))
+    legacyOperations.forEach((operation) => all.add(toMonthKey(operation.date)))
+    appointments.forEach((appointment) => all.add(toMonthKey(appointment.date)))
     all.add(initialMonthKey)
     return Array.from(all).sort().reverse()
-  }, [initialMonthKey, months, operations])
+  }, [appointments, initialMonthKey, legacyOperations, months])
 
-  const selectedMonthOperations = React.useMemo(() => {
-    return operations.filter((operation) => toMonthKey(operation.date) === selectedMonth)
-  }, [operations, selectedMonth])
+  const financialEntries = React.useMemo<FinancialEntry[]>(() => {
+    const legacyEntries: FinancialEntry[] = legacyOperations.map((operation) => ({
+      id: operation.id,
+      source: "operation",
+      date: operation.date,
+      client: operation.client,
+      owner: operation.owner,
+      services: operation.services,
+      payments: operation.payments,
+    }))
 
-  const uniqueClients = React.useMemo(() => {
-    return Array.from(
-      new Set(operations.map((operation) => operation.client.trim()).filter(Boolean))
-    ).sort((a, b) => a.localeCompare(b, "ru"))
-  }, [operations])
+    const appointmentEntries = appointments.map(appointmentToFinancialEntry)
 
-  const sortedSelectedMonthOperations = React.useMemo(() => {
-    return [...selectedMonthOperations].sort(
+    return [...legacyEntries, ...appointmentEntries].sort(
       (a, b) => parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
     )
-  }, [selectedMonthOperations])
+  }, [appointments, legacyOperations])
+
+  const selectedMonthEntries = React.useMemo(() => {
+    return financialEntries.filter((entry) => toMonthKey(entry.date) === selectedMonth)
+  }, [financialEntries, selectedMonth])
 
   const monthIncome = React.useMemo(() => {
-    return selectedMonthOperations.reduce(
-      (sum, operation) => sum + getPaymentsTotal(operation),
-      0
-    )
-  }, [selectedMonthOperations])
+    return selectedMonthEntries.reduce((sum, entry) => sum + getPaymentsTotal(entry), 0)
+  }, [selectedMonthEntries])
 
   const monthGoal = monthGoals[selectedMonth] ?? DEFAULT_MONTH_GOAL
   const leftToRent = Math.max(RENT_GOAL - monthIncome, 0)
@@ -906,27 +975,48 @@ export default function App() {
   const profitAfterRent = monthIncome - RENT_GOAL
 
   const azatIncome = React.useMemo(() => {
-    return selectedMonthOperations
-      .filter((operation) => operation.owner === "Азат")
-      .reduce((sum, operation) => sum + getPaymentsTotal(operation), 0)
-  }, [selectedMonthOperations])
+    return selectedMonthEntries
+      .filter((entry) => entry.owner === "Азат")
+      .reduce((sum, entry) => sum + getPaymentsTotal(entry), 0)
+  }, [selectedMonthEntries])
 
   const marsIncome = React.useMemo(() => {
-    return selectedMonthOperations
-      .filter((operation) => operation.owner === "Марс")
-      .reduce((sum, operation) => sum + getPaymentsTotal(operation), 0)
-  }, [selectedMonthOperations])
+    return selectedMonthEntries
+      .filter((entry) => entry.owner === "Марс")
+      .reduce((sum, entry) => sum + getPaymentsTotal(entry), 0)
+  }, [selectedMonthEntries])
 
   const serviceRevenueRows = React.useMemo(() => {
-    return Array.from(getServiceRevenueMap(selectedMonthOperations).entries()).sort(
+    return Array.from(getServiceRevenueMap(selectedMonthEntries).entries()).sort(
       (a, b) => b[1] - a[1]
     )
-  }, [selectedMonthOperations])
+  }, [selectedMonthEntries])
 
   const paymentRevenueRows = React.useMemo(() => {
-    const paymentRevenueMap = getPaymentRevenueMap(selectedMonthOperations)
+    const paymentRevenueMap = getPaymentRevenueMap(selectedMonthEntries)
     return paymentOptions.map((type) => [type, paymentRevenueMap.get(type) || 0] as const)
-  }, [selectedMonthOperations])
+  }, [selectedMonthEntries])
+
+  const topClient = React.useMemo(() => {
+    const map = new Map<string, number>()
+    selectedMonthEntries.forEach((entry) => {
+      map.set(entry.client, (map.get(entry.client) || 0) + getPaymentsTotal(entry))
+    })
+    const rows = Array.from(map.entries()).sort((a, b) => b[1] - a[1])
+    return rows[0] || null
+  }, [selectedMonthEntries])
+
+  const recentEntries = React.useMemo(() => {
+    return selectedMonthEntries.slice(0, 5)
+  }, [selectedMonthEntries])
+
+  const uniqueClients = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        [...legacyOperations.map((item) => item.client.trim()), ...appointments.map((item) => item.client.trim())].filter(Boolean)
+      )
+    ).sort((a, b) => a.localeCompare(b, "ru"))
+  }, [appointments, legacyOperations])
 
   const dailyStats = React.useMemo(() => {
     const daysCount = getDaysInMonth(selectedMonth)
@@ -938,12 +1028,10 @@ export default function App() {
       dateKey: formatInputDate(new Date(year, month - 1, index + 1)),
     }))
 
-    selectedMonthOperations.forEach((operation) => {
-      const day = parseInputDate(operation.date).getDate()
+    selectedMonthEntries.forEach((entry) => {
+      const day = parseInputDate(entry.date).getDate()
       const index = day - 1
-      if (values[index]) {
-        values[index].amount += getPaymentsTotal(operation)
-      }
+      if (values[index]) values[index].amount += getPaymentsTotal(entry)
     })
 
     const positiveDays = values.filter((item) => item.amount > 0)
@@ -967,13 +1055,8 @@ export default function App() {
 
     const weakDays = values.filter((item) => item.amount === 0).length
 
-    return {
-      values,
-      colors,
-      bestDays,
-      weakDays,
-    }
-  }, [selectedMonth, selectedMonthOperations])
+    return { values, colors, bestDays, weakDays }
+  }, [selectedMonth, selectedMonthEntries])
 
   const chartData = React.useMemo(() => {
     return {
@@ -1041,33 +1124,39 @@ export default function App() {
     }
   }, [])
 
-  const currentServicesTotal = React.useMemo(() => {
-    return serviceRows.reduce((sum, row) => {
-      const normalized = normalizeServiceRow(row)
-      return sum + normalized.amount
-    }, 0)
-  }, [serviceRows])
+  const selectedDateAppointments = React.useMemo(() => {
+    return [...appointments]
+      .filter((appointment) => appointment.date === selectedDate)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+  }, [appointments, selectedDate])
 
-  const currentPaymentsTotal = React.useMemo(() => {
-    return paymentRows.reduce((sum, row) => {
-      const normalized = normalizePaymentRow(row)
-      return sum + normalized.amount
-    }, 0)
-  }, [paymentRows])
+  const currentAppointmentServicesTotal = React.useMemo(() => {
+    return appointmentServices.reduce((sum, row) => sum + normalizeServiceRow(row).amount, 0)
+  }, [appointmentServices])
 
-  const openCreateModal = React.useCallback(() => {
-    resetForm()
-    setShowModal(true)
-  }, [resetForm])
+  const currentAppointmentPaymentsTotal = React.useMemo(() => {
+    return appointmentPayments.reduce((sum, row) => sum + normalizePaymentRow(row).amount, 0)
+  }, [appointmentPayments])
 
-  const openEditModal = React.useCallback((operation: Operation) => {
-    setEditingOperationId(operation.id)
-    setClient(operation.client)
-    setOwner(operation.owner)
-    setOperationDate(operation.date)
-    setServiceRows(
-      operation.services.length > 0
-        ? operation.services.map((service) => ({
+  const openCreateAppointmentModal = React.useCallback(() => {
+    resetAppointmentForm()
+    setShowAppointmentModal(true)
+  }, [resetAppointmentForm])
+
+  const openEditAppointmentModal = React.useCallback((appointment: Appointment) => {
+    setEditingAppointmentId(appointment.id)
+    setAppointmentClient(appointment.client)
+    setAppointmentPhone(appointment.phone)
+    setAppointmentOwner(appointment.owner)
+    setAppointmentRoom(appointment.room)
+    setAppointmentStatus(appointment.status)
+    setAppointmentDate(appointment.date)
+    setAppointmentStartTime(appointment.startTime)
+    setAppointmentEndTime(appointment.endTime)
+    setAppointmentComment(appointment.comment)
+    setAppointmentServices(
+      appointment.services.length > 0
+        ? appointment.services.map((service) => ({
             ...service,
             id: service.id || makeId(),
             hours:
@@ -1079,28 +1168,38 @@ export default function App() {
           }))
         : [makeServiceRow()]
     )
-    setPaymentRows(
-      operation.payments.length > 0
-        ? operation.payments.map((payment) => ({
+    setAppointmentPayments(
+      appointment.payments.length > 0
+        ? appointment.payments.map((payment) => ({
             ...payment,
             id: payment.id || makeId(),
             amount: payment.type === "Онлайн" ? ONLINE_NET_AMOUNT : payment.amount,
           }))
         : [makePaymentRow("Нал")]
     )
-    setShowModal(true)
+    setShowAppointmentModal(true)
   }, [])
 
-  const addServiceRow = React.useCallback(() => {
-    setServiceRows((prev) => [...prev, makeServiceRow()])
+  const openFinancialEntry = React.useCallback(
+    (entry: FinancialEntry) => {
+      if (entry.source === "appointment") {
+        const found = appointments.find((item) => item.id === entry.id)
+        if (found) openEditAppointmentModal(found)
+      }
+    },
+    [appointments, openEditAppointmentModal]
+  )
+
+  const addAppointmentServiceRow = React.useCallback(() => {
+    setAppointmentServices((prev) => [...prev, makeServiceRow()])
   }, [])
 
-  const addQuickService = React.useCallback((type: ServiceType) => {
-    setServiceRows((prev) => [...prev, makeServiceRow(type)])
+  const addQuickAppointmentService = React.useCallback((type: ServiceType) => {
+    setAppointmentServices((prev) => [...prev, makeServiceRow(type)])
   }, [])
 
-  const updateServiceRow = React.useCallback((id: number, patch: Partial<ServiceItem>) => {
-    setServiceRows((prev) =>
+  const updateAppointmentServiceRow = React.useCallback((id: number, patch: Partial<ServiceItem>) => {
+    setAppointmentServices((prev) =>
       prev.map((row) => {
         if (row.id !== id) return row
 
@@ -1124,16 +1223,16 @@ export default function App() {
     )
   }, [])
 
-  const removeServiceRow = React.useCallback((id: number) => {
-    setServiceRows((prev) => prev.filter((row) => row.id !== id))
+  const removeAppointmentServiceRow = React.useCallback((id: number) => {
+    setAppointmentServices((prev) => prev.filter((row) => row.id !== id))
   }, [])
 
-  const addPaymentRow = React.useCallback(() => {
-    setPaymentRows((prev) => [...prev, makePaymentRow("Нал")])
+  const addAppointmentPaymentRow = React.useCallback(() => {
+    setAppointmentPayments((prev) => [...prev, makePaymentRow("Нал")])
   }, [])
 
-  const updatePaymentRow = React.useCallback((id: number, patch: Partial<PaymentItem>) => {
-    setPaymentRows((prev) =>
+  const updateAppointmentPaymentRow = React.useCallback((id: number, patch: Partial<PaymentItem>) => {
+    setAppointmentPayments((prev) =>
       prev.map((row) => {
         if (row.id !== id) return row
         return normalizePaymentRow({ ...row, ...patch })
@@ -1141,8 +1240,8 @@ export default function App() {
     )
   }, [])
 
-  const removePaymentRow = React.useCallback((id: number) => {
-    setPaymentRows((prev) => prev.filter((row) => row.id !== id))
+  const removeAppointmentPaymentRow = React.useCallback((id: number) => {
+    setAppointmentPayments((prev) => prev.filter((row) => row.id !== id))
   }, [])
 
   const ensureMonthExists = React.useCallback(
@@ -1160,46 +1259,41 @@ export default function App() {
     [monthGoals]
   )
 
-  const saveOperation = React.useCallback(async () => {
-    if (!operationDate) {
+  const saveAppointment = React.useCallback(async () => {
+    if (!appointmentDate) {
       alert("Выбери дату.")
       return
     }
 
-    if (serviceRows.length === 0) {
+    if (!appointmentStartTime || !appointmentEndTime) {
+      alert("Укажи время начала и конца.")
+      return
+    }
+
+    if (appointmentServices.length === 0) {
       alert("Добавь хотя бы одну услугу.")
       return
     }
 
-    if (paymentRows.length === 0) {
+    if (appointmentPayments.length === 0) {
       alert("Добавь хотя бы одну оплату.")
       return
     }
 
-    const cleanedServices = serviceRows.map(normalizeServiceRow)
-    const cleanedPayments = paymentRows.map(normalizePaymentRow)
+    const cleanedServices = appointmentServices.map(normalizeServiceRow)
+    const cleanedPayments = appointmentPayments.map(normalizePaymentRow)
 
-    const hasInvalidService = cleanedServices.some((row) => row.amount <= 0)
-    if (hasInvalidService) {
+    if (cleanedServices.some((row) => row.amount <= 0)) {
       alert("Во всех услугах должна быть корректная сумма.")
       return
     }
 
-    const hasInvalidPayment = cleanedPayments.some((row) => row.amount <= 0)
-    if (hasInvalidPayment) {
+    if (cleanedPayments.some((row) => row.amount < 0)) {
       alert("Во всех оплатах должна быть корректная сумма.")
       return
     }
 
-    const payload = {
-      date: operationDate,
-      client: client.trim() || "Без клиента",
-      owner,
-      services: cleanedServices,
-      payments: cleanedPayments,
-    }
-
-    const monthKey = toMonthKey(operationDate)
+    const monthKey = toMonthKey(appointmentDate)
 
     try {
       await ensureMonthExists(monthKey)
@@ -1208,59 +1302,81 @@ export default function App() {
       return
     }
 
-    if (editingOperationId) {
+    const payload = {
+      date: appointmentDate,
+      start_time: appointmentStartTime,
+      end_time: appointmentEndTime,
+      client: appointmentClient.trim() || "Без клиента",
+      phone: appointmentPhone.trim(),
+      owner: appointmentOwner,
+      room: appointmentRoom.trim(),
+      status: appointmentStatus,
+      comment: appointmentComment.trim(),
+      services: cleanedServices,
+      payments: cleanedPayments,
+    }
+
+    if (editingAppointmentId) {
       const { data, error } = await supabase
-        .from("operations")
+        .from("appointments")
         .update(payload)
-        .eq("id", editingOperationId)
+        .eq("id", editingAppointmentId)
         .select()
         .single()
 
       if (error) {
-        console.error("Error updating operation", error)
-        alert("Не удалось обновить операцию")
+        console.error("Error updating appointment", error)
+        alert("Не удалось обновить запись")
         return
       }
 
-      const updatedOperation: Operation = {
+      const updatedAppointment: Appointment = {
         id: Number(data.id),
         date: String(data.date),
+        startTime: String(data.start_time),
+        endTime: String(data.end_time),
         client: String(data.client),
+        phone: String(data.phone || ""),
         owner: data.owner as Owner,
+        room: String(data.room || ""),
+        status: data.status as AppointmentStatus,
+        comment: String(data.comment || ""),
         services: normalizeServices(data.services),
         payments: normalizePayments(data.payments),
       }
 
-      setOperations((prev) =>
-        prev.map((operation) =>
-          operation.id === editingOperationId ? updatedOperation : operation
-        )
+      setAppointments((prev) =>
+        prev.map((item) => (item.id === editingAppointmentId ? updatedAppointment : item))
       )
     } else {
       const { data, error } = await supabase
-        .from("operations")
+        .from("appointments")
         .insert(payload)
         .select()
         .single()
 
       if (error) {
-        console.error("Error creating operation", error)
-        alert(`Не удалось сохранить операцию: ${error.message}`)
+        console.error("Error creating appointment", error)
+        alert(`Не удалось сохранить запись: ${error.message}`)
         return
       }
 
-      const newOperation: Operation = {
+      const newAppointment: Appointment = {
         id: Number(data.id),
         date: String(data.date),
+        startTime: String(data.start_time),
+        endTime: String(data.end_time),
         client: String(data.client),
+        phone: String(data.phone || ""),
         owner: data.owner as Owner,
+        room: String(data.room || ""),
+        status: data.status as AppointmentStatus,
+        comment: String(data.comment || ""),
         services: normalizeServices(data.services),
         payments: normalizePayments(data.payments),
       }
 
-      setOperations((prev) => [...prev, newOperation])
-      setLastAdded(newOperation)
-      setActiveTab("operations")
+      setAppointments((prev) => [...prev, newAppointment])
     }
 
     setMonthGoals((prev) => ({
@@ -1274,18 +1390,49 @@ export default function App() {
     })
 
     setSelectedMonth(monthKey)
-    setShowModal(false)
-    resetForm()
+    setSelectedDate(appointmentDate)
+    setShowAppointmentModal(false)
+    resetAppointmentForm()
   }, [
-    client,
-    editingOperationId,
+    appointmentClient,
+    appointmentComment,
+    appointmentDate,
+    appointmentEndTime,
+    appointmentOwner,
+    appointmentPayments,
+    appointmentPhone,
+    appointmentRoom,
+    appointmentServices,
+    appointmentStartTime,
+    appointmentStatus,
+    editingAppointmentId,
     ensureMonthExists,
-    operationDate,
-    owner,
-    paymentRows,
-    resetForm,
-    serviceRows,
+    resetAppointmentForm,
   ])
+
+  const deleteAppointment = React.useCallback(async (id: number) => {
+    const { error } = await supabase.from("appointments").delete().eq("id", id)
+
+    if (error) {
+      console.error("Error deleting appointment", error)
+      alert("Не удалось удалить запись")
+      return
+    }
+
+    setAppointments((prev) => prev.filter((item) => item.id !== id))
+  }, [])
+
+  const deleteLegacyOperation = React.useCallback(async (id: number) => {
+    const { error } = await supabase.from("operations").delete().eq("id", id)
+
+    if (error) {
+      console.error("Error deleting legacy operation", error)
+      alert("Не удалось удалить старую операцию")
+      return
+    }
+
+    setLegacyOperations((prev) => prev.filter((item) => item.id !== id))
+  }, [])
 
   const createNewMonth = React.useCallback(async () => {
     const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
@@ -1319,76 +1466,6 @@ export default function App() {
     setSelectedMonth(trimmed)
   }, [ensureMonthExists])
 
-  const deleteOperation = React.useCallback(
-    async (id: number) => {
-      const found = operations.find((operation) => operation.id === id)
-      if (!found) return
-
-      const { error } = await supabase.from("operations").delete().eq("id", id)
-
-      if (error) {
-        console.error("Error deleting operation", error)
-        alert("Не удалось удалить операцию")
-        return
-      }
-
-      setLastDeleted(found)
-      setOperations((prev) => prev.filter((operation) => operation.id !== id))
-    },
-    [operations]
-  )
-
-  const undoDelete = React.useCallback(async () => {
-    if (!lastDeleted) return
-
-    const payload = {
-      date: lastDeleted.date,
-      client: lastDeleted.client,
-      owner: lastDeleted.owner,
-      services: lastDeleted.services,
-      payments: lastDeleted.payments,
-    }
-
-    const { data, error } = await supabase
-      .from("operations")
-      .insert(payload)
-      .select()
-      .single()
-
-    if (error) {
-      console.error("Error restoring operation", error)
-      alert("Не удалось восстановить операцию")
-      return
-    }
-
-    const restored: Operation = {
-      id: Number(data.id),
-      date: String(data.date),
-      client: String(data.client),
-      owner: data.owner as Owner,
-      services: normalizeServices(data.services),
-      payments: normalizePayments(data.payments),
-    }
-
-    setOperations((prev) => [...prev, restored])
-    setLastDeleted(null)
-  }, [lastDeleted])
-
-  const undoAdd = React.useCallback(async () => {
-    if (!lastAdded) return
-
-    const { error } = await supabase.from("operations").delete().eq("id", lastAdded.id)
-
-    if (error) {
-      console.error("Error undoing add", error)
-      alert("Не удалось отменить добавление")
-      return
-    }
-
-    setOperations((prev) => prev.filter((operation) => operation.id !== lastAdded.id))
-    setLastAdded(null)
-  }, [lastAdded])
-
   const updateMonthGoal = React.useCallback(
     async (value: string) => {
       const numeric = Number(value)
@@ -1417,32 +1494,34 @@ export default function App() {
       return
     }
 
-    const opsForMonth = operations.filter(
-      (operation) => toMonthKey(operation.date) === selectedMonth
-    )
-
-    const hasOperations = opsForMonth.length > 0
-
     const confirmed = window.confirm(
-      hasOperations
-        ? `В месяце ${formatMonthLabel(selectedMonth)} есть ${opsForMonth.length} операций. Удалить месяц вместе со всеми операциями?`
-        : `Удалить пустой месяц ${formatMonthLabel(selectedMonth)}?`
+      `Удалить месяц ${formatMonthLabel(selectedMonth)} вместе со всеми записями и операциями?`
     )
 
     if (!confirmed) return
 
-    if (hasOperations) {
-      const { error: deleteOperationsError } = await supabase
-        .from("operations")
-        .delete()
-        .gte("date", `${selectedMonth}-01`)
-        .lte("date", `${selectedMonth}-31`)
+    const { error: deleteOperationsError } = await supabase
+      .from("operations")
+      .delete()
+      .gte("date", `${selectedMonth}-01`)
+      .lte("date", `${selectedMonth}-31`)
 
-      if (deleteOperationsError) {
-        console.error("Error deleting month operations", deleteOperationsError)
-        alert("Не удалось удалить операции месяца")
-        return
-      }
+    if (deleteOperationsError) {
+      console.error("Error deleting operations by month", deleteOperationsError)
+      alert("Не удалось удалить операции месяца")
+      return
+    }
+
+    const { error: deleteAppointmentsError } = await supabase
+      .from("appointments")
+      .delete()
+      .gte("date", `${selectedMonth}-01`)
+      .lte("date", `${selectedMonth}-31`)
+
+    if (deleteAppointmentsError) {
+      console.error("Error deleting appointments by month", deleteAppointmentsError)
+      alert("Не удалось удалить записи месяца")
+      return
     }
 
     const { error: deleteGoalError } = await supabase
@@ -1451,15 +1530,18 @@ export default function App() {
       .eq("month_key", selectedMonth)
 
     if (deleteGoalError) {
-      console.error("Error deleting month", deleteGoalError)
+      console.error("Error deleting month goal", deleteGoalError)
       alert("Не удалось удалить месяц")
       return
     }
 
     const nextMonths = normalizedMonths.filter((month) => month !== selectedMonth)
 
-    setOperations((prev) =>
+    setLegacyOperations((prev) =>
       prev.filter((operation) => toMonthKey(operation.date) !== selectedMonth)
+    )
+    setAppointments((prev) =>
+      prev.filter((appointment) => toMonthKey(appointment.date) !== selectedMonth)
     )
     setMonths(nextMonths)
     setMonthGoals((prev) => {
@@ -1468,20 +1550,13 @@ export default function App() {
       return copy
     })
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
-  }, [normalizedMonths, operations, selectedMonth])
+  }, [normalizedMonths, selectedMonth])
 
-  const topClient = React.useMemo(() => {
-    const map = new Map<string, number>()
-    selectedMonthOperations.forEach((operation) => {
-      map.set(operation.client, (map.get(operation.client) || 0) + getPaymentsTotal(operation))
-    })
-    const rows = Array.from(map.entries()).sort((a, b) => b[1] - a[1])
-    return rows[0] || null
-  }, [selectedMonthOperations])
-
-  const recentOperations = React.useMemo(() => {
-    return sortedSelectedMonthOperations.slice(0, 5)
-  }, [sortedSelectedMonthOperations])
+  const shiftSelectedDate = React.useCallback((direction: -1 | 1) => {
+    const current = parseInputDate(selectedDate)
+    current.setDate(current.getDate() + direction)
+    setSelectedDate(formatInputDate(current))
+  }, [selectedDate])
 
   return (
     <div className="min-h-screen bg-[#070a11] text-white">
@@ -1491,7 +1566,7 @@ export default function App() {
         <SidebarNav
           activeTab={activeTab}
           onChange={setActiveTab}
-          onAdd={openCreateModal}
+          onAdd={openCreateAppointmentModal}
           onCreateMonth={() => void createNewMonth()}
           logo={logoWhite}
         />
@@ -1513,7 +1588,8 @@ export default function App() {
                   </p>
                   <h1 className="mt-1 text-lg font-semibold text-white sm:text-xl">
                     {activeTab === "dashboard" && "Главная"}
-                    {activeTab === "operations" && "Операции"}
+                    {activeTab === "schedule" && "График"}
+                    {activeTab === "operations" && "Финансы"}
                     {activeTab === "analytics" && "Аналитика"}
                     {activeTab === "settings" && "Настройки"}
                   </h1>
@@ -1521,19 +1597,44 @@ export default function App() {
               </div>
 
               <div className="hidden sm:flex sm:items-center sm:gap-3">
-                <button
-                  onClick={() => void createNewMonth()}
-                  className="rounded-[18px] bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-                >
-                  + Новый месяц
-                </button>
-                <button
-                  onClick={openCreateModal}
-                  className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
-                >
-                  + Операция
-                </button>
-              </div>
+  {activeTab === "schedule" && (
+    <>
+      <button
+        onClick={() => shiftSelectedDate(-1)}
+        className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+      >
+        <ChevronLeftIcon />
+      </button>
+
+      <DateInput
+        value={selectedDate}
+        onChange={(e) => setSelectedDate(e.target.value)}
+        className="w-[180px]"
+      />
+
+      <button
+        onClick={() => shiftSelectedDate(1)}
+        className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+      >
+        <ChevronRightIcon />
+      </button>
+    </>
+  )}
+
+  <button
+    onClick={() => void createNewMonth()}
+    className="rounded-[18px] bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+  >
+    + Новый месяц
+  </button>
+
+  <button
+    onClick={openCreateAppointmentModal}
+    className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
+  >
+    + Запись
+  </button>
+</div>
             </div>
           </header>
 
@@ -1664,31 +1765,159 @@ export default function App() {
 
                 <SoftCard className="p-5 sm:p-6">
                   <SectionTitle
-                    title="Последние операции"
-                    subtitle="Нажми на операцию, чтобы сразу открыть редактирование"
+                    title="Последние записи и оплаты"
+                    subtitle="Записи открываются в карточку визита"
+                  />
+
+                  {recentEntries.length === 0 ? (
+                    <div className="rounded-[22px] bg-white/[0.03] py-12 text-center text-zinc-400 ring-1 ring-white/6">
+                      Пока нет данных за этот месяц
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentEntries.map((entry) => (
+                        <RecentOperationRow
+                          key={`${entry.source}-${entry.id}`}
+                          entry={entry}
+                          onOpen={openFinancialEntry}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </SoftCard>
+              </div>
+            )}
+
+            {activeTab === "schedule" && (
+              <div className="space-y-6">
+                <SoftCard className="p-5 sm:p-6">
+                  <SectionTitle
+                    title="График записей"
+                    subtitle="Запись, услуги и оплата теперь в одном месте"
                     action={
                       <button
-                        onClick={() => setActiveTab("operations")}
-                        className="rounded-[16px] bg-white/[0.05] px-4 py-2 text-sm font-medium text-white ring-1 ring-white/6"
+                        onClick={openCreateAppointmentModal}
+                        className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
                       >
-                        Все операции
+                        + Запись
                       </button>
                     }
                   />
 
-                  {recentOperations.length === 0 ? (
-                    <div className="rounded-[22px] bg-white/[0.03] py-12 text-center text-zinc-400 ring-1 ring-white/6">
-                      Пока нет операций за этот месяц
+                  <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => shiftSelectedDate(-1)}
+                        className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+                      >
+                        <ChevronLeftIcon />
+                      </button>
+
+                      <DateInput
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full md:w-[220px]"
+                      />
+
+                      <button
+                        onClick={() => shiftSelectedDate(1)}
+                        className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+                      >
+                        <ChevronRightIcon />
+                      </button>
+                    </div>
+
+                    <div className="rounded-[18px] bg-white/[0.04] px-4 py-3 text-sm text-zinc-300 ring-1 ring-white/6">
+                      {formatDisplayDate(selectedDate)}
+                    </div>
+                  </div>
+
+                  {selectedDateAppointments.length === 0 ? (
+                    <div className="rounded-[24px] bg-white/[0.03] py-14 text-center text-zinc-400 ring-1 ring-white/6">
+                      На этот день записей пока нет
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {recentOperations.map((operation) => (
-                        <RecentOperationRow
-                          key={operation.id}
-                          operation={operation}
-                          onEdit={openEditModal}
-                        />
-                      ))}
+                      {selectedDateAppointments.map((appointment) => {
+                        const total = getServicesTotal(appointment)
+                        const paid = getPaymentsTotal(appointment)
+                        const left = total - paid
+                        const firstService = appointment.services[0]
+
+                        return (
+                          <button
+                            key={appointment.id}
+                            onClick={() => openEditAppointmentModal(appointment)}
+                            className="w-full rounded-[24px] bg-white/[0.035] p-4 text-left ring-1 ring-white/6 transition hover:bg-white/[0.06]"
+                          >
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="rounded-[14px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-3 py-1 text-xs font-semibold text-white">
+                                    {appointment.startTime}–{appointment.endTime}
+                                  </span>
+
+                                  <span
+                                    className={`rounded-[14px] px-3 py-1 text-xs font-medium ${getStatusPillClass(appointment.status)}`}
+                                  >
+                                    {appointment.status}
+                                  </span>
+
+                                  {appointment.room ? (
+                                    <span className="rounded-[14px] bg-white/[0.05] px-3 py-1 text-xs text-zinc-300 ring-1 ring-white/6">
+                                      {appointment.room}
+                                    </span>
+                                  ) : null}
+                                </div>
+
+                                <p className="mt-3 truncate text-lg font-semibold text-white">
+                                  {appointment.client}
+                                </p>
+
+                                <p className="mt-1 text-sm text-zinc-400">
+                                  {firstService
+                                    ? `${firstService.type}${firstService.type === "Запись" ? ` • ${firstService.hours || 0} ч` : ""}`
+                                    : "Без услуги"}{" "}
+                                  · {appointment.owner}
+                                </p>
+
+                                {appointment.phone ? (
+                                  <p className="mt-1 text-sm text-zinc-500">
+                                    {appointment.phone}
+                                  </p>
+                                ) : null}
+                              </div>
+
+                              <div className="grid shrink-0 grid-cols-3 gap-3 lg:min-w-[320px]">
+                                <div className="rounded-[18px] bg-white/[0.04] p-3 ring-1 ring-white/6">
+                                  <p className="text-xs text-zinc-500">К оплате</p>
+                                  <p className="mt-2 text-base font-semibold text-white">
+                                    {formatMoney(total)}
+                                  </p>
+                                </div>
+
+                                <div className="rounded-[18px] bg-white/[0.04] p-3 ring-1 ring-white/6">
+                                  <p className="text-xs text-zinc-500">Оплачено</p>
+                                  <p className="mt-2 text-base font-semibold text-green-400">
+                                    {formatMoney(paid)}
+                                  </p>
+                                </div>
+
+                                <div className="rounded-[18px] bg-white/[0.04] p-3 ring-1 ring-white/6">
+                                  <p className="text-xs text-zinc-500">Остаток</p>
+                                  <p
+                                    className={`mt-2 text-base font-semibold ${
+                                      left > 0 ? "text-yellow-300" : "text-cyan-300"
+                                    }`}
+                                  >
+                                    {formatMoney(left)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
                     </div>
                   )}
                 </SoftCard>
@@ -1699,61 +1928,162 @@ export default function App() {
               <div className="space-y-6">
                 <SoftCard className="p-5 sm:p-6">
                   <SectionTitle
-                    title="История операций"
-                    subtitle="Без свайпов. Просто нормальные карточки и понятные действия."
-                    action={
-                      <button
-                        onClick={openCreateModal}
-                        className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)] md:hidden"
-                      >
-                        + Операция
-                      </button>
-                    }
+                    title="Финансы"
+                    subtitle="Здесь и старые операции, и новые оплаты из записей"
                   />
 
-                  <div className="mb-5 flex flex-wrap gap-3">
-                    {lastAdded && (
-                      <button
-                        onClick={() => void undoAdd()}
-                        className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 ring-1 ring-yellow-300/10 transition hover:bg-yellow-500/25"
-                      >
-                        Отменить добавление
-                      </button>
-                    )}
-
-                    {lastDeleted && (
-                      <button
-                        onClick={() => void undoDelete()}
-                        className="rounded-[16px] bg-yellow-500/15 px-4 py-2 text-sm font-medium text-yellow-300 ring-1 ring-yellow-300/10 transition hover:bg-yellow-500/25"
-                      >
-                        Отменить удаление
-                      </button>
-                    )}
-                  </div>
-
-                  {sortedSelectedMonthOperations.length === 0 ? (
+                  {selectedMonthEntries.length === 0 ? (
                     <div className="rounded-[24px] bg-white/[0.03] py-14 text-center text-zinc-400 ring-1 ring-white/6">
-                      Пока нет операций за этот месяц
+                      Пока нет записей и операций за этот месяц
                     </div>
                   ) : (
                     <>
                       <div className="space-y-4 md:hidden">
-                        {sortedSelectedMonthOperations.map((operation) => (
-                          <OperationMobileCard
-                            key={operation.id}
-                            operation={operation}
-                            onEdit={openEditModal}
-                            onDelete={(id) => void deleteOperation(id)}
-                          />
-                        ))}
+                        {selectedMonthEntries.map((entry) => {
+                          const total = getServicesTotal(entry)
+                          const paid = getPaymentsTotal(entry)
+                          const diff = paid - total
+
+                          return (
+                            <SoftCard key={`${entry.source}-${entry.id}`} className="p-4">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="truncate text-lg font-semibold text-white">
+                                    {entry.client}
+                                  </p>
+                                  <p className="mt-1 text-sm text-zinc-400">
+                                    {formatDisplayDate(entry.date)} · {entry.owner}
+                                  </p>
+                                  <p className="mt-1 text-xs text-zinc-500">
+                                    {entry.source === "appointment"
+                                      ? "Источник: запись"
+                                      : "Источник: старая операция"}
+                                  </p>
+                                </div>
+
+                                <div className="rounded-[16px] bg-white/[0.05] px-3 py-2 text-right ring-1 ring-white/6">
+                                  <p className="text-[11px] text-zinc-400">Получено</p>
+                                  <p className="text-sm font-semibold text-white">
+                                    {formatMoney(paid)}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 grid gap-3">
+                                <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+                                  <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+                                    Услуги
+                                  </p>
+                                  <div className="space-y-1.5">
+                                    {entry.services.map((service) => (
+                                      <div
+                                        key={service.id}
+                                        className="flex items-start justify-between gap-3 text-sm"
+                                      >
+                                        <span className="text-zinc-300">
+                                          {service.type}
+                                          {service.type === "Запись"
+                                            ? ` — ${service.hours || 0} ч`
+                                            : ""}
+                                        </span>
+                                        <span className="whitespace-nowrap font-medium text-white">
+                                          {formatMoney(service.amount)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+                                  <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+                                    Оплаты
+                                  </p>
+                                  <div className="space-y-1.5">
+                                    {entry.payments.map((payment) => (
+                                      <div
+                                        key={payment.id}
+                                        className="flex items-center justify-between gap-3 text-sm"
+                                      >
+                                        <span className="text-zinc-300">{payment.type}</span>
+                                        <span className="whitespace-nowrap font-medium text-white">
+                                          {formatMoney(payment.amount)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+                                    <p className="text-xs text-zinc-500">К оплате</p>
+                                    <p className="mt-2 text-sm font-semibold text-white">
+                                      {formatMoney(total)}
+                                    </p>
+                                  </div>
+
+                                  <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+                                    <p className="text-xs text-zinc-500">Оплачено</p>
+                                    <p className="mt-2 text-sm font-semibold text-green-400">
+                                      {formatMoney(paid)}
+                                    </p>
+                                  </div>
+
+                                  <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
+                                    <p className="text-xs text-zinc-500">Разница</p>
+                                    <p
+                                      className={`mt-2 text-sm font-semibold ${
+                                        diff >= 0 ? "text-cyan-300" : "text-yellow-300"
+                                      }`}
+                                    >
+                                      {diff > 0 ? "+" : ""}
+                                      {formatMoney(diff)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 grid grid-cols-2 gap-3">
+                                {entry.source === "appointment" ? (
+                                  <button
+                                    onClick={() => openFinancialEntry(entry)}
+                                    className="flex items-center justify-center gap-2 rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.1]"
+                                  >
+                                    <EditIcon />
+                                    Открыть
+                                  </button>
+                                ) : (
+                                  <button
+                                    disabled
+                                    className="flex items-center justify-center gap-2 rounded-[18px] bg-white/[0.03] px-4 py-3 text-sm font-medium text-zinc-500 ring-1 ring-white/6"
+                                  >
+                                    Старые данные
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() =>
+                                    entry.source === "appointment"
+                                      ? void deleteAppointment(entry.id)
+                                      : void deleteLegacyOperation(entry.id)
+                                  }
+                                  className="flex items-center justify-center gap-2 rounded-[18px] bg-red-500/[0.12] px-4 py-3 text-sm font-medium text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18]"
+                                >
+                                  <TrashIcon />
+                                  Удалить
+                                </button>
+                              </div>
+                            </SoftCard>
+                          )
+                        })}
                       </div>
 
                       <div className="hidden overflow-x-auto rounded-[28px] bg-white/[0.025] ring-1 ring-white/6 md:block">
-                        <table className="w-full min-w-[920px] text-left">
+                        <table className="w-full min-w-[980px] text-left">
                           <thead className="bg-white/[0.04] text-sm text-zinc-400">
                             <tr>
                               <th className="px-4 py-3">Дата</th>
                               <th className="px-4 py-3">Клиент</th>
+                              <th className="px-4 py-3">Источник</th>
                               <th className="px-4 py-3">Оплаты</th>
                               <th className="px-4 py-3">Услуги</th>
                               <th className="px-4 py-3">Получено</th>
@@ -1763,16 +2093,19 @@ export default function App() {
                           </thead>
 
                           <tbody>
-                            {sortedSelectedMonthOperations.map((operation) => (
+                            {selectedMonthEntries.map((entry) => (
                               <tr
-                                key={operation.id}
+                                key={`${entry.source}-${entry.id}`}
                                 className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
                               >
-                                <td className="px-4 py-4">{formatDisplayDate(operation.date)}</td>
-                                <td className="px-4 py-4">{operation.client}</td>
+                                <td className="px-4 py-4">{formatDisplayDate(entry.date)}</td>
+                                <td className="px-4 py-4">{entry.client}</td>
+                                <td className="px-4 py-4 text-zinc-300">
+                                  {entry.source === "appointment" ? "Запись" : "Операция"}
+                                </td>
                                 <td className="px-4 py-4">
                                   <div className="space-y-1">
-                                    {operation.payments.map((payment) => (
+                                    {entry.payments.map((payment) => (
                                       <div key={payment.id} className="text-zinc-300">
                                         {payment.type} — {formatMoney(payment.amount)}
                                       </div>
@@ -1781,7 +2114,7 @@ export default function App() {
                                 </td>
                                 <td className="px-4 py-4">
                                   <div className="space-y-1">
-                                    {operation.services.map((service) => (
+                                    {entry.services.map((service) => (
                                       <div key={service.id} className="text-zinc-300">
                                         {service.type}
                                         {service.type === "Запись"
@@ -1793,19 +2126,33 @@ export default function App() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-4 font-semibold">
-                                  {formatMoney(getPaymentsTotal(operation))}
+                                  {formatMoney(getPaymentsTotal(entry))}
                                 </td>
-                                <td className="px-4 py-4">{operation.owner}</td>
+                                <td className="px-4 py-4">{entry.owner}</td>
                                 <td className="px-4 py-4">
                                   <div className="flex gap-2">
+                                    {entry.source === "appointment" ? (
+                                      <button
+                                        onClick={() => openFinancialEntry(entry)}
+                                        className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-sm text-zinc-200 ring-1 ring-white/6 transition hover:bg-white/[0.1]"
+                                      >
+                                        Открыть
+                                      </button>
+                                    ) : (
+                                      <button
+                                        disabled
+                                        className="rounded-[14px] bg-white/[0.03] px-3 py-2 text-sm text-zinc-500 ring-1 ring-white/6"
+                                      >
+                                        Старая
+                                      </button>
+                                    )}
+
                                     <button
-                                      onClick={() => openEditModal(operation)}
-                                      className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-sm text-zinc-200 ring-1 ring-white/6 transition hover:bg-white/[0.1]"
-                                    >
-                                      Редактировать
-                                    </button>
-                                    <button
-                                      onClick={() => void deleteOperation(operation.id)}
+                                      onClick={() =>
+                                        entry.source === "appointment"
+                                          ? void deleteAppointment(entry.id)
+                                          : void deleteLegacyOperation(entry.id)
+                                      }
                                       className="rounded-[14px] bg-red-500/15 px-3 py-2 text-sm text-red-300 ring-1 ring-red-300/10 transition hover:bg-red-500/25"
                                     >
                                       Удалить
@@ -1964,25 +2311,25 @@ export default function App() {
         </div>
       </div>
 
-      {showModal && (
+      {showAppointmentModal && (
         <div className="fixed inset-0 z-[500] flex items-end justify-center bg-[rgba(4,6,12,0.78)] p-0 backdrop-blur-[18px] sm:items-center sm:p-5">
-          <div className="relative flex h-[92vh] w-full max-w-[1040px] flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#0b0f17] shadow-[0_40px_120px_rgba(0,0,0,0.68)] sm:h-[88vh] sm:max-h-[920px] sm:rounded-[30px]">
+          <div className="relative flex h-[92vh] w-full max-w-[1100px] flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#0b0f17] shadow-[0_40px_120px_rgba(0,0,0,0.68)] sm:h-[88vh] sm:max-h-[940px] sm:rounded-[30px]">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(78,124,255,0.16),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(61,214,255,0.08),transparent_22%)]" />
 
             <div className="relative z-[1] flex items-center justify-between border-b border-white/8 px-4 py-4 sm:px-6">
               <div>
                 <h2 className="text-[24px] font-bold leading-none text-white sm:text-[28px]">
-                  {editingOperationId ? "Редактировать операцию" : "Новая операция"}
+                  {editingAppointmentId ? "Редактировать запись" : "Новая запись"}
                 </h2>
                 <p className="mt-2 text-sm text-zinc-400">
-                  Быстрое добавление услуг и оплат по одному клиенту
+                  Запись, услуги и оплаты в одном окне
                 </p>
               </div>
 
               <button
                 onClick={() => {
-                  setShowModal(false)
-                  resetForm()
+                  setShowAppointmentModal(false)
+                  resetAppointmentForm()
                 }}
                 className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.05] text-zinc-400 ring-1 ring-white/8 transition hover:bg-white/[0.08] hover:text-white"
                 aria-label="Закрыть"
@@ -2000,8 +2347,8 @@ export default function App() {
                       autoFocus
                       list="clients-list"
                       placeholder="Имя клиента"
-                      value={client}
-                      onChange={(e) => setClient(e.target.value)}
+                      value={appointmentClient}
+                      onChange={(e) => setAppointmentClient(e.target.value)}
                     />
                     <datalist id="clients-list">
                       {uniqueClients.map((item) => (
@@ -2011,18 +2358,19 @@ export default function App() {
                   </div>
 
                   <div>
-                    <FieldLabel>Дата</FieldLabel>
-                    <DateInput
-                      value={operationDate}
-                      onChange={(e) => setOperationDate(e.target.value)}
+                    <FieldLabel>Телефон</FieldLabel>
+                    <TextInput
+                      placeholder="+7..."
+                      value={appointmentPhone}
+                      onChange={(e) => setAppointmentPhone(e.target.value)}
                     />
                   </div>
 
                   <div>
-                    <FieldLabel>Кто работал</FieldLabel>
+                    <FieldLabel>Кто работает</FieldLabel>
                     <SelectInput
-                      value={owner}
-                      onChange={(e) => setOwner(e.target.value as Owner)}
+                      value={appointmentOwner}
+                      onChange={(e) => setAppointmentOwner(e.target.value as Owner)}
                     >
                       {ownerOptions.map((option) => (
                         <option key={option} value={option} className="bg-[#151823]">
@@ -2030,6 +2378,57 @@ export default function App() {
                         </option>
                       ))}
                     </SelectInput>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
+                  <div>
+                    <FieldLabel>Дата</FieldLabel>
+                    <DateInput
+                      value={appointmentDate}
+                      onChange={(e) => setAppointmentDate(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <FieldLabel>Начало</FieldLabel>
+                    <TimeInput
+                      value={appointmentStartTime}
+                      onChange={(e) => setAppointmentStartTime(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <FieldLabel>Конец</FieldLabel>
+                    <TimeInput
+                      value={appointmentEndTime}
+                      onChange={(e) => setAppointmentEndTime(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <FieldLabel>Статус</FieldLabel>
+                    <SelectInput
+                      value={appointmentStatus}
+                      onChange={(e) =>
+                        setAppointmentStatus(e.target.value as AppointmentStatus)
+                      }
+                    >
+                      {appointmentStatusOptions.map((option) => (
+                        <option key={option} value={option} className="bg-[#151823]">
+                          {option}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </div>
+
+                  <div>
+                    <FieldLabel>Комната</FieldLabel>
+                    <TextInput
+                      placeholder="Напр. Студия A"
+                      value={appointmentRoom}
+                      onChange={(e) => setAppointmentRoom(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -2047,7 +2446,7 @@ export default function App() {
                     {quickServiceButtons.map((item) => (
                       <button
                         key={item.label}
-                        onClick={() => addQuickService(item.type)}
+                        onClick={() => addQuickAppointmentService(item.type)}
                         className="rounded-[14px] bg-[#121826] px-3 py-2 text-sm text-zinc-200 ring-1 ring-white/8 transition hover:bg-[#192133] hover:text-white"
                       >
                         + {item.label}
@@ -2058,53 +2457,55 @@ export default function App() {
 
                 <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
                   <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/8">
-                    <p className="text-sm text-zinc-400">Итог по услугам</p>
+                    <p className="text-sm text-zinc-400">К оплате</p>
                     <p className="mt-2 text-[22px] font-semibold tracking-tight text-white">
-                      {formatMoney(currentServicesTotal)}
+                      {formatMoney(currentAppointmentServicesTotal)}
                     </p>
                   </div>
 
                   <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/8">
-                    <p className="text-sm text-zinc-400">Получено оплатой</p>
+                    <p className="text-sm text-zinc-400">Оплачено</p>
                     <p className="mt-2 text-[22px] font-semibold tracking-tight text-green-400">
-                      {formatMoney(currentPaymentsTotal)}
+                      {formatMoney(currentAppointmentPaymentsTotal)}
                     </p>
                   </div>
 
                   <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/8">
-                    <p className="text-sm text-zinc-400">Разница</p>
+                    <p className="text-sm text-zinc-400">Остаток</p>
                     <p
                       className={`mt-2 text-[22px] font-semibold tracking-tight ${
-                        currentPaymentsTotal - currentServicesTotal === 0
-                          ? "text-white"
-                          : currentPaymentsTotal - currentServicesTotal > 0
-                            ? "text-cyan-300"
-                            : "text-yellow-300"
+                        currentAppointmentServicesTotal - currentAppointmentPaymentsTotal > 0
+                          ? "text-yellow-300"
+                          : "text-cyan-300"
                       }`}
                     >
-                      {currentPaymentsTotal - currentServicesTotal > 0 ? "+" : ""}
-                      {formatMoney(currentPaymentsTotal - currentServicesTotal)}
+                      {formatMoney(
+                        currentAppointmentServicesTotal - currentAppointmentPaymentsTotal
+                      )}
                     </p>
                   </div>
                 </div>
 
-                {currentPaymentsTotal !== currentServicesTotal && (
-                  <div className="rounded-[20px] border border-yellow-400/10 bg-yellow-500/[0.08] px-4 py-3 text-sm text-yellow-100">
-                    Сумма оплат и сумма услуг сейчас не совпадают. Это нормально при
-                    предоплате или частичной оплате.
-                  </div>
-                )}
+                <div>
+                  <FieldLabel>Комментарий</FieldLabel>
+                  <TextArea
+                    rows={4}
+                    placeholder="Комментарий по клиенту, примечания, детали визита"
+                    value={appointmentComment}
+                    onChange={(e) => setAppointmentComment(e.target.value)}
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
                   <div className="rounded-[22px] bg-white/[0.025] p-3 ring-1 ring-white/6">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-lg font-semibold text-white">Услуги</p>
-                        <p className="mt-1 text-sm text-zinc-400">Всё, что взял клиент</p>
+                        <p className="mt-1 text-sm text-zinc-400">Что входит в запись</p>
                       </div>
 
                       <button
-                        onClick={addServiceRow}
+                        onClick={addAppointmentServiceRow}
                         className="h-[36px] rounded-[12px] bg-[#1c2433] px-3 text-sm text-white ring-1 ring-white/10 transition hover:bg-[#263044]"
                       >
                         + Услуга
@@ -2112,7 +2513,7 @@ export default function App() {
                     </div>
 
                     <div className="space-y-3">
-                      {serviceRows.map((row, index) => (
+                      {appointmentServices.map((row, index) => (
                         <div
                           key={row.id}
                           className="rounded-[18px] bg-[#0f1623] p-3 ring-1 ring-white/6"
@@ -2122,9 +2523,9 @@ export default function App() {
                               Услуга {index + 1}
                             </p>
 
-                            {serviceRows.length > 1 && (
+                            {appointmentServices.length > 1 && (
                               <button
-                                onClick={() => removeServiceRow(row.id)}
+                                onClick={() => removeAppointmentServiceRow(row.id)}
                                 className="text-sm text-red-400 transition hover:text-red-300"
                               >
                                 Удалить
@@ -2139,7 +2540,7 @@ export default function App() {
                                 value={row.type}
                                 onChange={(e) => {
                                   const selectedType = e.target.value as ServiceType
-                                  updateServiceRow(row.id, {
+                                  updateAppointmentServiceRow(row.id, {
                                     type: selectedType,
                                     hours: selectedType === "Запись" ? row.hours || "" : "",
                                     amount:
@@ -2173,7 +2574,7 @@ export default function App() {
                                   onFocus={(e) => e.currentTarget.select()}
                                   onChange={(e) => {
                                     const value = e.target.value
-                                    updateServiceRow(row.id, {
+                                    updateAppointmentServiceRow(row.id, {
                                       hours: value === "" ? "" : Number(value),
                                     })
                                   }}
@@ -2185,7 +2586,7 @@ export default function App() {
                                   value={row.amount === 0 ? "" : String(row.amount)}
                                   onFocus={(e) => e.currentTarget.select()}
                                   onChange={(e) =>
-                                    updateServiceRow(row.id, {
+                                    updateAppointmentServiceRow(row.id, {
                                       amount: Number(e.target.value) || 0,
                                     })
                                   }
@@ -2220,7 +2621,7 @@ export default function App() {
                       </div>
 
                       <button
-                        onClick={addPaymentRow}
+                        onClick={addAppointmentPaymentRow}
                         className="h-[36px] rounded-[12px] bg-[#1c2433] px-3 text-sm text-white ring-1 ring-white/10 transition hover:bg-[#263044]"
                       >
                         + Оплата
@@ -2228,7 +2629,7 @@ export default function App() {
                     </div>
 
                     <div className="space-y-3">
-                      {paymentRows.map((row, index) => (
+                      {appointmentPayments.map((row, index) => (
                         <div
                           key={row.id}
                           className="rounded-[18px] bg-[#0f1623] p-3 ring-1 ring-white/6"
@@ -2238,9 +2639,9 @@ export default function App() {
                               Оплата {index + 1}
                             </p>
 
-                            {paymentRows.length > 1 && (
+                            {appointmentPayments.length > 1 && (
                               <button
-                                onClick={() => removePaymentRow(row.id)}
+                                onClick={() => removeAppointmentPaymentRow(row.id)}
                                 className="text-sm text-red-400 transition hover:text-red-300"
                               >
                                 Удалить
@@ -2255,7 +2656,7 @@ export default function App() {
                                 value={row.type}
                                 onChange={(e) => {
                                   const selectedType = e.target.value as PaymentType
-                                  updatePaymentRow(row.id, {
+                                  updateAppointmentPaymentRow(row.id, {
                                     type: selectedType,
                                     amount:
                                       selectedType === "Онлайн"
@@ -2289,7 +2690,7 @@ export default function App() {
                                   value={row.amount === 0 ? "" : String(row.amount)}
                                   onFocus={(e) => e.currentTarget.select()}
                                   onChange={(e) =>
-                                    updatePaymentRow(row.id, {
+                                    updateAppointmentPaymentRow(row.id, {
                                       amount: Number(e.target.value) || 0,
                                     })
                                   }
@@ -2308,21 +2709,32 @@ export default function App() {
 
             <div className="relative z-[1] border-t border-white/8 bg-[#0d121b] px-4 py-4 sm:px-6">
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  onClick={() => {
-                    setShowModal(false)
-                    resetForm()
-                  }}
-                  className="w-full rounded-[18px] bg-white/[0.04] px-5 py-3 text-zinc-300 ring-1 ring-white/8 transition hover:bg-white/[0.07] hover:text-white sm:w-auto"
-                >
-                  Отмена
-                </button>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    onClick={() => {
+                      setShowAppointmentModal(false)
+                      resetAppointmentForm()
+                    }}
+                    className="w-full rounded-[18px] bg-white/[0.04] px-5 py-3 text-zinc-300 ring-1 ring-white/8 transition hover:bg-white/[0.07] hover:text-white sm:w-auto"
+                  >
+                    Отмена
+                  </button>
+
+                  {editingAppointmentId && (
+                    <button
+                      onClick={() => void deleteAppointment(editingAppointmentId)}
+                      className="w-full rounded-[18px] bg-red-500/[0.12] px-5 py-3 text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18] sm:w-auto"
+                    >
+                      Удалить запись
+                    </button>
+                  )}
+                </div>
 
                 <button
-                  onClick={() => void saveOperation()}
+                  onClick={() => void saveAppointment()}
                   className="w-full rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-6 py-3 font-semibold text-white shadow-[0_18px_40px_rgba(27,164,85,0.3)] transition hover:brightness-110 sm:w-auto"
                 >
-                  {editingOperationId ? "Сохранить изменения" : "Сохранить"}
+                  {editingAppointmentId ? "Сохранить изменения" : "Сохранить запись"}
                 </button>
               </div>
             </div>
@@ -2333,8 +2745,7 @@ export default function App() {
       <BottomNav
         activeTab={activeTab}
         onChange={setActiveTab}
-        onAdd={openCreateModal}
-        hidden={showModal}
+        hidden={showAppointmentModal}
       />
     </div>
   )
