@@ -443,11 +443,25 @@ function SectionTitle({
 function TextInput({
   className = "",
   style,
+  placeholder,
+  onFocus,
+  onBlur,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
+  const [isFocused, setIsFocused] = React.useState(false)
+
   return (
     <input
       {...props}
+      placeholder={isFocused ? "" : placeholder}
+      onFocus={(e) => {
+        setIsFocused(true)
+        onFocus?.(e)
+      }}
+      onBlur={(e) => {
+        setIsFocused(false)
+        onBlur?.(e)
+      }}
       style={{
         background:
           "linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02))",
@@ -458,7 +472,44 @@ function TextInput({
         appearance: "none",
         ...style,
       }}
-      className={`h-[52px] w-full min-w-0 rounded-[18px] border border-white/10 bg-white/[0.035] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] transition placeholder:text-white/35 focus:border-[#5c7cff] focus:placeholder:text-transparent ${className}`}
+      className={`h-[52px] w-full min-w-0 rounded-[18px] border border-white/10 bg-white/[0.035] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] transition placeholder:text-white/35 focus:border-[#5c7cff] ${className}`}
+    />
+  )
+}
+
+function TextArea({
+  className = "",
+  style,
+  placeholder,
+  onFocus,
+  onBlur,
+  ...props
+}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const [isFocused, setIsFocused] = React.useState(false)
+
+  return (
+    <textarea
+      {...props}
+      placeholder={isFocused ? "" : placeholder}
+      onFocus={(e) => {
+        setIsFocused(true)
+        onFocus?.(e)
+      }}
+      onBlur={(e) => {
+        setIsFocused(false)
+        onBlur?.(e)
+      }}
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02))",
+        color: "#ffffff",
+        WebkitTextFillColor: "#ffffff",
+        colorScheme: "dark",
+        WebkitAppearance: "none",
+        appearance: "none",
+        ...style,
+      }}
+      className={`min-h-[110px] w-full min-w-0 resize-none rounded-[18px] border border-white/10 bg-white/[0.035] px-4 py-3 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] transition placeholder:text-white/35 focus:border-[#5c7cff] ${className}`}
     />
   )
 }
@@ -546,18 +597,19 @@ function MonthTabs({
   onChange: (month: string) => void
 }) {
   return (
-    <div className="mb-6 overflow-x-hidden">
-      <div className="overflow-x-auto overflow-y-hidden pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max min-w-full gap-3 pr-3">
+    <div className="mb-6">
+      <div className="mx-[-4px] overflow-x-auto overflow-y-visible px-[4px] py-[6px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max gap-3 pr-4">
           {months.map((monthKey) => {
             const active = monthKey === selectedMonth
+
             return (
               <button
                 key={monthKey}
                 onClick={() => onChange(monthKey)}
                 className={`shrink-0 rounded-[24px] px-5 py-4 text-sm font-medium capitalize transition ${
                   active
-                    ? "bg-[linear-gradient(180deg,#7c8bff,#5a74ff)] text-white shadow-[0_18px_38px_rgba(92,124,255,0.36)]"
+                    ? "bg-[linear-gradient(180deg,#7c8bff,#5a74ff)] text-white shadow-[0_12px_26px_rgba(92,124,255,0.30)] ring-1 ring-white/10"
                     : "bg-white/[0.03] text-zinc-200 ring-1 ring-[#2f66d9] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:bg-white/[0.05]"
                 }`}
               >
@@ -1436,7 +1488,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#05060a] text-white">
-      <div className="flex min-h-screen w-full max-w-full overflow-x-hidden">
+      <div className="flex min-h-screen w-full max-w-full">
         <SidebarNav
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -1445,7 +1497,7 @@ export default function App() {
           logo={logoWhite}
         />
 
-        <main className="min-w-0 flex-1 overflow-x-hidden p-4 pb-28 lg:p-8">
+        <main className="min-w-0 flex-1 p-4 pb-28 lg:p-8">
           {activeTab === "dashboard" && (
             <>
               <SectionTitle title="Главная" subtitle="Общий обзор бизнеса" />
@@ -1862,11 +1914,11 @@ export default function App() {
                   <p className="mb-2 text-xs uppercase tracking-[0.12em] text-white/35">
                     Комментарий
                   </p>
-                  <TextInput
-                    placeholder="Комментарий"
-                    value={appointmentNote}
-                    onChange={(e) => setAppointmentNote(e.target.value)}
-                  />
+                  <TextArea
+  placeholder="Комментарий"
+  value={appointmentNote}
+  onChange={(e) => setAppointmentNote(e.target.value)}
+/>
                 </div>
 
                 <div className="border-t border-white/8 pt-4">
