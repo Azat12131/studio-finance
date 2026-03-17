@@ -457,7 +457,7 @@ function SelectInput({
         appearance: "none",
         ...style,
       }}
-      className={`h-[50px] w-full rounded-[18px] bg-white/[0.035] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] ring-1 ring-white/8 transition focus:ring-white/14 ${className}`}
+      className={`h-[50px] w-full rounded-[18px] bg-white/[0.035] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] ring-1 ring-white/8 transition hover:ring-white/12 focus:ring-white/14 ${className}`}
     >
       {children}
     </select>
@@ -2002,9 +2002,13 @@ export default function App() {
               <FieldLabel>Дата</FieldLabel>
               <TextInput
                 type="date"
-                value={operationDate}
-                onChange={(e) => setOperationDate(e.target.value)}
-              />
+  value={operationDate}
+  onChange={(e) => setOperationDate(e.target.value)}
+  className="h-[50px] w-full rounded-[18px] border border-white/10 bg-[#121826] px-4 text-[15px] text-white outline-none transition focus:border-[#3b82f6]"
+  style={{
+    colorScheme: "dark",
+  }}
+/>
             </div>
 
             <div>
@@ -2085,7 +2089,7 @@ export default function App() {
           )}
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <div className="rounded-[26px] bg-white/[0.03] p-4 ring-1 ring-white/8">
+            <div className="rounded-[22px] bg-white/[0.025] p-3 ring-1 ring-white/6">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-lg font-semibold text-white">Услуги</p>
@@ -2096,7 +2100,7 @@ export default function App() {
 
                 <button
                   onClick={addServiceRow}
-                  className="rounded-[14px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-medium text-white shadow-[0_12px_28px_rgba(79,101,255,0.24)]"
+                  className="h-[36px] rounded-[12px] bg-[#1c2433] px-3 text-sm text-white ring-1 ring-white/10 hover:bg-[#263044]"
                 >
                   + Услуга
                 </button>
@@ -2106,7 +2110,7 @@ export default function App() {
                 {serviceRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className="rounded-[22px] bg-[#111722] p-4 ring-1 ring-white/8"
+                    className="rounded-[18px] bg-[#0f1623] p-3 ring-1 ring-white/6"
                   >
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-white">
@@ -2195,7 +2199,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="rounded-[26px] bg-white/[0.03] p-4 ring-1 ring-white/8">
+            <div className="rounded-[22px] bg-white/[0.025] p-3 ring-1 ring-white/6">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-lg font-semibold text-white">Оплаты</p>
@@ -2216,7 +2220,7 @@ export default function App() {
                 {paymentRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className="rounded-[22px] bg-[#111722] p-4 ring-1 ring-white/8"
+                    className="rounded-[18px] bg-[#0f1623] p-3 ring-1 ring-white/6"
                   >
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="text-sm font-semibold text-white">
