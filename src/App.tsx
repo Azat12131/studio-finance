@@ -1954,82 +1954,143 @@ export default function App() {
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-[rgba(5,5,9,0.76)] p-0 sm:items-center sm:p-4 backdrop-blur-[14px]">
-          <div className="relative flex h-[92vh] max-h-[92vh] w-full max-w-[980px] flex-col rounded-t-[32px] bg-[linear-gradient(180deg,rgba(24,27,35,0.98),rgba(12,14,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 sm:rounded-[34px]">
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-24 pt-4 sm:px-6 sm:pb-28 sm:pt-5">
-              <div className="mb-4 sm:mb-5">
-                <h2 className="text-[26px] font-bold leading-tight">
-                  {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
-                </h2>
-                <p className="mt-1 text-sm text-zinc-400">
-                  Один клиент может взять несколько услуг сразу
-                </p>
+     {showModal && (
+  <div className="fixed inset-0 z-[500] flex items-end justify-center bg-[rgba(5,5,9,0.76)] p-0 backdrop-blur-[14px] sm:items-center sm:p-4">
+    <div className="relative flex h-[90vh] max-h-[90vh] w-full max-w-[1180px] flex-col overflow-hidden rounded-t-[30px] bg-[linear-gradient(180deg,rgba(24,27,35,0.98),rgba(12,14,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 sm:rounded-[34px]">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="grid min-h-full grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <div className="border-b border-white/6 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] p-4 sm:p-6 lg:border-b-0 lg:border-r lg:border-white/6">
+            <div className="mb-5">
+              <h2 className="text-[26px] font-bold leading-tight">
+                {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
+              </h2>
+              <p className="mt-1 text-sm text-zinc-400">
+                Один клиент может взять несколько услуг сразу
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <FieldLabel>Клиент</FieldLabel>
+                <TextInput
+                  autoFocus
+                  list="clients-list"
+                  placeholder="Клиент"
+                  value={client}
+                  onChange={(e) => setClient(e.target.value)}
+                />
+                <datalist id="clients-list">
+                  {uniqueClients.map((item) => (
+                    <option key={item} value={item} />
+                  ))}
+                </datalist>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
-                <div>
-                  <FieldLabel>Клиент</FieldLabel>
-                  <TextInput
-                    autoFocus
-                    list="clients-list"
-                    placeholder="Клиент"
-                    value={client}
-                    onChange={(e) => setClient(e.target.value)}
-                  />
-                  <datalist id="clients-list">
-                    {uniqueClients.map((item) => (
-                      <option key={item} value={item} />
-                    ))}
-                  </datalist>
-                </div>
+              <div>
+                <FieldLabel>Дата</FieldLabel>
+                <TextInput
+                  type="date"
+                  value={operationDate}
+                  onChange={(e) => setOperationDate(e.target.value)}
+                />
+              </div>
 
-                <div>
-                  <FieldLabel>Дата</FieldLabel>
-                  <TextInput
-                    type="date"
-                    value={operationDate}
-                    onChange={(e) => setOperationDate(e.target.value)}
-                  />
-                </div>
+              <div>
+                <FieldLabel>Кто работал</FieldLabel>
+                <SelectInput
+                  value={owner}
+                  onChange={(e) => setOwner(e.target.value as Owner)}
+                >
+                  {ownerOptions.map((option) => (
+                    <option key={option} value={option} className="bg-[#151823]">
+                      {option}
+                    </option>
+                  ))}
+                </SelectInput>
+              </div>
+            </div>
 
-                <div>
-                  <FieldLabel>Кто работал</FieldLabel>
-                  <SelectInput
-                    value={owner}
-                    onChange={(e) => setOwner(e.target.value as Owner)}
+            <div className="mt-5">
+              <p className="mb-3 text-sm font-medium text-zinc-300">Быстрые услуги</p>
+              <div className="flex flex-wrap gap-2">
+                {quickServiceButtons.map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => addQuickService(item.type)}
+                    className="rounded-[14px] bg-white/[0.05] px-3 py-2 text-sm text-white ring-1 ring-white/6 transition hover:bg-white/[0.09]"
                   >
-                    {ownerOptions.map((option) => (
-                      <option key={option} value={option} className="bg-[#151823]">
-                        {option}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </div>
+                    + {item.label}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-4">
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xl font-semibold">Услуги</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {quickServiceButtons.map((item) => (
-                        <button
-                          key={item.label}
-                          onClick={() => addQuickService(item.type)}
-                          className="rounded-[16px] bg-white/[0.05] px-4 py-2.5 text-sm text-white ring-1 ring-white/6 transition hover:bg-white/[0.09]"
-                        >
-                          + {item.label}
-                        </button>
-                      ))}
+            <div className="mt-5 grid grid-cols-1 gap-3">
+              <SoftCard className="p-4">
+                <p className="text-sm text-zinc-400">Итог по услугам</p>
+                <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
+              </SoftCard>
+
+              <SoftCard className="p-4">
+                <p className="text-sm text-zinc-400">Получено оплатой</p>
+                <p className="mt-2 text-2xl font-bold text-green-400">
+                  {formatMoney(currentPaymentsTotal)}
+                </p>
+              </SoftCard>
+
+              <SoftCard className="p-4">
+                <p className="text-sm text-zinc-400">Разница</p>
+                <p
+                  className={`mt-2 text-2xl font-bold ${
+                    currentPaymentsTotal - currentServicesTotal === 0
+                      ? "text-white"
+                      : currentPaymentsTotal - currentServicesTotal > 0
+                        ? "text-cyan-300"
+                        : "text-yellow-300"
+                  }`}
+                >
+                  {currentPaymentsTotal - currentServicesTotal > 0 ? "+" : ""}
+                  {formatMoney(currentPaymentsTotal - currentServicesTotal)}
+                </p>
+              </SoftCard>
+            </div>
+
+            {currentPaymentsTotal !== currentServicesTotal && (
+              <div className="mt-4 rounded-[20px] bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 ring-1 ring-yellow-300/10">
+                Внимание: сумма оплат и сумма услуг не совпадают. Это нормально,
+                если внесена только предоплата или оплата частями.
+              </div>
+            )}
+          </div>
+
+          <div className="flex min-h-0 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+              <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xl font-semibold text-white">Услуги</p>
+                      <p className="mt-1 text-sm text-zinc-400">
+                        Всё по услугам клиента
+                      </p>
                     </div>
+
+                    <button
+                      onClick={addServiceRow}
+                      className="rounded-[16px] bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+                    >
+                      + Добавить
+                    </button>
                   </div>
 
                   <div className="space-y-3">
                     {serviceRows.map((row, index) => (
-                      <SoftCard key={row.id} className="p-3.5">
+                      <SoftCard key={row.id} className="p-3">
                         <div className="mb-3 flex items-center justify-between gap-3">
-                          <p className="text-[15px] font-semibold">Услуга {index + 1}</p>
+                          <p className="text-sm font-semibold text-white">
+                            Услуга {index + 1}
+                          </p>
+
                           {serviceRows.length > 1 && (
                             <button
                               onClick={() => removeServiceRow(row.id)}
@@ -2040,8 +2101,8 @@ export default function App() {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.3fr_0.7fr_0.75fr_auto]">
-                          <div>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="sm:col-span-2">
                             <FieldLabel>Тип услуги</FieldLabel>
                             <SelectInput
                               value={row.type}
@@ -2106,43 +2167,37 @@ export default function App() {
                               )}
                             </div>
                           </div>
-
-                          <div className="hidden md:flex md:items-end">
-                            {serviceRows.length > 1 && (
-                              <button
-                                onClick={() => removeServiceRow(row.id)}
-                                className="h-[52px] rounded-[16px] bg-red-500/[0.12] px-4 text-sm font-medium text-red-200 ring-1 ring-red-300/10"
-                              >
-                                Удалить
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </SoftCard>
                     ))}
                   </div>
-
-                  <button
-                    onClick={addServiceRow}
-                    className="rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-                  >
-                    + Добавить услугу
-                  </button>
                 </div>
 
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xl font-semibold">Оплата</p>
-                    <p className="mt-1 text-sm text-zinc-400">
-                      Для Онлайн сумма всегда фиксированная: {formatMoney(ONLINE_NET_AMOUNT)}
-                    </p>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xl font-semibold text-white">Оплата</p>
+                      <p className="mt-1 text-sm text-zinc-400">
+                        Для Онлайн сумма фиксированная: {formatMoney(ONLINE_NET_AMOUNT)}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={addPaymentRow}
+                      className="rounded-[16px] bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
+                    >
+                      + Добавить
+                    </button>
                   </div>
 
                   <div className="space-y-3">
                     {paymentRows.map((row, index) => (
-                      <SoftCard key={row.id} className="p-3.5">
+                      <SoftCard key={row.id} className="p-3">
                         <div className="mb-3 flex items-center justify-between gap-3">
-                          <p className="text-[15px] font-semibold">Оплата {index + 1}</p>
+                          <p className="text-sm font-semibold text-white">
+                            Оплата {index + 1}
+                          </p>
+
                           {paymentRows.length > 1 && (
                             <button
                               onClick={() => removePaymentRow(row.id)}
@@ -2153,7 +2208,7 @@ export default function App() {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_1fr_auto]">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           <div>
                             <FieldLabel>Тип оплаты</FieldLabel>
                             <SelectInput
@@ -2197,70 +2252,15 @@ export default function App() {
                               />
                             )}
                           </div>
-
-                          <div className="hidden md:flex md:items-end">
-                            {paymentRows.length > 1 && (
-                              <button
-                                onClick={() => removePaymentRow(row.id)}
-                                className="h-[52px] rounded-[16px] bg-red-500/[0.12] px-4 text-sm font-medium text-red-200 ring-1 ring-red-300/10"
-                              >
-                                Удалить
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </SoftCard>
                     ))}
                   </div>
-
-                  <button
-                    onClick={addPaymentRow}
-                    className="rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-                  >
-                    + Добавить оплату
-                  </button>
                 </div>
               </div>
-
-              <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-                <SoftCard className="p-4">
-                  <p className="text-sm text-zinc-400">Итог по услугам</p>
-                  <p className="mt-2 text-2xl font-bold">{formatMoney(currentServicesTotal)}</p>
-                </SoftCard>
-
-                <SoftCard className="p-4">
-                  <p className="text-sm text-zinc-400">Получено оплатой</p>
-                  <p className="mt-2 text-2xl font-bold text-green-400">
-                    {formatMoney(currentPaymentsTotal)}
-                  </p>
-                </SoftCard>
-
-                <SoftCard className="p-4">
-                  <p className="text-sm text-zinc-400">Разница</p>
-                  <p
-                    className={`mt-2 text-2xl font-bold ${
-                      currentDifference === 0
-                        ? "text-white"
-                        : currentDifference > 0
-                          ? "text-cyan-300"
-                          : "text-yellow-300"
-                    }`}
-                  >
-                    {currentDifference > 0 ? "+" : ""}
-                    {formatMoney(currentDifference)}
-                  </p>
-                </SoftCard>
-              </div>
-
-              {currentPaymentsTotal !== currentServicesTotal && (
-                <div className="mt-4 rounded-[22px] bg-[linear-gradient(180deg,rgba(120,92,18,0.22),rgba(120,92,18,0.14))] p-4 text-sm text-yellow-100 ring-1 ring-yellow-300/10">
-                  Внимание: сумма оплат и сумма услуг не совпадают. Это нормально,
-                  если внесена только предоплата или оплата частями.
-                </div>
-              )}
             </div>
 
-            <div className="sticky bottom-0 z-20 border-t border-white/8 bg-[linear-gradient(180deg,rgba(13,15,20,0.65),rgba(10,12,18,0.94))] px-4 py-3 backdrop-blur-[18px] sm:px-6 sm:py-4">
+            <div className="border-t border-white/8 bg-[linear-gradient(180deg,rgba(13,15,20,0.65),rgba(10,12,18,0.94))] px-4 py-3 backdrop-blur-[18px] sm:px-6 sm:py-4">
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   onClick={() => {
@@ -2282,7 +2282,10 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
       <BottomNav
         activeTab={activeTab}
