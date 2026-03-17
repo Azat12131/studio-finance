@@ -1041,8 +1041,6 @@ export default function App() {
     }, 0)
   }, [paymentRows])
 
-  const currentDifference = currentPaymentsTotal - currentServicesTotal
-
   const openCreateModal = React.useCallback(() => {
     resetForm()
     setShowModal(true)
