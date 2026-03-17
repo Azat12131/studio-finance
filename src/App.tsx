@@ -472,7 +472,7 @@ function TextInput({
         appearance: "none",
         ...style,
       }}
-      className={`h-[52px] w-full min-w-0 rounded-[18px] border border-white/10 bg-white/[0.035] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] transition placeholder:text-white/35 focus:border-[#5c7cff] ${className}`}
+      className={`h-[52px] w-full min-w-0 rounded-[18px] border border-white/10 bg-white/[0.035] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] transition placeholder:text-white/50 focus:placeholder:text-white/30 focus:border-[#5c7cff] ${className}`}
     />
   )
 }
