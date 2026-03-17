@@ -15,7 +15,8 @@ import logoWhite from "./assets/logo-white.png"
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 type Owner = "Азат" | "Марс"
-type PaymentType = "Нал" | "Карта" | "Онлайн"
+type PaymentType = "Нал" | "Карта"
+
 type ServiceType =
   | "Запись"
   | "Сведение"
@@ -28,7 +29,6 @@ type AppointmentStatus =
   | "Подтвердил"
   | "Пришел"
   | "Не пришел"
-  | "Завершено"
 
 type ServiceItem = {
   id: number
@@ -60,9 +60,8 @@ type Appointment = {
   client: string
   phone: string
   owner: Owner
-  room: string
   status: AppointmentStatus
-  comment: string
+  note: string
   services: ServiceItem[]
   payments: PaymentItem[]
 }
@@ -82,10 +81,9 @@ type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
 
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
-const ONLINE_NET_AMOUNT = 487.5
 
 const ownerOptions: Owner[] = ["Азат", "Марс"]
-const paymentOptions: PaymentType[] = ["Нал", "Карта", "Онлайн"]
+const paymentOptions: PaymentType[] = ["Нал", "Карта"]
 const serviceOptions: ServiceType[] = [
   "Запись",
   "Сведение",
@@ -98,7 +96,6 @@ const appointmentStatusOptions: AppointmentStatus[] = [
   "Подтвердил",
   "Пришел",
   "Не пришел",
-  "Завершено",
 ]
 
 const quickServiceButtons: Array<{ type: ServiceType; label: string }> = [
@@ -204,7 +201,7 @@ function makePaymentRow(type: PaymentType = "Нал"): PaymentItem {
   return {
     id: makeId(),
     type,
-    amount: type === "Онлайн" ? ONLINE_NET_AMOUNT : 0,
+    amount: 0,
   }
 }
 
@@ -226,13 +223,6 @@ function normalizeServiceRow(row: ServiceItem): ServiceItem {
 }
 
 function normalizePaymentRow(row: PaymentItem): PaymentItem {
-  if (row.type === "Онлайн") {
-    return {
-      ...row,
-      amount: ONLINE_NET_AMOUNT,
-    }
-  }
-
   return {
     ...row,
     amount: Number(row.amount) || 0,
@@ -247,7 +237,7 @@ function normalizePayments(rawPayments: unknown): PaymentItem[] {
     return {
       id: Number(raw.id) || makeId() + index,
       type,
-      amount: type === "Онлайн" ? ONLINE_NET_AMOUNT : Number(raw.amount) || 0,
+      amount: Number(raw.amount) || 0,
     }
   })
 }
@@ -289,11 +279,13 @@ function appointmentToFinancialEntry(appointment: Appointment): FinancialEntry {
 
 function getStatusPillClass(status: AppointmentStatus) {
   if (status === "Ожидание") return "bg-white/[0.06] text-zinc-200 ring-1 ring-white/8"
-  if (status === "Подтвердил")
+  if (status === "Подтвердил") {
     return "bg-violet-500/15 text-violet-200 ring-1 ring-violet-300/10"
-  if (status === "Пришел") return "bg-green-500/15 text-green-200 ring-1 ring-green-300/10"
-  if (status === "Не пришел") return "bg-red-500/15 text-red-200 ring-1 ring-red-300/10"
-  return "bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/10"
+  }
+  if (status === "Пришел") {
+    return "bg-green-500/15 text-green-200 ring-1 ring-green-300/10"
+  }
+  return "bg-red-500/15 text-red-200 ring-1 ring-red-300/10"
 }
 
 function HomeIcon() {
@@ -523,7 +515,7 @@ function TextInput({
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <input
+    <TextInput
       {...props}
       style={{
         background:
@@ -571,7 +563,7 @@ function DateInput({
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <input
+    <TextInput
       {...props}
       type="date"
       style={{ colorScheme: "dark" }}
@@ -585,7 +577,7 @@ function TimeInput({
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <input
+    <TextInput
       {...props}
       type="time"
       style={{ colorScheme: "dark" }}
@@ -801,13 +793,12 @@ export default function App() {
   const [appointmentClient, setAppointmentClient] = React.useState("")
   const [appointmentPhone, setAppointmentPhone] = React.useState("")
   const [appointmentOwner, setAppointmentOwner] = React.useState<Owner>("Азат")
-  const [appointmentRoom, setAppointmentRoom] = React.useState("")
   const [appointmentStatus, setAppointmentStatus] =
     React.useState<AppointmentStatus>("Ожидание")
   const [appointmentDate, setAppointmentDate] = React.useState(formatInputDate(new Date()))
   const [appointmentStartTime, setAppointmentStartTime] = React.useState("14:00")
   const [appointmentEndTime, setAppointmentEndTime] = React.useState("15:00")
-  const [appointmentComment, setAppointmentComment] = React.useState("")
+  const [appointmentNote, setAppointmentNote] = React.useState("")
   const [appointmentServices, setAppointmentServices] = React.useState<ServiceItem[]>([
     makeServiceRow(),
   ])
@@ -820,24 +811,26 @@ export default function App() {
     setAppointmentClient("")
     setAppointmentPhone("")
     setAppointmentOwner("Азат")
-    setAppointmentRoom("")
     setAppointmentStatus("Ожидание")
     setAppointmentDate(selectedDate || today)
     setAppointmentStartTime("14:00")
     setAppointmentEndTime("15:00")
-    setAppointmentComment("")
+    setAppointmentNote("")
     setAppointmentServices([makeServiceRow()])
     setAppointmentPayments([makePaymentRow("Нал")])
     setEditingAppointmentId(null)
   }, [selectedDate])
 
   const loadData = React.useCallback(async () => {
-    const [{ data: operationsData, error: operationsError }, { data: goalsData, error: goalsError }, { data: appointmentsData, error: appointmentsError }] =
-      await Promise.all([
-        supabase.from("operations").select("*").order("date", { ascending: false }),
-        supabase.from("month_goals").select("*"),
-        supabase.from("appointments").select("*").order("date", { ascending: false }),
-      ])
+    const [
+      { data: operationsData, error: operationsError },
+      { data: goalsData, error: goalsError },
+      { data: appointmentsData, error: appointmentsError },
+    ] = await Promise.all([
+      supabase.from("operations").select("*").order("date", { ascending: false }),
+      supabase.from("month_goals").select("*"),
+      supabase.from("appointments").select("*").order("date", { ascending: false }),
+    ])
 
     if (operationsError) {
       console.error("Error loading operations", operationsError)
@@ -871,9 +864,8 @@ export default function App() {
       client: String(item.client || "Без клиента"),
       phone: String(item.phone || ""),
       owner: (item.owner as Owner) || "Азат",
-      room: String(item.room || ""),
       status: (item.status as AppointmentStatus) || "Ожидание",
-      comment: String(item.comment || ""),
+      note: String(item.comment || ""),
       services: normalizeServices(item.services),
       payments: normalizePayments(item.payments),
     }))
@@ -1013,7 +1005,10 @@ export default function App() {
   const uniqueClients = React.useMemo(() => {
     return Array.from(
       new Set(
-        [...legacyOperations.map((item) => item.client.trim()), ...appointments.map((item) => item.client.trim())].filter(Boolean)
+        [
+          ...legacyOperations.map((item) => item.client.trim()),
+          ...appointments.map((item) => item.client.trim()),
+        ].filter(Boolean)
       )
     ).sort((a, b) => a.localeCompare(b, "ru"))
   }, [appointments, legacyOperations])
@@ -1148,12 +1143,11 @@ export default function App() {
     setAppointmentClient(appointment.client)
     setAppointmentPhone(appointment.phone)
     setAppointmentOwner(appointment.owner)
-    setAppointmentRoom(appointment.room)
     setAppointmentStatus(appointment.status)
     setAppointmentDate(appointment.date)
     setAppointmentStartTime(appointment.startTime)
     setAppointmentEndTime(appointment.endTime)
-    setAppointmentComment(appointment.comment)
+    setAppointmentNote(appointment.note)
     setAppointmentServices(
       appointment.services.length > 0
         ? appointment.services.map((service) => ({
@@ -1173,7 +1167,7 @@ export default function App() {
         ? appointment.payments.map((payment) => ({
             ...payment,
             id: payment.id || makeId(),
-            amount: payment.type === "Онлайн" ? ONLINE_NET_AMOUNT : payment.amount,
+            amount: payment.amount,
           }))
         : [makePaymentRow("Нал")]
     )
@@ -1309,9 +1303,8 @@ export default function App() {
       client: appointmentClient.trim() || "Без клиента",
       phone: appointmentPhone.trim(),
       owner: appointmentOwner,
-      room: appointmentRoom.trim(),
       status: appointmentStatus,
-      comment: appointmentComment.trim(),
+      comment: appointmentNote.trim(),
       services: cleanedServices,
       payments: cleanedPayments,
     }
@@ -1338,9 +1331,8 @@ export default function App() {
         client: String(data.client),
         phone: String(data.phone || ""),
         owner: data.owner as Owner,
-        room: String(data.room || ""),
         status: data.status as AppointmentStatus,
-        comment: String(data.comment || ""),
+        note: String(data.comment || ""),
         services: normalizeServices(data.services),
         payments: normalizePayments(data.payments),
       }
@@ -1369,9 +1361,8 @@ export default function App() {
         client: String(data.client),
         phone: String(data.phone || ""),
         owner: data.owner as Owner,
-        room: String(data.room || ""),
         status: data.status as AppointmentStatus,
-        comment: String(data.comment || ""),
+        note: String(data.comment || ""),
         services: normalizeServices(data.services),
         payments: normalizePayments(data.payments),
       }
@@ -1395,13 +1386,12 @@ export default function App() {
     resetAppointmentForm()
   }, [
     appointmentClient,
-    appointmentComment,
     appointmentDate,
     appointmentEndTime,
+    appointmentNote,
     appointmentOwner,
     appointmentPayments,
     appointmentPhone,
-    appointmentRoom,
     appointmentServices,
     appointmentStartTime,
     appointmentStatus,
@@ -1552,1201 +1542,355 @@ export default function App() {
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
   }, [normalizedMonths, selectedMonth])
 
-  const shiftSelectedDate = React.useCallback((direction: -1 | 1) => {
-    const current = parseInputDate(selectedDate)
-    current.setDate(current.getDate() + direction)
-    setSelectedDate(formatInputDate(current))
-  }, [selectedDate])
+  const shiftSelectedDate = React.useCallback(
+    (direction: -1 | 1) => {
+      const current = parseInputDate(selectedDate)
+      current.setDate(current.getDate() + direction)
+      setSelectedDate(formatInputDate(current))
+    },
+    [selectedDate]
+  )
+    // ================= RENDER =================
 
   return (
-    <div className="min-h-screen bg-[#070a11] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_top_left,rgba(77,101,246,0.18),transparent_24%),radial-gradient(circle_at_top_right,rgba(39,197,255,0.14),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(140,90,255,0.12),transparent_24%)]" />
-
-      <div className="relative z-[1] flex min-h-screen">
-        <SidebarNav
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          onAdd={openCreateAppointmentModal}
-          onCreateMonth={() => void createNewMonth()}
-          logo={logoWhite}
-        />
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="border-b border-white/5 bg-[rgba(8,10,16,0.62)] backdrop-blur-[20px]">
-            <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4 px-4 py-4 lg:px-8">
-              <div className="flex items-center gap-3">
-                <div className="lg:hidden">
-                  <img
-                    src={logoWhite}
-                    alt="logo"
-                    className="h-auto w-[56px] object-contain opacity-95"
-                  />
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-500">
-                    SoundRoom Finance
-                  </p>
-                  <h1 className="mt-1 text-lg font-semibold text-white sm:text-xl">
-                    {activeTab === "dashboard" && "Главная"}
-                    {activeTab === "schedule" && "График"}
-                    {activeTab === "operations" && "Финансы"}
-                    {activeTab === "analytics" && "Аналитика"}
-                    {activeTab === "settings" && "Настройки"}
-                  </h1>
-                </div>
-              </div>
-
-              <div className="hidden sm:flex sm:items-center sm:gap-3">
-  {activeTab === "schedule" && (
-    <>
-      <button
-        onClick={() => shiftSelectedDate(-1)}
-        className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-      >
-        <ChevronLeftIcon />
-      </button>
-
-      <DateInput
-        value={selectedDate}
-        onChange={(e) => setSelectedDate(e.target.value)}
-        className="w-[180px]"
+    <div className="flex min-h-screen bg-[#05060a] text-white">
+      <SidebarNav
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        onAdd={openCreateAppointmentModal}
+        onCreateMonth={createNewMonth}
+        logo={logoWhite}
       />
 
-      <button
-        onClick={() => shiftSelectedDate(1)}
-        className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-      >
-        <ChevronRightIcon />
-      </button>
-    </>
-  )}
+      <main className="flex-1 p-4 pb-28 lg:p-8">
+        {/* ================= DASHBOARD ================= */}
+        {activeTab === "dashboard" && (
+          <>
+            <SectionTitle
+              title="Главная"
+              subtitle="Общий обзор бизнеса"
+            />
 
-  <button
-    onClick={() => void createNewMonth()}
-    className="rounded-[18px] bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-  >
-    + Новый месяц
-  </button>
-
-  <button
-    onClick={openCreateAppointmentModal}
-    className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
-  >
-    + Запись
-  </button>
-</div>
-            </div>
-          </header>
-
-          <main className="mx-auto w-full max-w-[1440px] flex-1 overflow-x-hidden px-4 pb-28 pt-5 lg:px-8 lg:pb-8">
             <MonthTabs
               months={normalizedMonths}
               selectedMonth={selectedMonth}
               onChange={setSelectedMonth}
             />
 
-            {activeTab === "dashboard" && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                  <SoftCard className="p-6">
-                    <SectionTitle title="Прогресс месяца" />
-                    <div className="space-y-5">
-                      <div>
-                        <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                          <span className="text-zinc-400">Цель месяца</span>
-                          <span className="font-medium text-white">
-                            {formatMoney(monthGoal)}
-                          </span>
-                        </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Доход" value={formatMoney(monthIncome)} />
+              <StatCard label="До аренды осталось" value={formatMoney(leftToRent)} />
+              <StatCard label="До цели" value={formatMoney(leftToMonthGoal)} />
+              <StatCard
+                label="Чистая прибыль"
+                value={formatMoney(profitAfterRent)}
+                valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
+              />
+            </div>
 
-                        <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
-                          <div
-                            className="h-full rounded-full bg-[linear-gradient(90deg,#6d84ff,#36c9ff)]"
-                            style={{
-                              width: `${Math.min((monthIncome / Math.max(monthGoal, 1)) * 100, 100)}%`,
-                            }}
-                          />
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Собрано</span>
-                          <span className="text-zinc-300">{formatMoney(monthIncome)}</span>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                          <span className="text-zinc-400">Аренда</span>
-                          <span className="font-medium text-white">
-                            {formatMoney(RENT_GOAL)}
-                          </span>
-                        </div>
-
-                        <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">
-                          <div
-                            className="h-full rounded-full bg-[linear-gradient(90deg,#22c55e,#7CFF91)]"
-                            style={{
-                              width: `${Math.min((monthIncome / Math.max(RENT_GOAL, 1)) * 100, 100)}%`,
-                            }}
-                          />
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between text-xs">
-                          <span className="text-zinc-500">Осталось до аренды</span>
-                          <span className="text-zinc-300">{formatMoney(leftToRent)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </SoftCard>
-
-                  <SoftCard className="p-6">
-                    <SectionTitle title="Кто сколько заработал" />
-                    <div className="grid gap-4">
-                      <div className="rounded-[22px] bg-white/[0.04] p-5 ring-1 ring-white/6">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-zinc-400">Азат</span>
-                          <span className="text-2xl font-bold text-white">
-                            {formatMoney(azatIncome)}
-                          </span>
-                        </div>
-                        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
-                          <div
-                            className="h-full rounded-full bg-[linear-gradient(90deg,#6d84ff,#36c9ff)]"
-                            style={{
-                              width: `${monthIncome > 0 ? (azatIncome / monthIncome) * 100 : 0}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="rounded-[22px] bg-white/[0.04] p-5 ring-1 ring-white/6">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-zinc-400">Марс</span>
-                          <span className="text-2xl font-bold text-white">
-                            {formatMoney(marsIncome)}
-                          </span>
-                        </div>
-                        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
-                          <div
-                            className="h-full rounded-full bg-[linear-gradient(90deg,#8b5cf6,#d946ef)]"
-                            style={{
-                              width: `${monthIncome > 0 ? (marsIncome / monthIncome) * 100 : 0}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </SoftCard>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <StatCard
-                    label="Доход"
-                    value={formatMoney(monthIncome)}
-                    valueClassName="text-green-400"
-                    subtext={formatMonthLabel(selectedMonth)}
-                  />
-                  <StatCard
-                    label="Осталось до цели"
-                    value={formatMoney(leftToMonthGoal)}
-                    valueClassName="text-cyan-300"
-                  />
-                  <StatCard
-                    label="Топ клиент"
-                    value={topClient ? topClient[0] : "Пока нет"}
-                    subtext={topClient ? formatMoney(topClient[1]) : "Нет оплат"}
-                  />
-                  <StatCard
-                    label="Чистая прибыль после аренды"
-                    value={formatMoney(profitAfterRent)}
-                    valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
-                  />
-                </div>
-
-                <SoftCard className="p-5 sm:p-6">
-                  <SectionTitle
-                    title="Последние записи и оплаты"
-                    subtitle="Записи открываются в карточку визита"
-                  />
-
-                  {recentEntries.length === 0 ? (
-                    <div className="rounded-[22px] bg-white/[0.03] py-12 text-center text-zinc-400 ring-1 ring-white/6">
-                      Пока нет данных за этот месяц
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {recentEntries.map((entry) => (
-                        <RecentOperationRow
-                          key={`${entry.source}-${entry.id}`}
-                          entry={entry}
-                          onOpen={openFinancialEntry}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </SoftCard>
-              </div>
-            )}
-
-            {activeTab === "schedule" && (
-              <div className="space-y-6">
-                <SoftCard className="p-5 sm:p-6">
-                  <SectionTitle
-                    title="График записей"
-                    subtitle="Запись, услуги и оплата теперь в одном месте"
-                    action={
-                      <button
-                        onClick={openCreateAppointmentModal}
-                        className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(79,101,255,0.3)]"
-                      >
-                        + Запись
-                      </button>
-                    }
-                  />
-
-                  <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => shiftSelectedDate(-1)}
-                        className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-                      >
-                        <ChevronLeftIcon />
-                      </button>
-
-                      <DateInput
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full md:w-[220px]"
-                      />
-
-                      <button
-                        onClick={() => shiftSelectedDate(1)}
-                        className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.05] text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-                      >
-                        <ChevronRightIcon />
-                      </button>
-                    </div>
-
-                    <div className="rounded-[18px] bg-white/[0.04] px-4 py-3 text-sm text-zinc-300 ring-1 ring-white/6">
-                      {formatDisplayDate(selectedDate)}
-                    </div>
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <SoftCard className="p-5">
+                <p className="text-sm text-zinc-400">Доход по владельцам</p>
+                <div className="mt-4 space-y-3">
+                  <div className="flex justify-between">
+                    <span>Азат</span>
+                    <span>{formatMoney(azatIncome)}</span>
                   </div>
-
-                  {selectedDateAppointments.length === 0 ? (
-                    <div className="rounded-[24px] bg-white/[0.03] py-14 text-center text-zinc-400 ring-1 ring-white/6">
-                      На этот день записей пока нет
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedDateAppointments.map((appointment) => {
-                        const total = getServicesTotal(appointment)
-                        const paid = getPaymentsTotal(appointment)
-                        const left = total - paid
-                        const firstService = appointment.services[0]
-
-                        return (
-                          <button
-                            key={appointment.id}
-                            onClick={() => openEditAppointmentModal(appointment)}
-                            className="w-full rounded-[24px] bg-white/[0.035] p-4 text-left ring-1 ring-white/6 transition hover:bg-white/[0.06]"
-                          >
-                            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                              <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="rounded-[14px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-3 py-1 text-xs font-semibold text-white">
-                                    {appointment.startTime}–{appointment.endTime}
-                                  </span>
-
-                                  <span
-                                    className={`rounded-[14px] px-3 py-1 text-xs font-medium ${getStatusPillClass(appointment.status)}`}
-                                  >
-                                    {appointment.status}
-                                  </span>
-
-                                  {appointment.room ? (
-                                    <span className="rounded-[14px] bg-white/[0.05] px-3 py-1 text-xs text-zinc-300 ring-1 ring-white/6">
-                                      {appointment.room}
-                                    </span>
-                                  ) : null}
-                                </div>
-
-                                <p className="mt-3 truncate text-lg font-semibold text-white">
-                                  {appointment.client}
-                                </p>
-
-                                <p className="mt-1 text-sm text-zinc-400">
-                                  {firstService
-                                    ? `${firstService.type}${firstService.type === "Запись" ? ` • ${firstService.hours || 0} ч` : ""}`
-                                    : "Без услуги"}{" "}
-                                  · {appointment.owner}
-                                </p>
-
-                                {appointment.phone ? (
-                                  <p className="mt-1 text-sm text-zinc-500">
-                                    {appointment.phone}
-                                  </p>
-                                ) : null}
-                              </div>
-
-                              <div className="grid shrink-0 grid-cols-3 gap-3 lg:min-w-[320px]">
-                                <div className="rounded-[18px] bg-white/[0.04] p-3 ring-1 ring-white/6">
-                                  <p className="text-xs text-zinc-500">К оплате</p>
-                                  <p className="mt-2 text-base font-semibold text-white">
-                                    {formatMoney(total)}
-                                  </p>
-                                </div>
-
-                                <div className="rounded-[18px] bg-white/[0.04] p-3 ring-1 ring-white/6">
-                                  <p className="text-xs text-zinc-500">Оплачено</p>
-                                  <p className="mt-2 text-base font-semibold text-green-400">
-                                    {formatMoney(paid)}
-                                  </p>
-                                </div>
-
-                                <div className="rounded-[18px] bg-white/[0.04] p-3 ring-1 ring-white/6">
-                                  <p className="text-xs text-zinc-500">Остаток</p>
-                                  <p
-                                    className={`mt-2 text-base font-semibold ${
-                                      left > 0 ? "text-yellow-300" : "text-cyan-300"
-                                    }`}
-                                  >
-                                    {formatMoney(left)}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </SoftCard>
-              </div>
-            )}
-
-            {activeTab === "operations" && (
-              <div className="space-y-6">
-                <SoftCard className="p-5 sm:p-6">
-                  <SectionTitle
-                    title="Финансы"
-                    subtitle="Здесь и старые операции, и новые оплаты из записей"
-                  />
-
-                  {selectedMonthEntries.length === 0 ? (
-                    <div className="rounded-[24px] bg-white/[0.03] py-14 text-center text-zinc-400 ring-1 ring-white/6">
-                      Пока нет записей и операций за этот месяц
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-4 md:hidden">
-                        {selectedMonthEntries.map((entry) => {
-                          const total = getServicesTotal(entry)
-                          const paid = getPaymentsTotal(entry)
-                          const diff = paid - total
-
-                          return (
-                            <SoftCard key={`${entry.source}-${entry.id}`} className="p-4">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <p className="truncate text-lg font-semibold text-white">
-                                    {entry.client}
-                                  </p>
-                                  <p className="mt-1 text-sm text-zinc-400">
-                                    {formatDisplayDate(entry.date)} · {entry.owner}
-                                  </p>
-                                  <p className="mt-1 text-xs text-zinc-500">
-                                    {entry.source === "appointment"
-                                      ? "Источник: запись"
-                                      : "Источник: старая операция"}
-                                  </p>
-                                </div>
-
-                                <div className="rounded-[16px] bg-white/[0.05] px-3 py-2 text-right ring-1 ring-white/6">
-                                  <p className="text-[11px] text-zinc-400">Получено</p>
-                                  <p className="text-sm font-semibold text-white">
-                                    {formatMoney(paid)}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="mt-4 grid gap-3">
-                                <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-                                  <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-                                    Услуги
-                                  </p>
-                                  <div className="space-y-1.5">
-                                    {entry.services.map((service) => (
-                                      <div
-                                        key={service.id}
-                                        className="flex items-start justify-between gap-3 text-sm"
-                                      >
-                                        <span className="text-zinc-300">
-                                          {service.type}
-                                          {service.type === "Запись"
-                                            ? ` — ${service.hours || 0} ч`
-                                            : ""}
-                                        </span>
-                                        <span className="whitespace-nowrap font-medium text-white">
-                                          {formatMoney(service.amount)}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-                                  <p className="mb-2 text-[11px] uppercase tracking-[0.16em] text-zinc-500">
-                                    Оплаты
-                                  </p>
-                                  <div className="space-y-1.5">
-                                    {entry.payments.map((payment) => (
-                                      <div
-                                        key={payment.id}
-                                        className="flex items-center justify-between gap-3 text-sm"
-                                      >
-                                        <span className="text-zinc-300">{payment.type}</span>
-                                        <span className="whitespace-nowrap font-medium text-white">
-                                          {formatMoney(payment.amount)}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-                                    <p className="text-xs text-zinc-500">К оплате</p>
-                                    <p className="mt-2 text-sm font-semibold text-white">
-                                      {formatMoney(total)}
-                                    </p>
-                                  </div>
-
-                                  <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-                                    <p className="text-xs text-zinc-500">Оплачено</p>
-                                    <p className="mt-2 text-sm font-semibold text-green-400">
-                                      {formatMoney(paid)}
-                                    </p>
-                                  </div>
-
-                                  <div className="rounded-[18px] bg-white/[0.035] p-3 ring-1 ring-white/6">
-                                    <p className="text-xs text-zinc-500">Разница</p>
-                                    <p
-                                      className={`mt-2 text-sm font-semibold ${
-                                        diff >= 0 ? "text-cyan-300" : "text-yellow-300"
-                                      }`}
-                                    >
-                                      {diff > 0 ? "+" : ""}
-                                      {formatMoney(diff)}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="mt-4 grid grid-cols-2 gap-3">
-                                {entry.source === "appointment" ? (
-                                  <button
-                                    onClick={() => openFinancialEntry(entry)}
-                                    className="flex items-center justify-center gap-2 rounded-[18px] bg-white/[0.06] px-4 py-3 text-sm font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.1]"
-                                  >
-                                    <EditIcon />
-                                    Открыть
-                                  </button>
-                                ) : (
-                                  <button
-                                    disabled
-                                    className="flex items-center justify-center gap-2 rounded-[18px] bg-white/[0.03] px-4 py-3 text-sm font-medium text-zinc-500 ring-1 ring-white/6"
-                                  >
-                                    Старые данные
-                                  </button>
-                                )}
-
-                                <button
-                                  onClick={() =>
-                                    entry.source === "appointment"
-                                      ? void deleteAppointment(entry.id)
-                                      : void deleteLegacyOperation(entry.id)
-                                  }
-                                  className="flex items-center justify-center gap-2 rounded-[18px] bg-red-500/[0.12] px-4 py-3 text-sm font-medium text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18]"
-                                >
-                                  <TrashIcon />
-                                  Удалить
-                                </button>
-                              </div>
-                            </SoftCard>
-                          )
-                        })}
-                      </div>
-
-                      <div className="hidden overflow-x-auto rounded-[28px] bg-white/[0.025] ring-1 ring-white/6 md:block">
-                        <table className="w-full min-w-[980px] text-left">
-                          <thead className="bg-white/[0.04] text-sm text-zinc-400">
-                            <tr>
-                              <th className="px-4 py-3">Дата</th>
-                              <th className="px-4 py-3">Клиент</th>
-                              <th className="px-4 py-3">Источник</th>
-                              <th className="px-4 py-3">Оплаты</th>
-                              <th className="px-4 py-3">Услуги</th>
-                              <th className="px-4 py-3">Получено</th>
-                              <th className="px-4 py-3">Кто работал</th>
-                              <th className="px-4 py-3">Действия</th>
-                            </tr>
-                          </thead>
-
-                          <tbody>
-                            {selectedMonthEntries.map((entry) => (
-                              <tr
-                                key={`${entry.source}-${entry.id}`}
-                                className="border-t border-white/[0.04] text-sm transition hover:bg-white/[0.03]"
-                              >
-                                <td className="px-4 py-4">{formatDisplayDate(entry.date)}</td>
-                                <td className="px-4 py-4">{entry.client}</td>
-                                <td className="px-4 py-4 text-zinc-300">
-                                  {entry.source === "appointment" ? "Запись" : "Операция"}
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="space-y-1">
-                                    {entry.payments.map((payment) => (
-                                      <div key={payment.id} className="text-zinc-300">
-                                        {payment.type} — {formatMoney(payment.amount)}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-4">
-                                  <div className="space-y-1">
-                                    {entry.services.map((service) => (
-                                      <div key={service.id} className="text-zinc-300">
-                                        {service.type}
-                                        {service.type === "Запись"
-                                          ? ` — ${service.hours || 0} ч`
-                                          : ""}{" "}
-                                        — {formatMoney(service.amount)}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-4 font-semibold">
-                                  {formatMoney(getPaymentsTotal(entry))}
-                                </td>
-                                <td className="px-4 py-4">{entry.owner}</td>
-                                <td className="px-4 py-4">
-                                  <div className="flex gap-2">
-                                    {entry.source === "appointment" ? (
-                                      <button
-                                        onClick={() => openFinancialEntry(entry)}
-                                        className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-sm text-zinc-200 ring-1 ring-white/6 transition hover:bg-white/[0.1]"
-                                      >
-                                        Открыть
-                                      </button>
-                                    ) : (
-                                      <button
-                                        disabled
-                                        className="rounded-[14px] bg-white/[0.03] px-3 py-2 text-sm text-zinc-500 ring-1 ring-white/6"
-                                      >
-                                        Старая
-                                      </button>
-                                    )}
-
-                                    <button
-                                      onClick={() =>
-                                        entry.source === "appointment"
-                                          ? void deleteAppointment(entry.id)
-                                          : void deleteLegacyOperation(entry.id)
-                                      }
-                                      className="rounded-[14px] bg-red-500/15 px-3 py-2 text-sm text-red-300 ring-1 ring-red-300/10 transition hover:bg-red-500/25"
-                                    >
-                                      Удалить
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </>
-                  )}
-                </SoftCard>
-              </div>
-            )}
-
-            {activeTab === "analytics" && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[2fr_1fr]">
-                  <SoftCard className="p-5 sm:p-6">
-                    <SectionTitle
-                      title="График по дням"
-                      subtitle="Красный — 0 клиентов, жёлтый — слабый день, зелёный — нормальный"
-                    />
-                    <div className="h-[280px] sm:h-[360px]">
-                      <Bar data={chartData} options={chartOptions} />
-                    </div>
-                  </SoftCard>
-
-                  <div className="space-y-6">
-                    <SoftCard className="p-6">
-                      <SectionTitle title="Самые прибыльные дни" />
-                      <div className="space-y-3">
-                        {dailyStats.bestDays.length === 0 ? (
-                          <p className="text-sm text-zinc-400">Пока нет данных</p>
-                        ) : (
-                          dailyStats.bestDays.map((day) => (
-                            <div
-                              key={day.dateKey}
-                              className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6"
-                            >
-                              <p className="text-sm text-zinc-400">
-                                {formatDisplayDate(day.dateKey)}
-                              </p>
-                              <p className="mt-2 text-2xl font-bold">
-                                {formatMoney(day.amount)}
-                              </p>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </SoftCard>
-
-                    <SoftCard className="p-6">
-                      <SectionTitle title="Слабые дни" />
-                      <div className="rounded-[20px] bg-white/[0.04] p-4 ring-1 ring-white/6">
-                        <p className="text-sm text-zinc-400">Дней без выручки в месяце</p>
-                        <p className="mt-2 text-3xl font-bold">{dailyStats.weakDays}</p>
-                      </div>
-                    </SoftCard>
+                  <div className="flex justify-between">
+                    <span>Марс</span>
+                    <span>{formatMoney(marsIncome)}</span>
                   </div>
                 </div>
+              </SoftCard>
 
-                <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                  <SoftCard className="p-6">
-                    <SectionTitle title="Доход по услугам" />
-                    <div className="space-y-3">
-                      {serviceRevenueRows.length === 0 ? (
-                        <p className="text-sm text-zinc-400">Пока нет данных</p>
-                      ) : (
-                        serviceRevenueRows.map(([serviceName, amount]) => (
-                          <div
-                            key={serviceName}
-                            className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.04] p-4 ring-1 ring-white/6"
-                          >
-                            <span>{serviceName}</span>
-                            <span className="whitespace-nowrap font-semibold">
-                              {formatMoney(amount)}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </SoftCard>
-
-                  <SoftCard className="p-6">
-                    <SectionTitle title="Доход по оплате" />
-                    <div className="space-y-3">
-                      {paymentRevenueRows.map(([paymentName, amount]) => (
-                        <div
-                          key={paymentName}
-                          className="flex items-center justify-between gap-4 rounded-[18px] bg-white/[0.04] p-4 ring-1 ring-white/6"
-                        >
-                          <span>{paymentName}</span>
-                          <span className="whitespace-nowrap font-semibold">
-                            {formatMoney(amount)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </SoftCard>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "settings" && (
-              <div className="space-y-6">
-                <SoftCard className="p-5 sm:p-6">
-                  <SectionTitle
-                    title="Настройки месяца"
-                    subtitle="Тут всё, что касается цели и управления месяцем"
-                  />
-
-                  <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_auto]">
-                    <div className="max-w-[360px]">
-                      <FieldLabel>Цель выбранного месяца</FieldLabel>
-                      <TextInput
-                        type="number"
-                        value={monthGoal}
-                        onChange={(e) => void updateMonthGoal(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-3 xl:justify-end">
-                      <button
-                        onClick={() => void createNewMonth()}
-                        className="rounded-[18px] bg-white/[0.05] px-5 py-3 font-medium text-white ring-1 ring-white/6 transition hover:bg-white/[0.08]"
-                      >
-                        + Создать новый месяц
-                      </button>
-
-                      <button
-                        onClick={() => void deleteSelectedMonth()}
-                        className="rounded-[18px] bg-red-500/[0.12] px-5 py-3 font-medium text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18]"
-                      >
-                        Удалить выбранный месяц
-                      </button>
-                    </div>
-                  </div>
-                </SoftCard>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <StatCard label="Доход месяца" value={formatMoney(monthIncome)} />
-                  <StatCard label="Цель месяца" value={formatMoney(monthGoal)} />
-                  <StatCard label="Аренда" value={formatMoney(RENT_GOAL)} />
-                  <StatCard
-                    label="Чистая прибыль после аренды"
-                    value={formatMoney(profitAfterRent)}
-                    valueClassName={profitAfterRent >= 0 ? "text-green-400" : "text-red-400"}
-                  />
-                </div>
-              </div>
-            )}
-          </main>
-        </div>
-      </div>
-
-      {showAppointmentModal && (
-        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-[rgba(4,6,12,0.78)] p-0 backdrop-blur-[18px] sm:items-center sm:p-5">
-          <div className="relative flex h-[92vh] w-full max-w-[1100px] flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-[#0b0f17] shadow-[0_40px_120px_rgba(0,0,0,0.68)] sm:h-[88vh] sm:max-h-[940px] sm:rounded-[30px]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(78,124,255,0.16),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(61,214,255,0.08),transparent_22%)]" />
-
-            <div className="relative z-[1] flex items-center justify-between border-b border-white/8 px-4 py-4 sm:px-6">
-              <div>
-                <h2 className="text-[24px] font-bold leading-none text-white sm:text-[28px]">
-                  {editingAppointmentId ? "Редактировать запись" : "Новая запись"}
-                </h2>
-                <p className="mt-2 text-sm text-zinc-400">
-                  Запись, услуги и оплаты в одном окне
+              <SoftCard className="p-5">
+                <p className="text-sm text-zinc-400">Лучший клиент</p>
+                <p className="mt-4 text-lg font-semibold">
+                  {topClient ? topClient[0] : "Нет данных"}
                 </p>
-              </div>
+                {topClient && (
+                  <p className="text-sm text-zinc-400">
+                    {formatMoney(topClient[1])}
+                  </p>
+                )}
+              </SoftCard>
+            </div>
 
-              <button
-                onClick={() => {
-                  setShowAppointmentModal(false)
-                  resetAppointmentForm()
-                }}
-                className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-white/[0.05] text-zinc-400 ring-1 ring-white/8 transition hover:bg-white/[0.08] hover:text-white"
-                aria-label="Закрыть"
-              >
-                ✕
+            <div className="mt-6">
+              <SectionTitle title="Последние операции" />
+              <div className="space-y-3">
+                {recentEntries.map((entry) => (
+                  <RecentOperationRow
+                    key={entry.id}
+                    entry={entry}
+                    onOpen={openFinancialEntry}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ================= SCHEDULE ================= */}
+        {activeTab === "schedule" && (
+          <>
+            <SectionTitle
+              title="График"
+              subtitle="Управление записями"
+              action={
+                <button
+                  onClick={openCreateAppointmentModal}
+                  className="rounded-[16px] bg-blue-600 px-4 py-2 text-sm"
+                >
+                  + Запись
+                </button>
+              }
+            />
+
+            <div className="flex items-center gap-2 mb-4">
+              <button onClick={() => shiftSelectedDate(-1)}>
+                <ChevronLeftIcon />
+              </button>
+
+              <DateInput
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+              />
+
+              <button onClick={() => shiftSelectedDate(1)}>
+                <ChevronRightIcon />
               </button>
             </div>
 
-            <div className="relative z-[1] min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-              <div className="space-y-5">
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-                  <div>
-                    <FieldLabel>Клиент</FieldLabel>
-                    <TextInput
-                      autoFocus
-                      list="clients-list"
-                      placeholder="Имя клиента"
-                      value={appointmentClient}
-                      onChange={(e) => setAppointmentClient(e.target.value)}
-                    />
-                    <datalist id="clients-list">
-                      {uniqueClients.map((item) => (
-                        <option key={item} value={item} />
-                      ))}
-                    </datalist>
-                  </div>
+            <div className="space-y-3">
+              {selectedDateAppointments.map((a) => {
+                const total = getServicesTotal(a)
+                const paid = getPaymentsTotal(a)
 
-                  <div>
-                    <FieldLabel>Телефон</FieldLabel>
-                    <TextInput
-                      placeholder="+7..."
-                      value={appointmentPhone}
-                      onChange={(e) => setAppointmentPhone(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel>Кто работает</FieldLabel>
-                    <SelectInput
-                      value={appointmentOwner}
-                      onChange={(e) => setAppointmentOwner(e.target.value as Owner)}
-                    >
-                      {ownerOptions.map((option) => (
-                        <option key={option} value={option} className="bg-[#151823]">
-                          {option}
-                        </option>
-                      ))}
-                    </SelectInput>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
-                  <div>
-                    <FieldLabel>Дата</FieldLabel>
-                    <DateInput
-                      value={appointmentDate}
-                      onChange={(e) => setAppointmentDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel>Начало</FieldLabel>
-                    <TimeInput
-                      value={appointmentStartTime}
-                      onChange={(e) => setAppointmentStartTime(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel>Конец</FieldLabel>
-                    <TimeInput
-                      value={appointmentEndTime}
-                      onChange={(e) => setAppointmentEndTime(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <FieldLabel>Статус</FieldLabel>
-                    <SelectInput
-                      value={appointmentStatus}
-                      onChange={(e) =>
-                        setAppointmentStatus(e.target.value as AppointmentStatus)
-                      }
-                    >
-                      {appointmentStatusOptions.map((option) => (
-                        <option key={option} value={option} className="bg-[#151823]">
-                          {option}
-                        </option>
-                      ))}
-                    </SelectInput>
-                  </div>
-
-                  <div>
-                    <FieldLabel>Комната</FieldLabel>
-                    <TextInput
-                      placeholder="Напр. Студия A"
-                      value={appointmentRoom}
-                      onChange={(e) => setAppointmentRoom(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-[24px] bg-white/[0.03] p-4 ring-1 ring-white/8">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">Быстрые услуги</p>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        Добавляй в один клик самые частые позиции
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {quickServiceButtons.map((item) => (
-                      <button
-                        key={item.label}
-                        onClick={() => addQuickAppointmentService(item.type)}
-                        className="rounded-[14px] bg-[#121826] px-3 py-2 text-sm text-zinc-200 ring-1 ring-white/8 transition hover:bg-[#192133] hover:text-white"
-                      >
-                        + {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
-                  <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/8">
-                    <p className="text-sm text-zinc-400">К оплате</p>
-                    <p className="mt-2 text-[22px] font-semibold tracking-tight text-white">
-                      {formatMoney(currentAppointmentServicesTotal)}
-                    </p>
-                  </div>
-
-                  <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/8">
-                    <p className="text-sm text-zinc-400">Оплачено</p>
-                    <p className="mt-2 text-[22px] font-semibold tracking-tight text-green-400">
-                      {formatMoney(currentAppointmentPaymentsTotal)}
-                    </p>
-                  </div>
-
-                  <div className="rounded-[24px] bg-white/[0.04] p-4 ring-1 ring-white/8">
-                    <p className="text-sm text-zinc-400">Остаток</p>
-                    <p
-                      className={`mt-2 text-[22px] font-semibold tracking-tight ${
-                        currentAppointmentServicesTotal - currentAppointmentPaymentsTotal > 0
-                          ? "text-yellow-300"
-                          : "text-cyan-300"
-                      }`}
-                    >
-                      {formatMoney(
-                        currentAppointmentServicesTotal - currentAppointmentPaymentsTotal
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <FieldLabel>Комментарий</FieldLabel>
-                  <TextArea
-                    rows={4}
-                    placeholder="Комментарий по клиенту, примечания, детали визита"
-                    value={appointmentComment}
-                    onChange={(e) => setAppointmentComment(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-                  <div className="rounded-[22px] bg-white/[0.025] p-3 ring-1 ring-white/6">
-                    <div className="mb-4 flex items-center justify-between gap-3">
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => openEditAppointmentModal(a)}
+                    className="rounded-[20px] bg-[#0b0c11] p-4 border border-white/5 cursor-pointer"
+                  >
+                    <div className="flex justify-between">
                       <div>
-                        <p className="text-lg font-semibold text-white">Услуги</p>
-                        <p className="mt-1 text-sm text-zinc-400">Что входит в запись</p>
+                        <p className="text-sm text-zinc-400">
+                          {a.startTime} – {a.endTime}
+                        </p>
+                        <p className="text-lg font-semibold mt-1">
+                          {a.client}
+                        </p>
+                        <span className={`mt-2 inline-block px-2 py-1 text-xs rounded ${getStatusPillClass(a.status)}`}>
+                          {a.status}
+                        </span>
                       </div>
 
-                      <button
-                        onClick={addAppointmentServiceRow}
-                        className="h-[36px] rounded-[12px] bg-[#1c2433] px-3 text-sm text-white ring-1 ring-white/10 transition hover:bg-[#263044]"
-                      >
-                        + Услуга
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {appointmentServices.map((row, index) => (
-                        <div
-                          key={row.id}
-                          className="rounded-[18px] bg-[#0f1623] p-3 ring-1 ring-white/6"
-                        >
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-white">
-                              Услуга {index + 1}
-                            </p>
-
-                            {appointmentServices.length > 1 && (
-                              <button
-                                onClick={() => removeAppointmentServiceRow(row.id)}
-                                className="text-sm text-red-400 transition hover:text-red-300"
-                              >
-                                Удалить
-                              </button>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1.2fr_0.7fr_0.7fr]">
-                            <div>
-                              <FieldLabel>Тип</FieldLabel>
-                              <SelectInput
-                                value={row.type}
-                                onChange={(e) => {
-                                  const selectedType = e.target.value as ServiceType
-                                  updateAppointmentServiceRow(row.id, {
-                                    type: selectedType,
-                                    hours: selectedType === "Запись" ? row.hours || "" : "",
-                                    amount:
-                                      selectedType === "Запись"
-                                        ? Number(row.hours || 0) * 1000
-                                        : row.amount,
-                                  })
-                                }}
-                              >
-                                {serviceOptions.map((option) => (
-                                  <option
-                                    key={option}
-                                    value={option}
-                                    className="bg-[#151823]"
-                                  >
-                                    {option}
-                                  </option>
-                                ))}
-                              </SelectInput>
-                            </div>
-
-                            <div>
-                              <FieldLabel>{row.type === "Запись" ? "Часы" : "Сумма"}</FieldLabel>
-                              {row.type === "Запись" ? (
-                                <TextInput
-                                  type="number"
-                                  inputMode="numeric"
-                                  min={1}
-                                  placeholder="1"
-                                  value={row.hours === "" ? "" : String(row.hours)}
-                                  onFocus={(e) => e.currentTarget.select()}
-                                  onChange={(e) => {
-                                    const value = e.target.value
-                                    updateAppointmentServiceRow(row.id, {
-                                      hours: value === "" ? "" : Number(value),
-                                    })
-                                  }}
-                                />
-                              ) : (
-                                <TextInput
-                                  type="number"
-                                  min={0}
-                                  value={row.amount === 0 ? "" : String(row.amount)}
-                                  onFocus={(e) => e.currentTarget.select()}
-                                  onChange={(e) =>
-                                    updateAppointmentServiceRow(row.id, {
-                                      amount: Number(e.target.value) || 0,
-                                    })
-                                  }
-                                  placeholder="Сумма"
-                                />
-                              )}
-                            </div>
-
-                            <div>
-                              <FieldLabel>Итог</FieldLabel>
-                              <div className="flex h-[50px] items-center rounded-[18px] bg-white/[0.04] px-4 font-semibold text-white ring-1 ring-white/8">
-                                {formatMoney(
-                                  row.type === "Запись"
-                                    ? (row.hours === "" ? 0 : Number(row.hours)) * 1000
-                                    : row.amount
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-[22px] bg-white/[0.025] p-3 ring-1 ring-white/6">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-lg font-semibold text-white">Оплаты</p>
-                        <p className="mt-1 text-sm text-zinc-400">
-                          Онлайн всегда: {formatMoney(ONLINE_NET_AMOUNT)}
+                      <div className="text-right">
+                        <p>{formatMoney(paid)}</p>
+                        <p className="text-xs text-zinc-500">
+                          из {formatMoney(total)}
                         </p>
                       </div>
-
-                      <button
-                        onClick={addAppointmentPaymentRow}
-                        className="h-[36px] rounded-[12px] bg-[#1c2433] px-3 text-sm text-white ring-1 ring-white/10 transition hover:bg-[#263044]"
-                      >
-                        + Оплата
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {appointmentPayments.map((row, index) => (
-                        <div
-                          key={row.id}
-                          className="rounded-[18px] bg-[#0f1623] p-3 ring-1 ring-white/6"
-                        >
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold text-white">
-                              Оплата {index + 1}
-                            </p>
-
-                            {appointmentPayments.length > 1 && (
-                              <button
-                                onClick={() => removeAppointmentPaymentRow(row.id)}
-                                className="text-sm text-red-400 transition hover:text-red-300"
-                              >
-                                Удалить
-                              </button>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div>
-                              <FieldLabel>Тип оплаты</FieldLabel>
-                              <SelectInput
-                                value={row.type}
-                                onChange={(e) => {
-                                  const selectedType = e.target.value as PaymentType
-                                  updateAppointmentPaymentRow(row.id, {
-                                    type: selectedType,
-                                    amount:
-                                      selectedType === "Онлайн"
-                                        ? ONLINE_NET_AMOUNT
-                                        : row.amount,
-                                  })
-                                }}
-                              >
-                                {paymentOptions.map((option) => (
-                                  <option
-                                    key={option}
-                                    value={option}
-                                    className="bg-[#151823]"
-                                  >
-                                    {option}
-                                  </option>
-                                ))}
-                              </SelectInput>
-                            </div>
-
-                            <div>
-                              <FieldLabel>Сумма</FieldLabel>
-                              {row.type === "Онлайн" ? (
-                                <div className="flex h-[50px] items-center rounded-[18px] bg-white/[0.04] px-4 font-semibold text-white ring-1 ring-white/8">
-                                  {formatMoney(ONLINE_NET_AMOUNT)}
-                                </div>
-                              ) : (
-                                <TextInput
-                                  type="number"
-                                  min={0}
-                                  value={row.amount === 0 ? "" : String(row.amount)}
-                                  onFocus={(e) => e.currentTarget.select()}
-                                  onChange={(e) =>
-                                    updateAppointmentPaymentRow(row.id, {
-                                      amount: Number(e.target.value) || 0,
-                                    })
-                                  }
-                                  placeholder="Сумма оплаты"
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
                     </div>
                   </div>
-                </div>
-              </div>
+                )
+              })}
+            </div>
+          </>
+        )}
+
+        {/* ================= FINANCE ================= */}
+        {activeTab === "operations" && (
+          <>
+            <SectionTitle title="Финансы" />
+
+            <div className="space-y-3">
+              {selectedMonthEntries.map((entry) => (
+                <RecentOperationRow
+                  key={entry.id}
+                  entry={entry}
+                  onOpen={openFinancialEntry}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ================= ANALYTICS ================= */}
+        {activeTab === "analytics" && (
+          <>
+            <SectionTitle title="Аналитика" />
+
+            <SoftCard className="p-5 h-[300px]">
+              <Bar data={chartData} options={chartOptions} />
+            </SoftCard>
+          </>
+        )}
+
+        {/* ================= SETTINGS ================= */}
+        {activeTab === "settings" && (
+          <>
+            <SectionTitle title="Настройки" />
+
+            <div className="space-y-4">
+              <button
+                onClick={deleteSelectedMonth}
+                className="bg-red-500 px-4 py-2 rounded"
+              >
+                Удалить месяц
+              </button>
+            </div>
+          </>
+        )}
+      </main>
+
+      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
+
+      {/* ================= APPOINTMENT SHEET ================= */}
+      {showAppointmentModal && (
+        <div className="fixed inset-0 z-[999] bg-black/70">
+          <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-[520px] bg-white text-black rounded-t-[30px] p-4 max-h-[90vh] overflow-y-auto">
+
+            {/* HEADER */}
+            <div className="flex justify-between items-center mb-4">
+              <button onClick={() => setShowAppointmentModal(false)}>✕</button>
+              <h2 className="font-semibold">Запись</h2>
+              {editingAppointmentId && (
+                <button onClick={() => deleteAppointment(editingAppointmentId)}>
+                  🗑
+                </button>
+              )}
             </div>
 
-            <div className="relative z-[1] border-t border-white/8 bg-[#0d121b] px-4 py-4 sm:px-6">
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    onClick={() => {
-                      setShowAppointmentModal(false)
-                      resetAppointmentForm()
-                    }}
-                    className="w-full rounded-[18px] bg-white/[0.04] px-5 py-3 text-zinc-300 ring-1 ring-white/8 transition hover:bg-white/[0.07] hover:text-white sm:w-auto"
-                  >
-                    Отмена
-                  </button>
+            {/* STATUS */}
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {appointmentStatusOptions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setAppointmentStatus(s)}
+                  className={`py-2 rounded ${
+                    appointmentStatus === s ? "bg-black text-white" : "bg-gray-200"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
 
-                  {editingAppointmentId && (
-                    <button
-                      onClick={() => void deleteAppointment(editingAppointmentId)}
-                      className="w-full rounded-[18px] bg-red-500/[0.12] px-5 py-3 text-red-200 ring-1 ring-red-300/10 transition hover:bg-red-500/[0.18] sm:w-auto"
-                    >
-                      Удалить запись
-                    </button>
-                  )}
+            {/* CLIENT */}
+            <TextInput
+              placeholder="Имя"
+              value={appointmentClient}
+              onChange={(e) => setAppointmentClient(e.target.value)}
+            />
+            <div className="mt-2">
+              <TextInput
+                placeholder="Телефон"
+                value={appointmentPhone}
+                onChange={(e) => setAppointmentPhone(e.target.value)}
+              />
+            </div>
+
+            {/* TIME */}
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <TimeInput
+                value={appointmentStartTime}
+                onChange={(e) => setAppointmentStartTime(e.target.value)}
+              />
+              <TimeInput
+                value={appointmentEndTime}
+                onChange={(e) => setAppointmentEndTime(e.target.value)}
+              />
+            </div>
+
+            {/* SERVICES */}
+            <div className="mt-4">
+              <p className="text-sm text-gray-500">Услуги</p>
+
+              {appointmentServices.map((s) => (
+                <div key={s.id} className="flex gap-2 mt-2">
+                  <SelectInput
+                    value={s.type}
+                    onChange={(e) =>
+                      updateAppointmentServiceRow(s.id, { type: e.target.value as ServiceType })
+                    }
+                  >
+                    {serviceOptions.map((o) => (
+                      <option key={o}>{o}</option>
+                    ))}
+                  </SelectInput>
+
+                  <TextInput
+                    placeholder="Сумма"
+                    value={s.amount}
+                    onChange={(e) =>
+                      updateAppointmentServiceRow(s.id, {
+                        amount: Number(e.target.value),
+                      })
+                    }
+                  />
+
+                  <button onClick={() => removeAppointmentServiceRow(s.id)}>
+                    ✕
+                  </button>
                 </div>
+              ))}
+
+              <button onClick={addAppointmentServiceRow} className="mt-2">
+                + Услуга
+              </button>
+            </div>
+
+            {/* PAYMENTS */}
+            <div className="mt-5 border-t pt-4">
+              <p>К оплате: {formatMoney(currentAppointmentServicesTotal - currentAppointmentPaymentsTotal)}</p>
+
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <button
+                  onClick={() =>
+                    setAppointmentPayments([
+                      ...appointmentPayments,
+                      {
+                        id: makeId(),
+                        type: "Нал",
+                        amount: currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                      },
+                    ])
+                  }
+                  className="bg-yellow-400 py-3 rounded"
+                >
+                  Нал
+                </button>
 
                 <button
-                  onClick={() => void saveAppointment()}
-                  className="w-full rounded-[20px] bg-[linear-gradient(180deg,#2fd06e,#1ba455)] px-6 py-3 font-semibold text-white shadow-[0_18px_40px_rgba(27,164,85,0.3)] transition hover:brightness-110 sm:w-auto"
+                  onClick={() =>
+                    setAppointmentPayments([
+                      ...appointmentPayments,
+                      {
+                        id: makeId(),
+                        type: "Карта",
+                        amount: currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                      },
+                    ])
+                  }
+                  className="bg-yellow-400 py-3 rounded"
                 >
-                  {editingAppointmentId ? "Сохранить изменения" : "Сохранить запись"}
+                  Карта
                 </button>
               </div>
             </div>
+
+            {/* SAVE */}
+            <button
+              onClick={saveAppointment}
+              className="mt-5 w-full bg-black text-white py-3 rounded"
+            >
+              Сохранить
+            </button>
           </div>
         </div>
       )}
-
-      <BottomNav
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        hidden={showAppointmentModal}
-      />
     </div>
   )
 }
