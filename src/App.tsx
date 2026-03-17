@@ -1958,8 +1958,8 @@ export default function App() {
   <div className="fixed inset-0 z-[500] flex items-end justify-center bg-[rgba(5,5,9,0.76)] p-0 backdrop-blur-[14px] sm:items-center sm:p-4">
     <div className="relative flex h-[90vh] max-h-[90vh] w-full max-w-[1180px] flex-col overflow-hidden rounded-t-[30px] bg-[linear-gradient(180deg,rgba(24,27,35,0.98),rgba(12,14,20,0.98))] shadow-[0_36px_90px_rgba(0,0,0,0.64),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/8 sm:rounded-[34px]">
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="grid min-h-full grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="border-b border-white/6 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.015))] p-4 sm:p-6 lg:border-b-0 lg:border-r lg:border-white/6">
+        <div className="min-h-full">
+          <div className="px-4 pb-24 pt-4 sm:px-6 sm:pb-28 sm:pt-5">
             <div className="mb-5">
               <h2 className="text-[26px] font-bold leading-tight">
                 {editingOperationId ? "Редактировать операцию" : "Добавить операцию"}
@@ -2061,11 +2061,8 @@ export default function App() {
                 если внесена только предоплата или оплата частями.
               </div>
             )}
-          </div>
-
-          <div className="flex min-h-0 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-              <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+              <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -2085,7 +2082,7 @@ export default function App() {
 
                   <div className="space-y-3">
                     {serviceRows.map((row, index) => (
-                      <SoftCard key={row.id} className="p-3">
+                      <SoftCard key={row.id} className="p-4">
                         <div className="mb-3 flex items-center justify-between gap-3">
                           <p className="text-sm font-semibold text-white">
                             Услуга {index + 1}
@@ -2192,7 +2189,7 @@ export default function App() {
 
                   <div className="space-y-3">
                     {paymentRows.map((row, index) => (
-                      <SoftCard key={row.id} className="p-3">
+                      <SoftCard key={row.id} className="p-4">
                         <div className="mb-3 flex items-center justify-between gap-3">
                           <p className="text-sm font-semibold text-white">
                             Оплата {index + 1}
