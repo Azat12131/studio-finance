@@ -82,7 +82,6 @@ type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 150000
 
-const ownerOptions: Owner[] = ["Азат", "Марс"]
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
 const serviceOptions: ServiceType[] = [
   "Запись",
@@ -96,13 +95,6 @@ const appointmentStatusOptions: AppointmentStatus[] = [
   "Подтвердил",
   "Пришел",
   "Не пришел",
-]
-
-const quickServiceButtons: Array<{ type: ServiceType; label: string }> = [
-  { type: "Запись", label: "Запись" },
-  { type: "Сведение", label: "Сведение" },
-  { type: "Мастеринг", label: "Мастеринг" },
-  { type: "Дистрибуция", label: "Дистрибуция" },
 ]
 
 function makeId() {
@@ -173,16 +165,6 @@ function getServiceRevenueMap(entries: FinancialEntry[]) {
   entries.forEach((entry) => {
     entry.services.forEach((service) => {
       map.set(service.type, (map.get(service.type) || 0) + Number(service.amount || 0))
-    })
-  })
-  return map
-}
-
-function getPaymentRevenueMap(entries: FinancialEntry[]) {
-  const map = new Map<PaymentType, number>()
-  entries.forEach((entry) => {
-    entry.payments.forEach((payment) => {
-      map.set(payment.type, (map.get(payment.type) || 0) + Number(payment.amount || 0))
     })
   })
   return map
@@ -379,43 +361,6 @@ function CalendarIcon() {
   )
 }
 
-function TrashIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[16px] w-[16px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v6" />
-      <path d="M14 11v6" />
-    </svg>
-  )
-}
-
-function EditIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[16px] w-[16px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
-    </svg>
-  )
-}
-
 function ChevronLeftIcon() {
   return (
     <svg
@@ -505,17 +450,13 @@ function SectionTitle({
   )
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <p className="mb-2 text-sm text-zinc-400">{children}</p>
-}
-
 function TextInput({
   className = "",
   style,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <TextInput
+    <input
       {...props}
       style={{
         background:
@@ -582,18 +523,6 @@ function TimeInput({
       type="time"
       style={{ colorScheme: "dark" }}
       className={`h-[50px] w-full rounded-[18px] border border-white/10 bg-[#121826] px-4 text-[15px] text-white outline-none transition hover:border-white/20 focus:border-[#3b82f6] ${className}`}
-    />
-  )
-}
-
-function TextArea({
-  className = "",
-  ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      {...props}
-      className={`w-full rounded-[18px] bg-white/[0.035] px-4 py-3 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] ring-1 ring-white/8 transition hover:ring-white/12 focus:ring-white/14 placeholder:text-zinc-500 ${className}`}
     />
   )
 }
@@ -984,11 +913,6 @@ export default function App() {
     )
   }, [selectedMonthEntries])
 
-  const paymentRevenueRows = React.useMemo(() => {
-    const paymentRevenueMap = getPaymentRevenueMap(selectedMonthEntries)
-    return paymentOptions.map((type) => [type, paymentRevenueMap.get(type) || 0] as const)
-  }, [selectedMonthEntries])
-
   const topClient = React.useMemo(() => {
     const map = new Map<string, number>()
     selectedMonthEntries.forEach((entry) => {
@@ -1001,17 +925,6 @@ export default function App() {
   const recentEntries = React.useMemo(() => {
     return selectedMonthEntries.slice(0, 5)
   }, [selectedMonthEntries])
-
-  const uniqueClients = React.useMemo(() => {
-    return Array.from(
-      new Set(
-        [
-          ...legacyOperations.map((item) => item.client.trim()),
-          ...appointments.map((item) => item.client.trim()),
-        ].filter(Boolean)
-      )
-    ).sort((a, b) => a.localeCompare(b, "ru"))
-  }, [appointments, legacyOperations])
 
   const dailyStats = React.useMemo(() => {
     const daysCount = getDaysInMonth(selectedMonth)
@@ -1188,55 +1101,49 @@ export default function App() {
     setAppointmentServices((prev) => [...prev, makeServiceRow()])
   }, [])
 
-  const addQuickAppointmentService = React.useCallback((type: ServiceType) => {
-    setAppointmentServices((prev) => [...prev, makeServiceRow(type)])
-  }, [])
+  const updateAppointmentServiceRow = React.useCallback(
+    (id: number, patch: Partial<ServiceItem>) => {
+      setAppointmentServices((prev) =>
+        prev.map((row) => {
+          if (row.id !== id) return row
 
-  const updateAppointmentServiceRow = React.useCallback((id: number, patch: Partial<ServiceItem>) => {
-    setAppointmentServices((prev) =>
-      prev.map((row) => {
-        if (row.id !== id) return row
+          const next = { ...row, ...patch }
 
-        const next = { ...row, ...patch }
+          if (next.type === "Запись") {
+            const hoursValue = next.hours === "" ? "" : Number(next.hours) || 0
+            return {
+              ...next,
+              hours: hoursValue,
+              amount: hoursValue === "" ? 0 : Number(hoursValue) * 1000,
+            }
+          }
 
-        if (next.type === "Запись") {
-          const hoursValue = next.hours === "" ? "" : Number(next.hours) || 0
           return {
             ...next,
-            hours: hoursValue,
-            amount: hoursValue === "" ? 0 : Number(hoursValue) * 1000,
+            hours: "",
+            amount: Number(next.amount) || 0,
           }
-        }
-
-        return {
-          ...next,
-          hours: "",
-          amount: Number(next.amount) || 0,
-        }
-      })
-    )
-  }, [])
+        })
+      )
+    },
+    []
+  )
 
   const removeAppointmentServiceRow = React.useCallback((id: number) => {
     setAppointmentServices((prev) => prev.filter((row) => row.id !== id))
   }, [])
 
-  const addAppointmentPaymentRow = React.useCallback(() => {
-    setAppointmentPayments((prev) => [...prev, makePaymentRow("Нал")])
-  }, [])
-
-  const updateAppointmentPaymentRow = React.useCallback((id: number, patch: Partial<PaymentItem>) => {
-    setAppointmentPayments((prev) =>
-      prev.map((row) => {
-        if (row.id !== id) return row
-        return normalizePaymentRow({ ...row, ...patch })
-      })
-    )
-  }, [])
-
-  const removeAppointmentPaymentRow = React.useCallback((id: number) => {
-    setAppointmentPayments((prev) => prev.filter((row) => row.id !== id))
-  }, [])
+  const updateAppointmentPaymentRow = React.useCallback(
+    (id: number, patch: Partial<PaymentItem>) => {
+      setAppointmentPayments((prev) =>
+        prev.map((row) => {
+          if (row.id !== id) return row
+          return normalizePaymentRow({ ...row, ...patch })
+        })
+      )
+    },
+    []
+  )
 
   const ensureMonthExists = React.useCallback(
     async (monthKey: string) => {
@@ -1410,19 +1317,9 @@ export default function App() {
     }
 
     setAppointments((prev) => prev.filter((item) => item.id !== id))
-  }, [])
-
-  const deleteLegacyOperation = React.useCallback(async (id: number) => {
-    const { error } = await supabase.from("operations").delete().eq("id", id)
-
-    if (error) {
-      console.error("Error deleting legacy operation", error)
-      alert("Не удалось удалить старую операцию")
-      return
-    }
-
-    setLegacyOperations((prev) => prev.filter((item) => item.id !== id))
-  }, [])
+    setShowAppointmentModal(false)
+    resetAppointmentForm()
+  }, [resetAppointmentForm])
 
   const createNewMonth = React.useCallback(async () => {
     const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
@@ -1455,28 +1352,6 @@ export default function App() {
 
     setSelectedMonth(trimmed)
   }, [ensureMonthExists])
-
-  const updateMonthGoal = React.useCallback(
-    async (value: string) => {
-      const numeric = Number(value)
-      const nextGoal = numeric > 0 ? numeric : 0
-
-      setMonthGoals((prev) => ({
-        ...prev,
-        [selectedMonth]: nextGoal,
-      }))
-
-      const { error } = await supabase.from("month_goals").upsert({
-        month_key: selectedMonth,
-        goal: nextGoal,
-      })
-
-      if (error) {
-        console.error("Error saving month goal", error)
-      }
-    },
-    [selectedMonth]
-  )
 
   const deleteSelectedMonth = React.useCallback(async () => {
     if (normalizedMonths.length <= 1) {
@@ -1550,7 +1425,6 @@ export default function App() {
     },
     [selectedDate]
   )
-    // ================= RENDER =================
 
   return (
     <div className="flex min-h-screen bg-[#05060a] text-white">
@@ -1563,13 +1437,9 @@ export default function App() {
       />
 
       <main className="flex-1 p-4 pb-28 lg:p-8">
-        {/* ================= DASHBOARD ================= */}
         {activeTab === "dashboard" && (
           <>
-            <SectionTitle
-              title="Главная"
-              subtitle="Общий обзор бизнеса"
-            />
+            <SectionTitle title="Главная" subtitle="Общий обзор бизнеса" />
 
             <MonthTabs
               months={normalizedMonths}
@@ -1609,10 +1479,45 @@ export default function App() {
                   {topClient ? topClient[0] : "Нет данных"}
                 </p>
                 {topClient && (
-                  <p className="text-sm text-zinc-400">
-                    {formatMoney(topClient[1])}
-                  </p>
+                  <p className="text-sm text-zinc-400">{formatMoney(topClient[1])}</p>
                 )}
+              </SoftCard>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              <SoftCard className="p-5">
+                <p className="text-sm text-zinc-400">Выручка по услугам</p>
+                <div className="mt-4 space-y-3">
+                  {serviceRevenueRows.length > 0 ? (
+                    serviceRevenueRows.map(([service, amount]) => (
+                      <div key={service} className="flex justify-between gap-4">
+                        <span className="text-zinc-300">{service}</span>
+                        <span className="font-medium text-white">{formatMoney(amount)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-zinc-500">Пока нет данных за месяц</p>
+                  )}
+                </div>
+              </SoftCard>
+
+              <SoftCard className="p-5">
+                <p className="text-sm text-zinc-400">Оплаты по типам</p>
+                <div className="mt-4 space-y-3">
+                  {paymentOptions.map((type) => {
+                    const total = selectedMonthEntries
+                      .flatMap((entry) => entry.payments)
+                      .filter((payment) => payment.type === type)
+                      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0)
+
+                    return (
+                      <div key={type} className="flex justify-between gap-4">
+                        <span className="text-zinc-300">{type}</span>
+                        <span className="font-medium text-white">{formatMoney(total)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </SoftCard>
             </div>
 
@@ -1621,7 +1526,7 @@ export default function App() {
               <div className="space-y-3">
                 {recentEntries.map((entry) => (
                   <RecentOperationRow
-                    key={entry.id}
+                    key={entry.source === "appointment" ? `a-${entry.id}` : `o-${entry.id}`}
                     entry={entry}
                     onOpen={openFinancialEntry}
                   />
@@ -1631,7 +1536,6 @@ export default function App() {
           </>
         )}
 
-        {/* ================= SCHEDULE ================= */}
         {activeTab === "schedule" && (
           <>
             <SectionTitle
@@ -1647,8 +1551,11 @@ export default function App() {
               }
             />
 
-            <div className="flex items-center gap-2 mb-4">
-              <button onClick={() => shiftSelectedDate(-1)}>
+            <div className="mb-4 flex items-center gap-2">
+              <button
+                onClick={() => shiftSelectedDate(-1)}
+                className="rounded-[16px] bg-white/[0.05] p-3 ring-1 ring-white/8"
+              >
                 <ChevronLeftIcon />
               </button>
 
@@ -1657,7 +1564,10 @@ export default function App() {
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
 
-              <button onClick={() => shiftSelectedDate(1)}>
+              <button
+                onClick={() => shiftSelectedDate(1)}
+                className="rounded-[16px] bg-white/[0.05] p-3 ring-1 ring-white/8"
+              >
                 <ChevronRightIcon />
               </button>
             </div>
@@ -1671,36 +1581,39 @@ export default function App() {
                   <div
                     key={a.id}
                     onClick={() => openEditAppointmentModal(a)}
-                    className="rounded-[20px] bg-[#0b0c11] p-4 border border-white/5 cursor-pointer"
+                    className="cursor-pointer rounded-[20px] border border-white/5 bg-[#0b0c11] p-4"
                   >
-                    <div className="flex justify-between">
+                    <div className="flex justify-between gap-4">
                       <div>
                         <p className="text-sm text-zinc-400">
                           {a.startTime} – {a.endTime}
                         </p>
-                        <p className="text-lg font-semibold mt-1">
-                          {a.client}
-                        </p>
-                        <span className={`mt-2 inline-block px-2 py-1 text-xs rounded ${getStatusPillClass(a.status)}`}>
+                        <p className="mt-1 text-lg font-semibold">{a.client}</p>
+                        <span
+                          className={`mt-2 inline-block rounded px-2 py-1 text-xs ${getStatusPillClass(a.status)}`}
+                        >
                           {a.status}
                         </span>
                       </div>
 
                       <div className="text-right">
                         <p>{formatMoney(paid)}</p>
-                        <p className="text-xs text-zinc-500">
-                          из {formatMoney(total)}
-                        </p>
+                        <p className="text-xs text-zinc-500">из {formatMoney(total)}</p>
                       </div>
                     </div>
                   </div>
                 )
               })}
+
+              {selectedDateAppointments.length === 0 && (
+                <SoftCard className="p-5">
+                  <p className="text-zinc-400">На эту дату записей нет</p>
+                </SoftCard>
+              )}
             </div>
           </>
         )}
 
-        {/* ================= FINANCE ================= */}
         {activeTab === "operations" && (
           <>
             <SectionTitle title="Финансы" />
@@ -1708,7 +1621,7 @@ export default function App() {
             <div className="space-y-3">
               {selectedMonthEntries.map((entry) => (
                 <RecentOperationRow
-                  key={entry.id}
+                  key={entry.source === "appointment" ? `a-${entry.id}` : `o-${entry.id}`}
                   entry={entry}
                   onOpen={openFinancialEntry}
                 />
@@ -1717,26 +1630,77 @@ export default function App() {
           </>
         )}
 
-        {/* ================= ANALYTICS ================= */}
         {activeTab === "analytics" && (
           <>
             <SectionTitle title="Аналитика" />
 
-            <SoftCard className="p-5 h-[300px]">
-              <Bar data={chartData} options={chartOptions} />
-            </SoftCard>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <SoftCard className="h-[300px] p-5">
+                <Bar data={chartData} options={chartOptions} />
+              </SoftCard>
+
+              <SoftCard className="p-5">
+                <p className="text-sm text-zinc-400">Лучшие дни месяца</p>
+                <div className="mt-4 space-y-3">
+                  {dailyStats.bestDays.length > 0 ? (
+                    dailyStats.bestDays.map((day) => (
+                      <div key={day.dateKey} className="flex justify-between gap-4">
+                        <span className="text-zinc-300">{formatDisplayDate(day.dateKey)}</span>
+                        <span className="font-medium text-white">
+                          {formatMoney(day.amount)}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-zinc-500">Пока нет успешных дней</p>
+                  )}
+                </div>
+
+                <div className="mt-6 border-t border-white/8 pt-4">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-zinc-400">Пустых дней</span>
+                    <span className="text-white">{dailyStats.weakDays}</span>
+                  </div>
+                </div>
+              </SoftCard>
+            </div>
           </>
         )}
 
-        {/* ================= SETTINGS ================= */}
         {activeTab === "settings" && (
           <>
             <SectionTitle title="Настройки" />
 
             <div className="space-y-4">
+              <SoftCard className="p-5">
+                <p className="mb-2 text-sm text-zinc-400">Цель месяца</p>
+                <TextInput
+                  type="number"
+                  value={monthGoal}
+                  onChange={async (e) => {
+                    const numeric = Number(e.target.value)
+                    const nextGoal = numeric > 0 ? numeric : 0
+
+                    setMonthGoals((prev) => ({
+                      ...prev,
+                      [selectedMonth]: nextGoal,
+                    }))
+
+                    const { error } = await supabase.from("month_goals").upsert({
+                      month_key: selectedMonth,
+                      goal: nextGoal,
+                    })
+
+                    if (error) {
+                      console.error("Error saving month goal", error)
+                    }
+                  }}
+                />
+              </SoftCard>
+
               <button
                 onClick={deleteSelectedMonth}
-                className="bg-red-500 px-4 py-2 rounded"
+                className="rounded bg-red-500 px-4 py-2"
               >
                 Удалить месяц
               </button>
@@ -1745,32 +1709,42 @@ export default function App() {
         )}
       </main>
 
-      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onChange={setActiveTab} hidden={showAppointmentModal} />
 
-      {/* ================= APPOINTMENT SHEET ================= */}
       {showAppointmentModal && (
-        <div className="fixed inset-0 z-[999] bg-black/70">
-          <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-[520px] bg-white text-black rounded-t-[30px] p-4 max-h-[90vh] overflow-y-auto">
-
-            {/* HEADER */}
-            <div className="flex justify-between items-center mb-4">
-              <button onClick={() => setShowAppointmentModal(false)}>✕</button>
-              <h2 className="font-semibold">Запись</h2>
-              {editingAppointmentId && (
-                <button onClick={() => deleteAppointment(editingAppointmentId)}>
+        <div className="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm">
+          <div className="absolute bottom-0 left-0 right-0 mx-auto max-h-[90vh] max-w-[520px] overflow-y-auto rounded-t-[30px] border border-white/10 bg-[#0b0f17] p-4 text-white shadow-[0_-20px_60px_rgba(0,0,0,0.45)]">
+            <div className="mb-4 flex items-center justify-between">
+              <button
+                onClick={() => setShowAppointmentModal(false)}
+                className="rounded-[14px] bg-white/[0.06] px-3 py-2 text-sm text-white ring-1 ring-white/10"
+              >
+                ✕
+              </button>
+              <h2 className="font-semibold text-white">
+                {editingAppointmentId ? "Редактировать запись" : "Новая запись"}
+              </h2>
+              {editingAppointmentId ? (
+                <button
+                  onClick={() => deleteAppointment(editingAppointmentId)}
+                  className="rounded-[14px] bg-red-500/15 px-3 py-2 text-sm text-red-300 ring-1 ring-red-400/20"
+                >
                   🗑
                 </button>
+              ) : (
+                <div className="w-[42px]" />
               )}
             </div>
 
-            {/* STATUS */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {appointmentStatusOptions.map((s) => (
                 <button
                   key={s}
                   onClick={() => setAppointmentStatus(s)}
-                  className={`py-2 rounded ${
-                    appointmentStatus === s ? "bg-black text-white" : "bg-gray-200"
+                  className={`rounded-[16px] px-3 py-3 text-sm transition ${
+                    appointmentStatus === s
+                      ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white"
+                      : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/8"
                   }`}
                 >
                   {s}
@@ -1778,113 +1752,225 @@ export default function App() {
               ))}
             </div>
 
-            {/* CLIENT */}
-            <TextInput
-              placeholder="Имя"
-              value={appointmentClient}
-              onChange={(e) => setAppointmentClient(e.target.value)}
-            />
-            <div className="mt-2">
+            <div className="space-y-3">
+              <TextInput
+                placeholder="Имя клиента"
+                value={appointmentClient}
+                onChange={(e) => setAppointmentClient(e.target.value)}
+              />
+
               <TextInput
                 placeholder="Телефон"
                 value={appointmentPhone}
                 onChange={(e) => setAppointmentPhone(e.target.value)}
               />
+
+              <DateInput
+                value={appointmentDate}
+                onChange={(e) => setAppointmentDate(e.target.value)}
+              />
+
+              <SelectInput
+                value={appointmentOwner}
+                onChange={(e) => setAppointmentOwner(e.target.value as Owner)}
+              >
+                <option value="Азат">Азат</option>
+                <option value="Марс">Марс</option>
+              </SelectInput>
+
+              <div className="grid grid-cols-2 gap-2">
+                <TimeInput
+                  value={appointmentStartTime}
+                  onChange={(e) => setAppointmentStartTime(e.target.value)}
+                />
+                <TimeInput
+                  value={appointmentEndTime}
+                  onChange={(e) => setAppointmentEndTime(e.target.value)}
+                />
+              </div>
+
+              <TextInput
+                placeholder="Комментарий"
+                value={appointmentNote}
+                onChange={(e) => setAppointmentNote(e.target.value)}
+              />
             </div>
 
-            {/* TIME */}
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <TimeInput
-                value={appointmentStartTime}
-                onChange={(e) => setAppointmentStartTime(e.target.value)}
-              />
-              <TimeInput
-                value={appointmentEndTime}
-                onChange={(e) => setAppointmentEndTime(e.target.value)}
-              />
-            </div>
+            <div className="mt-5">
+              <p className="mb-3 text-sm text-zinc-400">Услуги</p>
 
-            {/* SERVICES */}
-            <div className="mt-4">
-              <p className="text-sm text-gray-500">Услуги</p>
-
-              {appointmentServices.map((s) => (
-                <div key={s.id} className="flex gap-2 mt-2">
-                  <SelectInput
-                    value={s.type}
-                    onChange={(e) =>
-                      updateAppointmentServiceRow(s.id, { type: e.target.value as ServiceType })
-                    }
+              <div className="space-y-3">
+                {appointmentServices.map((s) => (
+                  <div
+                    key={s.id}
+                    className="rounded-[20px] bg-white/[0.04] p-3 ring-1 ring-white/8"
                   >
-                    {serviceOptions.map((o) => (
-                      <option key={o}>{o}</option>
-                    ))}
-                  </SelectInput>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_130px_auto]">
+                      <SelectInput
+                        value={s.type}
+                        onChange={(e) =>
+                          updateAppointmentServiceRow(s.id, {
+                            type: e.target.value as ServiceType,
+                          })
+                        }
+                      >
+                        {serviceOptions.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </SelectInput>
 
-                  <TextInput
-                    placeholder="Сумма"
-                    value={s.amount}
-                    onChange={(e) =>
-                      updateAppointmentServiceRow(s.id, {
-                        amount: Number(e.target.value),
-                      })
-                    }
-                  />
+                      {s.type === "Запись" ? (
+                        <TextInput
+                          type="number"
+                          placeholder="Часы"
+                          value={s.hours}
+                          onChange={(e) =>
+                            updateAppointmentServiceRow(s.id, {
+                              hours: e.target.value === "" ? "" : Number(e.target.value),
+                            })
+                          }
+                        />
+                      ) : (
+                        <TextInput
+                          type="number"
+                          placeholder="Сумма"
+                          value={s.amount}
+                          onChange={(e) =>
+                            updateAppointmentServiceRow(s.id, {
+                              amount: Number(e.target.value),
+                            })
+                          }
+                        />
+                      )}
 
-                  <button onClick={() => removeAppointmentServiceRow(s.id)}>
-                    ✕
-                  </button>
-                </div>
-              ))}
+                      <button
+                        onClick={() => removeAppointmentServiceRow(s.id)}
+                        className="rounded-[16px] bg-red-500/15 px-4 py-3 text-red-300 ring-1 ring-red-400/20"
+                      >
+                        ✕
+                      </button>
+                    </div>
 
-              <button onClick={addAppointmentServiceRow} className="mt-2">
-                + Услуга
+                    <div className="mt-2 text-sm text-zinc-400">
+                      Сумма: {formatMoney(normalizeServiceRow(s).amount)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={addAppointmentServiceRow}
+                className="mt-3 rounded-[16px] bg-white/[0.05] px-4 py-3 text-sm text-white ring-1 ring-white/8"
+              >
+                + Добавить услугу
               </button>
             </div>
 
-            {/* PAYMENTS */}
-            <div className="mt-5 border-t pt-4">
-              <p>К оплате: {formatMoney(currentAppointmentServicesTotal - currentAppointmentPaymentsTotal)}</p>
+            <div className="mt-6 border-t border-white/10 pt-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-sm text-zinc-400">Оплаты</p>
+                <p className="text-sm text-zinc-300">
+                  Осталось к оплате:{" "}
+                  <span className="font-semibold text-white">
+                    {formatMoney(
+                      Math.max(
+                        currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                        0
+                      )
+                    )}
+                  </span>
+                </p>
+              </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-3">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() =>
-                    setAppointmentPayments([
-                      ...appointmentPayments,
+                    setAppointmentPayments((prev) => [
+                      ...prev,
                       {
                         id: makeId(),
                         type: "Нал",
-                        amount: currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                        amount: Math.max(
+                          currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                          0
+                        ),
                       },
                     ])
                   }
-                  className="bg-yellow-400 py-3 rounded"
+                  className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] py-3 font-medium text-white"
                 >
-                  Нал
+                  + Нал
                 </button>
 
                 <button
                   onClick={() =>
-                    setAppointmentPayments([
-                      ...appointmentPayments,
+                    setAppointmentPayments((prev) => [
+                      ...prev,
                       {
                         id: makeId(),
                         type: "Карта",
-                        amount: currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                        amount: Math.max(
+                          currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
+                          0
+                        ),
                       },
                     ])
                   }
-                  className="bg-yellow-400 py-3 rounded"
+                  className="rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] py-3 font-medium text-white"
                 >
-                  Карта
+                  + Карта
                 </button>
+              </div>
+
+              <div className="mt-3 space-y-3">
+                {appointmentPayments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="grid grid-cols-[1fr_1fr_auto] gap-2 rounded-[20px] bg-white/[0.04] p-3 ring-1 ring-white/8"
+                  >
+                    <SelectInput
+                      value={payment.type}
+                      onChange={(e) =>
+                        updateAppointmentPaymentRow(payment.id, {
+                          type: e.target.value as PaymentType,
+                        })
+                      }
+                    >
+                      <option value="Нал">Нал</option>
+                      <option value="Карта">Карта</option>
+                    </SelectInput>
+
+                    <TextInput
+                      type="number"
+                      placeholder="Сумма"
+                      value={payment.amount}
+                      onChange={(e) =>
+                        updateAppointmentPaymentRow(payment.id, {
+                          amount: Number(e.target.value),
+                        })
+                      }
+                    />
+
+                    <button
+                      onClick={() =>
+                        setAppointmentPayments((prev) =>
+                          prev.filter((item) => item.id !== payment.id)
+                        )
+                      }
+                      className="rounded-[16px] bg-red-500/15 px-4 py-3 text-red-300 ring-1 ring-red-400/20"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* SAVE */}
             <button
               onClick={saveAppointment}
-              className="mt-5 w-full bg-black text-white py-3 rounded"
+              className="mt-5 w-full rounded-[18px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] py-4 font-semibold text-white shadow-[0_18px_38px_rgba(79,101,255,0.34)]"
             >
               Сохранить
             </button>
