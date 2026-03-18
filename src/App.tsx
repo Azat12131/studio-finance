@@ -81,6 +81,7 @@ type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
 
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 50000
+
 const serviceOptions: ServiceType[] = [
   "Запись",
   "Сведение",
@@ -89,6 +90,10 @@ const serviceOptions: ServiceType[] = [
   "Другое",
 ]
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
+
+function cn(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(" ")
+}
 
 function makeId() {
   return Date.now() + Math.floor(Math.random() * 100000)
@@ -274,16 +279,22 @@ function appointmentToFinancialEntry(appointment: Appointment): FinancialEntry {
 }
 
 function getStatusPillClass(status: AppointmentStatus) {
-  if (status === "Ожидание") return "bg-white/[0.05] text-zinc-200 ring-1 ring-white/10"
-  if (status === "Подтвердил")
-    return "bg-sky-500/10 text-sky-200 ring-1 ring-sky-400/15"
-  if (status === "Пришел")
-    return "bg-emerald-500/12 text-emerald-200 ring-1 ring-emerald-400/15"
-  return "bg-rose-500/12 text-rose-200 ring-1 ring-rose-400/15"
+  if (status === "Ожидание") {
+    return "bg-white/[0.06] text-zinc-200 ring-1 ring-white/10"
+  }
+  if (status === "Подтвердил") {
+    return "bg-sky-400/12 text-sky-200 ring-1 ring-sky-300/20"
+  }
+  if (status === "Пришел") {
+    return "bg-emerald-400/12 text-emerald-200 ring-1 ring-emerald-300/20"
+  }
+  return "bg-rose-400/12 text-rose-200 ring-1 ring-rose-300/20"
 }
 
-function getOwnerAccent(owner: Owner) {
-  return owner === "Азат" ? "from-sky-400 to-indigo-400" : "from-violet-400 to-indigo-400"
+function getOwnerGlow(owner: Owner) {
+  return owner === "Азат"
+    ? "from-[#67d7ff] via-[#6e8dff] to-[#885dff]"
+    : "from-[#60a5fa] via-[#7c3aed] to-[#a855f7]"
 }
 
 function getProgressWidth(value: number, total: number) {
@@ -291,21 +302,9 @@ function getProgressWidth(value: number, total: number) {
   return Math.max(0, Math.min(100, (value / total) * 100))
 }
 
-function cn(...values: Array<string | false | null | undefined>) {
-  return values.filter(Boolean).join(" ")
-}
-
 function HomeIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5.5 9.5V20h13V9.5" />
       <path d="M10 20v-5h4v5" />
@@ -315,15 +314,7 @@ function HomeIcon() {
 
 function ReceiptIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5L5 21V5a2 2 0 0 1 2-2Z" />
       <path d="M9 8h6" />
       <path d="M9 12h6" />
@@ -333,15 +324,7 @@ function ReceiptIcon() {
 
 function ChartIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 20V10" />
       <path d="M10 20V4" />
       <path d="M16 20v-7" />
@@ -352,15 +335,7 @@ function ChartIcon() {
 
 function SettingsIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 3.5 13.8 5l2.4-.3.8 2.3 2 1.3-1 2 1 2-2 1.3-.8 2.3-2.4-.3L12 20.5l-1.8-1.5-2.4.3-.8-2.3-2-1.3 1-2-1-2 2-1.3.8-2.3 2.4.3L12 3.5Z" />
       <circle cx="12" cy="12" r="3.2" />
     </svg>
@@ -369,15 +344,7 @@ function SettingsIcon() {
 
 function CalendarIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="5" width="18" height="16" rx="3" />
       <path d="M16 3v4" />
       <path d="M8 3v4" />
@@ -388,15 +355,7 @@ function CalendarIcon() {
 
 function ChevronLeftIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m15 18-6-6 6-6" />
     </svg>
   )
@@ -404,15 +363,7 @@ function ChevronLeftIcon() {
 
 function ChevronRightIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="m9 18 6-6-6-6" />
     </svg>
   )
@@ -420,15 +371,7 @@ function ChevronRightIcon() {
 
 function CloseIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[16px] w-[16px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </svg>
@@ -437,15 +380,7 @@ function CloseIcon() {
 
 function ClockIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[16px] w-[16px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 7.5V12l3 1.8" />
     </svg>
@@ -454,15 +389,7 @@ function ClockIcon() {
 
 function UserIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
       <path d="M5 20a7 7 0 0 1 14 0" />
     </svg>
@@ -471,15 +398,7 @@ function UserIcon() {
 
 function PhoneIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.85"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 16.92v2a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07A19.5 19.5 0 0 1 5.15 11.8 19.86 19.86 0 0 1 2.08 3.09 2 2 0 0 1 4.06.92h2a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.62a2 2 0 0 1-.45 2.11L7.1 8.91a16 16 0 0 0 8 8l1.54-1.14a2 2 0 0 1 2.11-.45c.84.3 1.72.51 2.62.63A2 2 0 0 1 22 16.92Z" />
     </svg>
   )
@@ -487,15 +406,7 @@ function PhoneIcon() {
 
 function PlusIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[18px] w-[18px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[20px] w-[20px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 5v14" />
       <path d="M5 12h14" />
     </svg>
@@ -504,15 +415,7 @@ function PlusIcon() {
 
 function TrashIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[16px] w-[16px]"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
+    <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 6h18" />
       <path d="M8 6V4h8v2" />
       <path d="m19 6-1 14H6L5 6" />
@@ -522,51 +425,19 @@ function TrashIcon() {
   )
 }
 
-function ShellCard({
+function GlassCard({
   children,
   className = "",
+  glow = false,
 }: {
   children: React.ReactNode
   className?: string
+  glow?: boolean
 }) {
   return (
-    <div className={cn("ui-card animate-in", className)}>
+    <div className={cn("glass-card animate-fade-up", glow && "glass-card-glow", className)}>
       {children}
     </div>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  hint,
-  accent = "neutral",
-}: {
-  label: string
-  value: string
-  hint?: string
-  accent?: "neutral" | "good" | "brand" | "danger"
-}) {
-  return (
-    <ShellCard className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[13px] font-medium text-zinc-400">{label}</p>
-          <p
-            className={cn(
-              "mt-3 text-[30px] font-semibold tracking-[-0.03em]",
-              accent === "good" && "text-emerald-300",
-              accent === "brand" && "text-white",
-              accent === "neutral" && "text-white",
-              accent === "danger" && "text-rose-300"
-            )}
-          >
-            {value}
-          </p>
-          {hint ? <p className="mt-2 text-sm text-zinc-500">{hint}</p> : null}
-        </div>
-      </div>
-    </ShellCard>
   )
 }
 
@@ -582,7 +453,7 @@ function SectionTitle({
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="truncate text-[28px] font-semibold tracking-[-0.035em] text-white sm:text-[32px]">
+        <h1 className="truncate text-[30px] font-semibold tracking-[-0.045em] text-white sm:text-[36px]">
           {title}
         </h1>
         {subtitle ? <p className="mt-1.5 text-sm text-zinc-400">{subtitle}</p> : null}
@@ -598,19 +469,19 @@ function PrimaryButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={cn("ui-btn ui-btn-primary", className)}>
+    <button {...props} className={cn("btn-primary", className)}>
       {children}
     </button>
   )
 }
 
-function SecondaryButton({
+function GhostButton({
   children,
   className = "",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={cn("ui-btn ui-btn-secondary", className)}>
+    <button {...props} className={cn("btn-ghost", className)}>
       {children}
     </button>
   )
@@ -622,7 +493,7 @@ function IconButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={cn("ui-icon-btn", className)}>
+    <button {...props} className={cn("icon-button", className)}>
       {children}
     </button>
   )
@@ -630,7 +501,6 @@ function IconButton({
 
 function TextInput({
   className = "",
-  style,
   placeholder,
   onFocus,
   onBlur,
@@ -653,10 +523,7 @@ function TextInput({
         setIsFocused(false)
         onBlur?.(e)
       }}
-      style={{
-        ...style,
-      }}
-      className={cn("ui-input", className)}
+      className={cn("field-input", className)}
     />
   )
 }
@@ -682,7 +549,7 @@ function TextArea({
         setIsFocused(false)
         onBlur?.(e)
       }}
-      className={cn("ui-textarea", className)}
+      className={cn("field-textarea", className)}
     />
   )
 }
@@ -697,7 +564,7 @@ function ProgressLine({
   colorClassName: string
 }) {
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
+    <div className="h-[10px] w-full overflow-hidden rounded-full bg-white/[0.08]">
       <div
         className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-500", colorClassName)}
         style={{ width: `${getProgressWidth(value, total)}%` }}
@@ -726,10 +593,10 @@ function MonthTabs({
                 key={monthKey}
                 onClick={() => onChange(monthKey)}
                 className={cn(
-                  "rounded-full px-4 py-2.5 text-sm font-medium capitalize transition",
+                  "rounded-full px-4 py-2.5 text-sm font-medium capitalize transition duration-200",
                   active
-                    ? "bg-white text-black shadow-[0_8px_30px_rgba(255,255,255,0.14)]"
-                    : "bg-white/[0.04] text-zinc-300 ring-1 ring-white/8 hover:bg-white/[0.06] hover:text-white"
+                    ? "bg-white text-black shadow-[0_10px_30px_rgba(255,255,255,0.16)]"
+                    : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/10 hover:bg-white/[0.08] hover:text-white"
                 )}
               >
                 {formatMonthLabel(monthKey)}
@@ -742,6 +609,35 @@ function MonthTabs({
   )
 }
 
+function StatMini({
+  label,
+  value,
+  sub,
+  accent = "default",
+}: {
+  label: string
+  value: string
+  sub?: string
+  accent?: "default" | "good" | "danger"
+}) {
+  return (
+    <GlassCard className="p-5">
+      <p className="text-[13px] font-medium text-zinc-400">{label}</p>
+      <p
+        className={cn(
+          "mt-3 text-[30px] font-semibold tracking-[-0.04em]",
+          accent === "good" && "text-emerald-300",
+          accent === "danger" && "text-rose-300",
+          accent === "default" && "text-white"
+        )}
+      >
+        {value}
+      </p>
+      {sub ? <p className="mt-2 text-sm text-zinc-500">{sub}</p> : null}
+    </GlassCard>
+  )
+}
+
 function RecentOperationRow({
   entry,
   onOpen,
@@ -749,28 +645,25 @@ function RecentOperationRow({
   entry: FinancialEntry
   onOpen: (entry: FinancialEntry) => void
 }) {
-  const payment = getPaymentsTotal(entry)
-  const serviceCount = entry.services.length
-
   return (
     <button
       onClick={() => onOpen(entry)}
-      className="group flex w-full min-w-0 items-center justify-between gap-4 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-4 text-left transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.045] hover:border-white/12"
+      className="group flex w-full min-w-0 items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-white/[0.04] px-4 py-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.06] hover:shadow-[0_16px_50px_rgba(47,120,255,0.12)]"
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">
           <p className="truncate text-[15px] font-medium text-white">{entry.client}</p>
-          <span className="rounded-full bg-white/[0.04] px-2 py-1 text-[11px] text-zinc-400 ring-1 ring-white/8">
+          <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] text-zinc-400 ring-1 ring-white/10">
             {entry.owner}
           </span>
         </div>
         <p className="mt-1 text-sm text-zinc-500">
-          {formatDisplayDate(entry.date)} · {serviceCount} усл.
+          {formatDisplayDate(entry.date)} · {entry.services.length} усл.
         </p>
       </div>
 
       <div className="shrink-0 text-right">
-        <p className="text-[16px] font-semibold text-white">{formatMoney(payment)}</p>
+        <p className="text-[16px] font-semibold text-white">{formatMoney(getPaymentsTotal(entry))}</p>
         <p className="mt-1 text-xs text-zinc-500">
           {entry.source === "appointment" ? "Запись" : "Операция"}
         </p>
@@ -797,7 +690,7 @@ function CompactField({
   return (
     <Comp
       {...(onClick ? { onClick, type: "button" as const } : {})}
-      className={cn("ui-input flex h-[56px] items-center gap-3 px-4 text-left", className)}
+      className={cn("field-input flex h-[56px] items-center gap-3 px-4 text-left", className)}
     >
       {icon ? <div className="shrink-0 text-zinc-400">{icon}</div> : null}
       <div className="min-w-0 flex-1">
@@ -865,63 +758,6 @@ function ModalTimeField({
   )
 }
 
-function PickerSheet<T extends string>({
-  open,
-  title,
-  options,
-  value,
-  onSelect,
-  onClose,
-}: {
-  open: boolean
-  title: string
-  options: readonly T[]
-  value: T
-  onSelect: (value: T) => void
-  onClose: () => void
-}) {
-  if (!open) return null
-
-  return (
-    <div className="fixed inset-0 z-[1200] bg-black/60 backdrop-blur-sm">
-      <div className="absolute inset-0" onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[28px] border border-white/10 bg-[#0f1117] px-4 pb-6 pt-4 shadow-[0_-20px_80px_rgba(0,0,0,0.48)] animate-sheet-in">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/14" />
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-base font-semibold text-white">{title}</p>
-          <IconButton onClick={onClose} className="h-9 w-9 rounded-full">
-            <CloseIcon />
-          </IconButton>
-        </div>
-
-        <div className="space-y-2">
-          {options.map((option) => {
-            const active = option === value
-            return (
-              <button
-                key={option}
-                onClick={() => {
-                  onSelect(option)
-                  onClose()
-                }}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-[18px] px-4 py-4 text-left transition",
-                  active
-                    ? "bg-white text-black"
-                    : "bg-white/[0.04] text-zinc-200 ring-1 ring-white/8 hover:bg-white/[0.06]"
-                )}
-              >
-                <span>{option}</span>
-                {active ? <span className="text-sm text-black/60">Выбрано</span> : null}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function NativeDateButton({
   value,
   onChange,
@@ -943,11 +779,107 @@ function NativeDateButton({
       <CompactField
         value={formatCompactDate(value)}
         placeholder="Выбрать дату"
-        onClick={() => inputRef.current?.showPicker?.() ?? inputRef.current?.click()}
         icon={<CalendarIcon />}
+        onClick={() => inputRef.current?.showPicker?.() ?? inputRef.current?.click()}
       />
     </>
   )
+}
+
+function PickerSheet<T extends string>({
+  open,
+  title,
+  options,
+  value,
+  onSelect,
+  onClose,
+}: {
+  open: boolean
+  title: string
+  options: readonly T[]
+  value: T
+  onSelect: (value: T) => void
+  onClose: () => void
+}) {
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-[1200] bg-black/64 backdrop-blur-sm">
+      <div className="absolute inset-0" onClick={onClose} />
+      <div className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[32px] border border-white/10 bg-[#0b101a]/95 px-4 pb-6 pt-4 shadow-[0_-24px_80px_rgba(0,0,0,0.56)] backdrop-blur-2xl animate-sheet-in">
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/15" />
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-base font-semibold text-white">{title}</p>
+          <IconButton onClick={onClose} className="h-9 w-9 rounded-full">
+            <CloseIcon />
+          </IconButton>
+        </div>
+
+        <div className="space-y-2">
+          {options.map((option) => {
+            const active = option === value
+            return (
+              <button
+                key={option}
+                onClick={() => {
+                  onSelect(option)
+                  onClose()
+                }}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-[18px] px-4 py-4 text-left transition",
+                  active
+                    ? "bg-white text-black shadow-[0_12px_30px_rgba(255,255,255,0.14)]"
+                    : "bg-white/[0.04] text-zinc-200 ring-1 ring-white/8 hover:bg-white/[0.06]"
+                )}
+              >
+                <span>{option}</span>
+                {active ? <span className="text-sm text-black/60">Выбрано</span> : null}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function SegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly { value: T; label: string }[]
+  value: T
+  onChange: (value: T) => void
+}) {
+  return (
+    <div className="rounded-[18px] border border-white/10 bg-white/[0.04] p-1 backdrop-blur-xl">
+      <div style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }} className="grid gap-1">
+        {options.map((option) => {
+          const active = option.value === value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={cn(
+                "min-h-[48px] rounded-[14px] px-3 text-[14px] font-medium transition",
+                active
+                  ? "bg-white text-black shadow-[0_10px_25px_rgba(255,255,255,0.12)]"
+                  : "text-zinc-300 hover:bg-white/[0.06]"
+              )}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function FormLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 text-[13px] font-medium text-zinc-400">{children}</p>
 }
 
 function SidebarNav({
@@ -972,18 +904,20 @@ function SidebarNav({
   ]
 
   return (
-    <aside className="hidden w-[280px] shrink-0 border-r border-white/6 bg-[#0b0d12]/90 px-5 py-6 backdrop-blur-xl lg:flex lg:flex-col">
+    <aside className="hidden w-[290px] shrink-0 border-r border-white/6 bg-[rgba(7,11,18,0.68)] px-5 py-6 backdrop-blur-[30px] lg:flex lg:flex-col">
       <div className="mb-8 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/8">
-          <img src={logo} alt="logo" className="h-6 w-auto object-contain opacity-95" />
+        <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/10 bg-white/[0.06] shadow-[0_10px_35px_rgba(62,120,255,0.14)]">
+          <div className="pointer-events-none absolute inset-0 rounded-[18px] bg-[radial-gradient(circle_at_top_left,rgba(113,234,255,0.22),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(112,90,255,0.18),transparent_42%)]" />
+          <img src={logo} alt="logo" className="relative h-6 w-auto object-contain opacity-95" />
         </div>
+
         <div>
           <p className="text-[15px] font-semibold text-white">Studio CRM</p>
-          <p className="text-xs text-zinc-500">Premium workspace</p>
+          <p className="text-xs text-zinc-500">Neo glass workspace</p>
         </div>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-2">
         {items.map((item) => {
           const active = item.key === activeTab
           return (
@@ -991,10 +925,10 @@ function SidebarNav({
               key={item.key}
               onClick={() => onChange(item.key)}
               className={cn(
-                "flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium transition",
+                "relative flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium transition duration-200",
                 active
-                  ? "bg-white text-black shadow-[0_10px_30px_rgba(255,255,255,0.12)]"
-                  : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"
+                  ? "bg-white text-black shadow-[0_12px_32px_rgba(255,255,255,0.14)]"
+                  : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
               )}
             >
               {item.icon}
@@ -1010,17 +944,19 @@ function SidebarNav({
           Новая запись
         </PrimaryButton>
 
-        <SecondaryButton onClick={onCreateMonth} className="w-full justify-center">
+        <GhostButton onClick={onCreateMonth} className="w-full justify-center">
           <PlusIcon />
           Новый месяц
-        </SecondaryButton>
+        </GhostButton>
       </div>
 
-      <div className="mt-auto rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-        <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">Система</p>
-        <p className="mt-2 text-sm text-zinc-300">
-          Чистый интерфейс, быстрый доступ и фокус на ежедневной работе.
-        </p>
+      <div className="mt-auto">
+        <GlassCard className="p-4">
+          <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Система</p>
+          <p className="mt-2 text-sm text-zinc-300">
+            Темный тактильный интерфейс с акцентом на деньги, фокус и скорость.
+          </p>
+        </GlassCard>
       </div>
     </aside>
   )
@@ -1029,87 +965,52 @@ function SidebarNav({
 function BottomNav({
   activeTab,
   onChange,
+  onAdd,
   hidden = false,
 }: {
   activeTab: AppTab
   onChange: (tab: AppTab) => void
+  onAdd: () => void
   hidden?: boolean
 }) {
   if (hidden) return null
 
   const itemClass = (tab: AppTab) =>
     cn(
-      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-[11px] transition",
-      activeTab === tab ? "bg-white text-black" : "text-zinc-400"
+      "flex h-[54px] w-[54px] items-center justify-center rounded-full transition duration-200",
+      activeTab === tab
+        ? "bg-[#5e8cff] text-white shadow-[0_0_0_8px_rgba(94,140,255,0.13),0_16px_36px_rgba(67,114,255,0.38)]"
+        : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"
     )
 
   return (
-    <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[700] flex justify-center lg:hidden">
-      <div className="pointer-events-auto mx-4 flex w-[calc(100%-32px)] max-w-[480px] items-center gap-2 rounded-[26px] border border-white/10 bg-[#0d0f15]/86 p-2 shadow-[0_20px_80px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+    <div className="pointer-events-none fixed bottom-5 left-0 right-0 z-[700] flex justify-center lg:hidden">
+      <div className="pointer-events-auto relative flex w-[calc(100%-28px)] max-w-[430px] items-center justify-between rounded-[28px] border border-white/10 bg-[rgba(11,13,20,0.82)] px-4 py-3 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-[28px]">
         <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
           <HomeIcon />
-          <span>Главная</span>
         </button>
 
         <button className={itemClass("schedule")} onClick={() => onChange("schedule")}>
           <CalendarIcon />
-          <span>График</span>
+        </button>
+
+        <button
+          onClick={onAdd}
+          className="relative -mt-10 flex h-[64px] w-[64px] items-center justify-center rounded-full bg-[#7CFF4D] text-black shadow-[0_0_0_10px_rgba(124,255,77,0.12),0_18px_50px_rgba(124,255,77,0.38)] transition duration-200 active:scale-[0.97]"
+        >
+          <PlusIcon />
         </button>
 
         <button className={itemClass("operations")} onClick={() => onChange("operations")}>
           <ReceiptIcon />
-          <span>Финансы</span>
         </button>
 
         <button className={itemClass("analytics")} onClick={() => onChange("analytics")}>
           <ChartIcon />
-          <span>График</span>
-        </button>
-
-        <button className={itemClass("settings")} onClick={() => onChange("settings")}>
-          <SettingsIcon />
-          <span>Ещё</span>
         </button>
       </div>
     </div>
   )
-}
-
-function SegmentedControl<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: readonly { value: T; label: string }[]
-  value: T
-  onChange: (value: T) => void
-}) {
-  return (
-    <div className="rounded-[18px] border border-white/8 bg-white/[0.03] p-1">
-      <div className={`grid gap-1`} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
-        {options.map((option) => {
-          const active = option.value === value
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onChange(option.value)}
-              className={cn(
-                "min-h-[48px] rounded-[14px] px-3 text-[14px] font-medium transition",
-                active ? "bg-white text-black" : "text-zinc-300 hover:bg-white/[0.05]"
-              )}
-            >
-              {option.label}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function FormLabel({ children }: { children: React.ReactNode }) {
-  return <p className="mb-2 text-[13px] font-medium text-zinc-400">{children}</p>
 }
 
 export default function App() {
@@ -1359,11 +1260,11 @@ export default function App() {
         : 0
 
     const colors = values.map((item) => {
-      if (item.amount === 0) return "rgba(255,255,255,0.12)"
+      if (item.amount === 0) return "rgba(255,255,255,0.10)"
       if (positiveAverage > 0 && item.amount < positiveAverage * 0.6) {
-        return "rgba(129,140,248,0.72)"
+        return "rgba(94,140,255,0.62)"
       }
-      return "rgba(56,189,248,0.88)"
+      return "rgba(104,255,219,0.82)"
     })
 
     const bestDays = [...values]
@@ -1397,7 +1298,7 @@ export default function App() {
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 800,
+        duration: 850,
         easing: "easeOutQuart",
       },
       plugins: {
@@ -1405,7 +1306,7 @@ export default function App() {
           display: false,
         },
         tooltip: {
-          backgroundColor: "rgba(10,12,16,0.96)",
+          backgroundColor: "rgba(8,11,17,0.96)",
           borderColor: "rgba(255,255,255,0.08)",
           borderWidth: 1,
           titleColor: "#fff",
@@ -1880,9 +1781,11 @@ export default function App() {
     appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
   return (
-    <div className="min-h-screen bg-[#080a0f] text-white">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.10),transparent_28%),linear-gradient(180deg,#07090d_0%,#090b10_100%)]" />
-      <div className="fixed inset-0 -z-10 opacity-[0.028] [background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.9)_0.6px,transparent_0.8px),radial-gradient(circle_at_80%_40%,rgba(255,255,255,0.6)_0.6px,transparent_0.8px),radial-gradient(circle_at_40%_80%,rgba(255,255,255,0.75)_0.6px,transparent_0.8px)] [background-size:170px_170px,210px_210px,190px_190px]" />
+    <div className="min-h-screen overflow-x-hidden bg-[#05070b] text-white">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(105,225,255,0.13),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(110,102,255,0.16),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(133,255,218,0.10),transparent_30%),linear-gradient(180deg,#04060a_0%,#060913_42%,#04060b_100%)]" />
+      <div className="pointer-events-none fixed left-[-120px] top-[8%] -z-10 h-[360px] w-[360px] rounded-full bg-[#69e1ff]/10 blur-[90px]" />
+      <div className="pointer-events-none fixed right-[-100px] top-[14%] -z-10 h-[340px] w-[340px] rounded-full bg-[#705dff]/14 blur-[100px]" />
+      <div className="pointer-events-none fixed bottom-[-100px] left-[25%] -z-10 h-[320px] w-[320px] rounded-full bg-[#63ffd8]/8 blur-[90px]" />
 
       <div className="flex min-h-screen w-full">
         <SidebarNav
@@ -1893,12 +1796,12 @@ export default function App() {
           logo={logoWhite}
         />
 
-        <main className="min-w-0 flex-1 px-4 pb-28 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
+        <main className="min-w-0 flex-1 px-4 pb-32 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
           {activeTab === "dashboard" && (
             <>
               <SectionTitle
                 title="Главная"
-                subtitle="Финансовый срез, прогресс и ключевые показатели месяца"
+                subtitle="Финансовый обзор, прогресс и ключевые показатели"
                 action={
                   <PrimaryButton onClick={openCreateAppointmentModal} className="hidden sm:inline-flex">
                     <PlusIcon />
@@ -1914,20 +1817,24 @@ export default function App() {
               />
 
               <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-                <ShellCard className="p-5 sm:p-6">
-                  <div className="flex items-start justify-between gap-4">
+                <GlassCard glow className="relative overflow-hidden p-5 sm:p-6">
+                  <div className="pointer-events-none absolute right-[-40px] top-[-50px] h-[180px] w-[180px] rounded-full bg-[#69e1ff]/14 blur-[70px]" />
+                  <div className="pointer-events-none absolute bottom-[-50px] left-[35%] h-[160px] w-[160px] rounded-full bg-[#705dff]/12 blur-[72px]" />
+
+                  <div className="relative z-[1] flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-sm text-zinc-400">Месячный прогресс</p>
-                      <h2 className="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-white sm:text-[28px]">
+                      <p className="text-sm text-zinc-400">Доход за месяц</p>
+                      <h2 className="mt-3 text-[42px] font-semibold tracking-[-0.06em] text-white sm:text-[54px]">
                         {formatMoney(monthIncome)}
                       </h2>
                     </div>
-                    <div className="rounded-full bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 ring-1 ring-white/8">
+
+                    <div className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-zinc-300 backdrop-blur-xl">
                       {formatMonthLabel(selectedMonth)}
                     </div>
                   </div>
 
-                  <div className="mt-6 space-y-6">
+                  <div className="relative z-[1] mt-8 grid gap-5 md:grid-cols-2">
                     <div>
                       <div className="mb-3 flex items-center justify-between gap-3">
                         <span className="text-sm text-zinc-400">Цель месяца</span>
@@ -1936,11 +1843,11 @@ export default function App() {
                       <ProgressLine
                         value={monthIncome}
                         total={monthGoal}
-                        colorClassName="from-sky-400 to-indigo-400"
+                        colorClassName="from-[#67d7ff] via-[#6e8dff] to-[#885dff]"
                       />
                       <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-500">
-                        <span>Собрано</span>
-                        <span>{formatMoney(monthIncome)}</span>
+                        <span>Осталось</span>
+                        <span>{formatMoney(leftToMonthGoal)}</span>
                       </div>
                     </div>
 
@@ -1952,7 +1859,7 @@ export default function App() {
                       <ProgressLine
                         value={monthIncome}
                         total={RENT_GOAL}
-                        colorClassName="from-emerald-400 to-teal-400"
+                        colorClassName="from-[#63ffd8] via-[#57d9ff] to-[#5e8cff]"
                       />
                       <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-500">
                         <span>Осталось до аренды</span>
@@ -1960,57 +1867,65 @@ export default function App() {
                       </div>
                     </div>
                   </div>
-                </ShellCard>
+                </GlassCard>
 
-                <ShellCard className="p-5 sm:p-6">
-                  <p className="text-sm text-zinc-400">Кто сколько заработал</p>
-                  <div className="mt-5 space-y-4">
+                <GlassCard className="p-5 sm:p-6">
+                  <div className="mb-4">
+                    <p className="text-sm text-zinc-400">Кто сколько заработал</p>
+                    <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-white">
+                      Разрез по владельцам
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
                     {[
                       { owner: "Азат" as Owner, value: azatIncome },
                       { owner: "Марс" as Owner, value: marsIncome },
                     ].map((item) => (
                       <div
                         key={item.owner}
-                        className="rounded-[20px] border border-white/8 bg-white/[0.03] p-4"
+                        className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
                       >
-                        <div className="flex items-center justify-between gap-4">
-                          <span className="text-[15px] text-zinc-300">{item.owner}</span>
-                          <span className="text-[22px] font-semibold tracking-[-0.02em] text-white">
-                            {formatMoney(item.value)}
-                          </span>
-                        </div>
-                        <div className="mt-3">
-                          <ProgressLine
-                            value={item.value}
-                            total={Math.max(monthIncome, 1)}
-                            colorClassName={getOwnerAccent(item.owner)}
-                          />
+                        <div className={cn("pointer-events-none absolute inset-0 opacity-35 bg-gradient-to-br", getOwnerGlow(item.owner))} />
+                        <div className="relative z-[1]">
+                          <div className="flex items-center justify-between gap-4">
+                            <span className="text-[15px] text-zinc-200">{item.owner}</span>
+                            <span className="text-[26px] font-semibold tracking-[-0.04em] text-white">
+                              {formatMoney(item.value)}
+                            </span>
+                          </div>
+                          <div className="mt-3">
+                            <ProgressLine
+                              value={item.value}
+                              total={Math.max(monthIncome, 1)}
+                              colorClassName={getOwnerGlow(item.owner)}
+                            />
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </ShellCard>
+                </GlassCard>
               </div>
 
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <StatCard
+                <StatMini
                   label="Осталось до цели"
                   value={formatMoney(leftToMonthGoal)}
-                  hint="Сколько не хватает до плана"
-                  accent="brand"
+                  sub="Сколько не хватает до плана"
                 />
-                <StatCard
+                <StatMini
                   label="Чистая прибыль"
                   value={formatMoney(profitAfterRent)}
-                  hint="Доход минус аренда"
+                  sub="Доход минус аренда"
                   accent={profitAfterRent >= 0 ? "good" : "danger"}
                 />
-                <StatCard
+                <StatMini
                   label="Лучший клиент"
                   value={topClient ? topClient[0] : "Нет данных"}
-                  hint={topClient ? formatMoney(topClient[1]) : "Пока нет лидера"}
+                  sub={topClient ? formatMoney(topClient[1]) : "Пока нет лидера"}
                 />
-                <ShellCard className="p-5">
+                <GlassCard className="p-5">
                   <p className="text-[13px] font-medium text-zinc-400">Топ услуг</p>
                   <div className="mt-4 space-y-3">
                     {serviceRevenueRows.length > 0 ? (
@@ -2024,7 +1939,7 @@ export default function App() {
                       <p className="text-sm text-zinc-500">Пока нет данных</p>
                     )}
                   </div>
-                </ShellCard>
+                </GlassCard>
               </div>
             </>
           )}
@@ -2033,7 +1948,7 @@ export default function App() {
             <>
               <SectionTitle
                 title="График"
-                subtitle="Ежедневная запись клиентов"
+                subtitle="Записи на выбранную дату"
                 action={
                   <PrimaryButton onClick={openCreateAppointmentModal}>
                     <PlusIcon />
@@ -2042,7 +1957,7 @@ export default function App() {
                 }
               />
 
-              <ShellCard className="mb-4 p-3 sm:p-4">
+              <GlassCard className="mb-4 p-3 sm:p-4">
                 <div className="flex items-center gap-2">
                   <IconButton onClick={() => shiftSelectedDate(-1)}>
                     <ChevronLeftIcon />
@@ -2056,7 +1971,7 @@ export default function App() {
                     <ChevronRightIcon />
                   </IconButton>
                 </div>
-              </ShellCard>
+              </GlassCard>
 
               <div className="space-y-3">
                 {selectedDateAppointments.map((a) => {
@@ -2067,12 +1982,12 @@ export default function App() {
                     <button
                       key={a.id}
                       onClick={() => openEditAppointmentModal(a)}
-                      className="group block w-full rounded-[24px] border border-white/8 bg-white/[0.03] p-4 text-left transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.05]"
+                      className="group block w-full rounded-[26px] border border-white/10 bg-white/[0.05] p-4 text-left shadow-[0_12px_36px_rgba(0,0,0,0.2)] backdrop-blur-xl transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.07] hover:shadow-[0_20px_50px_rgba(65,110,255,0.12)]"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-zinc-400 ring-1 ring-white/8">
+                            <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] text-zinc-400 ring-1 ring-white/10">
                               {a.startTime} — {a.endTime}
                             </span>
                             <span
@@ -2089,7 +2004,7 @@ export default function App() {
                             </span>
                           </div>
 
-                          <p className="mt-3 truncate text-[18px] font-semibold tracking-[-0.02em] text-white">
+                          <p className="mt-3 truncate text-[20px] font-semibold tracking-[-0.03em] text-white">
                             {a.client}
                           </p>
 
@@ -2100,7 +2015,9 @@ export default function App() {
                         </div>
 
                         <div className="shrink-0 text-right">
-                          <p className="text-[18px] font-semibold text-white">{formatMoney(paid)}</p>
+                          <p className="text-[20px] font-semibold tracking-[-0.03em] text-white">
+                            {formatMoney(paid)}
+                          </p>
                           <p className="mt-1 text-xs text-zinc-500">из {formatMoney(total)}</p>
                         </div>
                       </div>
@@ -2109,12 +2026,10 @@ export default function App() {
                 })}
 
                 {selectedDateAppointments.length === 0 && (
-                  <ShellCard className="p-6">
+                  <GlassCard className="p-6">
                     <p className="text-[16px] font-medium text-white">На эту дату записей нет</p>
-                    <p className="mt-1 text-sm text-zinc-500">
-                      Добавь новую запись, чтобы заполнить расписание.
-                    </p>
-                  </ShellCard>
+                    <p className="mt-1 text-sm text-zinc-500">Добавь новую запись через центральную кнопку.</p>
+                  </GlassCard>
                 )}
               </div>
             </>
@@ -2124,7 +2039,7 @@ export default function App() {
             <>
               <SectionTitle
                 title="Финансы"
-                subtitle="Все движения по выбранному месяцу"
+                subtitle="Все движения за выбранный месяц"
               />
 
               <MonthTabs
@@ -2143,10 +2058,10 @@ export default function App() {
                     />
                   ))
                 ) : (
-                  <ShellCard className="p-6">
+                  <GlassCard className="p-6">
                     <p className="text-[16px] font-medium text-white">Пока пусто</p>
                     <p className="mt-1 text-sm text-zinc-500">За этот месяц данных пока нет.</p>
-                  </ShellCard>
+                  </GlassCard>
                 )}
               </div>
             </>
@@ -2156,7 +2071,7 @@ export default function App() {
             <>
               <SectionTitle
                 title="Аналитика"
-                subtitle="Ритм месяца и сильные дни"
+                subtitle="Динамика месяца и сильные дни"
               />
 
               <MonthTabs
@@ -2165,37 +2080,39 @@ export default function App() {
                 onChange={setSelectedMonth}
               />
 
-              <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-                <ShellCard className="h-[340px] p-5 sm:p-6">
+              <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+                <GlassCard className="p-5 sm:p-6" glow>
                   <div className="mb-4">
                     <p className="text-sm text-zinc-400">Выручка по дням</p>
-                    <p className="mt-1 text-[22px] font-semibold tracking-[-0.025em] text-white">
+                    <p className="mt-1 text-[24px] font-semibold tracking-[-0.04em] text-white">
                       {formatMonthLabel(selectedMonth)}
                     </p>
                   </div>
-                  <div className="h-[250px]">
+                  <div className="h-[270px]">
                     <Bar data={chartData} options={chartOptions} />
                   </div>
-                </ShellCard>
+                </GlassCard>
 
-                <ShellCard className="p-5 sm:p-6">
+                <GlassCard className="p-5 sm:p-6">
                   <p className="text-sm text-zinc-400">Лучшие дни месяца</p>
                   <div className="mt-4 space-y-3">
                     {dailyStats.bestDays.length > 0 ? (
                       dailyStats.bestDays.map((day, index) => (
                         <div
                           key={day.dateKey}
-                          className="flex items-center justify-between gap-4 rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-3"
+                          className="rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3"
                         >
-                          <div className="min-w-0">
-                            <p className="text-sm text-zinc-500">#{index + 1}</p>
-                            <p className="mt-1 text-sm font-medium text-white">
-                              {formatDisplayDate(day.dateKey)}
-                            </p>
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0">
+                              <p className="text-xs text-zinc-500">#{index + 1}</p>
+                              <p className="mt-1 text-sm font-medium text-white">
+                                {formatDisplayDate(day.dateKey)}
+                              </p>
+                            </div>
+                            <span className="text-sm font-semibold text-white">
+                              {formatMoney(day.amount)}
+                            </span>
                           </div>
-                          <span className="text-sm font-semibold text-white">
-                            {formatMoney(day.amount)}
-                          </span>
                         </div>
                       ))
                     ) : (
@@ -2203,13 +2120,13 @@ export default function App() {
                     )}
                   </div>
 
-                  <div className="mt-6 rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <div className="mt-6 rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3">
                     <div className="flex justify-between gap-4">
                       <span className="text-sm text-zinc-400">Пустых дней</span>
                       <span className="text-sm font-medium text-white">{dailyStats.weakDays}</span>
                     </div>
                   </div>
-                </ShellCard>
+                </GlassCard>
               </div>
             </>
           )}
@@ -2218,8 +2135,8 @@ export default function App() {
             <>
               <SectionTitle title="Настройки" subtitle="Цели и управление месяцами" />
 
-              <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
-                <ShellCard className="p-5 sm:p-6">
+              <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+                <GlassCard className="p-5 sm:p-6">
                   <FormLabel>Цель месяца</FormLabel>
                   <TextInput
                     type="number"
@@ -2246,11 +2163,13 @@ export default function App() {
                   <p className="mt-3 text-sm text-zinc-500">
                     Актуальная цель для {formatMonthLabel(selectedMonth)}.
                   </p>
-                </ShellCard>
+                </GlassCard>
 
-                <ShellCard className="p-5 sm:p-6 xl:w-[280px]">
+                <GlassCard className="p-5 sm:p-6">
                   <p className="text-sm text-zinc-400">Опасная зона</p>
-                  <p className="mt-2 text-[18px] font-semibold text-white">Удаление месяца</p>
+                  <p className="mt-2 text-[20px] font-semibold tracking-[-0.03em] text-white">
+                    Удаление месяца
+                  </p>
                   <p className="mt-2 text-sm text-zinc-500">
                     Будут удалены операции, записи и цель выбранного месяца.
                   </p>
@@ -2260,7 +2179,7 @@ export default function App() {
                   >
                     Удалить месяц
                   </button>
-                </ShellCard>
+                </GlassCard>
               </div>
             </>
           )}
@@ -2269,22 +2188,26 @@ export default function App() {
         <BottomNav
           activeTab={activeTab}
           onChange={setActiveTab}
+          onAdd={openCreateAppointmentModal}
           hidden={showAppointmentModal}
         />
 
         {showAppointmentModal && (
-          <div className="fixed inset-0 z-[999] bg-black/70 backdrop-blur-md">
+          <div className="fixed inset-0 z-[999] bg-black/74 backdrop-blur-md">
             <div className="absolute inset-0" onClick={() => setShowAppointmentModal(false)} />
 
-            <div className="absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[760px] flex-col rounded-t-[32px] border border-white/10 bg-[#0e1117] shadow-[0_-24px_90px_rgba(0,0,0,0.58)] animate-sheet-in">
-              <div className="px-4 pt-4 sm:px-6">
-                <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/14" />
+            <div className="absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[760px] flex-col rounded-t-[34px] border border-white/10 bg-[rgba(8,11,18,0.92)] shadow-[0_-24px_100px_rgba(0,0,0,0.65)] backdrop-blur-[28px] animate-sheet-in">
+              <div className="pointer-events-none absolute left-[12%] top-0 h-[160px] w-[160px] rounded-full bg-[#69e1ff]/10 blur-[70px]" />
+              <div className="pointer-events-none absolute right-[10%] top-[10px] h-[150px] w-[150px] rounded-full bg-[#705dff]/12 blur-[80px]" />
+
+              <div className="relative z-[1] px-4 pt-4 sm:px-6">
+                <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/15" />
                 <div className="mb-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
+                    <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
                       {editingAppointmentId ? "Редактирование" : "Новая запись"}
                     </p>
-                    <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">
+                    <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.04em] text-white">
                       {editingAppointmentId ? "Карточка записи" : "Создание записи"}
                     </h2>
                   </div>
@@ -2295,9 +2218,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-6">
+              <div className="relative z-[1] min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-6">
                 <div className="space-y-4 pb-4">
-                  <ShellCard className="p-4">
+                  <GlassCard className="p-4">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <FormLabel>Клиент</FormLabel>
@@ -2330,9 +2253,9 @@ export default function App() {
                         </div>
                       </div>
                     </div>
-                  </ShellCard>
+                  </GlassCard>
 
-                  <ShellCard className="p-4">
+                  <GlassCard className="p-4">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <FormLabel>Дата</FormLabel>
@@ -2369,9 +2292,9 @@ export default function App() {
                         />
                       </div>
                     </div>
-                  </ShellCard>
+                  </GlassCard>
 
-                  <ShellCard className="p-4">
+                  <GlassCard className="p-4">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-[16px] font-semibold text-white">Услуги</p>
@@ -2386,13 +2309,13 @@ export default function App() {
                       {appointmentServices.map((service) => (
                         <div
                           key={service.id}
-                          className="rounded-[20px] border border-white/8 bg-white/[0.03] p-3"
+                          className="rounded-[22px] border border-white/10 bg-white/[0.05] p-3"
                         >
                           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_44px]">
                             <button
                               type="button"
                               onClick={() => setServicePickerRowId(service.id)}
-                              className="ui-input flex h-[52px] min-w-0 items-center justify-between px-4"
+                              className="field-input flex h-[52px] min-w-0 items-center justify-between px-4"
                             >
                               <span className="truncate text-[15px] text-white">{service.type}</span>
                               <span className="ml-3 shrink-0 text-zinc-500">↕</span>
@@ -2442,9 +2365,9 @@ export default function App() {
                         </div>
                       ))}
                     </div>
-                  </ShellCard>
+                  </GlassCard>
 
-                  <ShellCard className="p-4">
+                  <GlassCard className="p-4">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
                         <p className="text-[16px] font-semibold text-white">Оплата</p>
@@ -2458,13 +2381,13 @@ export default function App() {
                       {appointmentPayments.map((payment) => (
                         <div
                           key={payment.id}
-                          className="rounded-[20px] border border-white/8 bg-white/[0.03] p-3"
+                          className="rounded-[22px] border border-white/10 bg-white/[0.05] p-3"
                         >
                           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_44px]">
                             <button
                               type="button"
                               onClick={() => setPaymentPickerRowId(payment.id)}
-                              className="ui-input flex h-[52px] min-w-0 items-center justify-between px-4"
+                              className="field-input flex h-[52px] min-w-0 items-center justify-between px-4"
                             >
                               <span className="truncate text-[15px] text-white">{payment.type}</span>
                               <span className="ml-3 shrink-0 text-zinc-500">↕</span>
@@ -2495,26 +2418,26 @@ export default function App() {
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-3">
-                      <SecondaryButton
+                      <GhostButton
                         type="button"
                         onClick={() => addAppointmentPaymentRow("Нал")}
                         className="justify-center"
                       >
                         <PlusIcon />
                         Нал
-                      </SecondaryButton>
-                      <SecondaryButton
+                      </GhostButton>
+                      <GhostButton
                         type="button"
                         onClick={() => addAppointmentPaymentRow("Карта")}
                         className="justify-center"
                       >
                         <PlusIcon />
                         Карта
-                      </SecondaryButton>
+                      </GhostButton>
                     </div>
-                  </ShellCard>
+                  </GlassCard>
 
-                  <ShellCard className="p-4">
+                  <GlassCard className="p-4">
                     <FormLabel>Статус</FormLabel>
                     <SegmentedControl
                       options={[
@@ -2534,11 +2457,11 @@ export default function App() {
                         onChange={(e) => setAppointmentNote(e.target.value)}
                       />
                     </div>
-                  </ShellCard>
+                  </GlassCard>
                 </div>
               </div>
 
-              <div className="border-t border-white/8 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 sm:px-6">
+              <div className="relative z-[1] border-t border-white/8 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 sm:px-6">
                 <div className="grid grid-cols-[minmax(0,1fr)_52px] gap-3">
                   <PrimaryButton
                     type="button"
@@ -2560,7 +2483,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowAppointmentModal(false)}
-                      className="flex h-[56px] items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:bg-white/[0.06]"
+                      className="flex h-[56px] items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.05] text-zinc-300 transition hover:bg-white/[0.08]"
                     >
                       <CloseIcon />
                     </button>

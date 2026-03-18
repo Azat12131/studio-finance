@@ -17,7 +17,7 @@ body,
 }
 
 html {
-  background: #080a0f;
+  background: #05070b;
 }
 
 body {
@@ -33,7 +33,7 @@ body {
     "Segoe UI",
     sans-serif;
   overflow-x: hidden;
-  background: #080a0f;
+  background: #05070b;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -85,13 +85,13 @@ input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-text-fill-color: #fff;
-  box-shadow: 0 0 0 1000px #11141a inset;
+  box-shadow: 0 0 0 1000px #10141d inset;
   transition: background-color 9999s ease-in-out 0s;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 ::selection {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(104, 255, 219, 0.22);
   color: #fff;
 }
 
@@ -110,173 +110,237 @@ select:-webkit-autofill {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.025);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-@layer components {
-  .ui-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.035);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.24);
-    backdrop-filter: blur(24px);
-  }
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
+    rgba(10, 13, 20, 0.78);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+}
 
-  .ui-btn {
-    display: inline-flex;
-    height: 44px;
-    align-items: center;
-    gap: 8px;
-    border-radius: 14px;
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 500;
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s ease,
-      color 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.2s ease,
-      opacity 0.2s ease;
-  }
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top left, rgba(105, 225, 255, 0.08), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(112, 93, 255, 0.08), transparent 30%);
+}
 
-  .ui-btn:active {
-    transform: scale(0.985);
-  }
+.glass-card-glow {
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 0 60px rgba(88, 146, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
 
-  .ui-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
+.btn-primary {
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 16px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #eef3ff 100%);
+  color: #02050a;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow:
+    0 14px 34px rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    filter 0.2s ease;
+}
 
-  .ui-btn-primary {
-    background: #ffffff;
-    color: #000000;
-    box-shadow: 0 10px 28px rgba(255, 255, 255, 0.12);
-  }
+.btn-primary:hover {
+  filter: brightness(1.02);
+  box-shadow:
+    0 18px 40px rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+}
 
-  .ui-btn-primary:hover {
-    background: rgba(255, 255, 255, 0.95);
-  }
+.btn-primary:active {
+  transform: scale(0.985);
+}
 
-  .ui-btn-secondary {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: rgb(228, 228, 231);
-  }
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 
-  .ui-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: #ffffff;
-  }
+.btn-ghost {
+  display: inline-flex;
+  height: 44px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgb(228, 228, 231);
+  font-size: 14px;
+  font-weight: 500;
+  backdrop-filter: blur(18px);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
-  .ui-icon-btn {
-    display: inline-flex;
-    height: 44px;
-    width: 44px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    color: rgb(212, 212, 216);
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s ease,
-      color 0.2s ease,
-      border-color 0.2s ease;
-  }
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(66, 118, 255, 0.08);
+}
 
-  .ui-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: #ffffff;
-  }
+.btn-ghost:active {
+  transform: scale(0.985);
+}
 
-  .ui-icon-btn:active {
-    transform: scale(0.985);
-  }
+.icon-button {
+  display: inline-flex;
+  height: 44px;
+  width: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgb(212, 212, 216);
+  backdrop-filter: blur(18px);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
-  .ui-input {
-    width: 100%;
-    min-width: 0;
-    height: 56px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: #11141a;
-    padding: 0 16px;
-    font-size: 15px;
-    color: #ffffff;
-    outline: none;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-    transition:
-      border-color 0.2s ease,
-      background-color 0.2s ease,
-      box-shadow 0.2s ease;
-  }
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(65, 110, 255, 0.08);
+}
 
-  .ui-input::placeholder {
-    color: #71717a;
-  }
+.icon-button:active {
+  transform: scale(0.985);
+}
 
-  .ui-input:focus {
-    border-color: rgba(255, 255, 255, 0.18);
-    background: #131720;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
-  }
+.field-input {
+  width: 100%;
+  min-width: 0;
+  height: 56px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02)),
+    rgba(16, 20, 29, 0.9);
+  padding: 0 16px;
+  font-size: 15px;
+  color: #ffffff;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
 
-  .ui-textarea {
-    width: 100%;
-    min-width: 0;
-    min-height: 120px;
-    resize: none;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: #11141a;
-    padding: 12px 16px;
-    font-size: 15px;
-    color: #ffffff;
-    outline: none;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-    transition:
-      border-color 0.2s ease,
-      background-color 0.2s ease,
-      box-shadow 0.2s ease;
-  }
+.field-input::placeholder {
+  color: #71717a;
+}
 
-  .ui-textarea::placeholder {
-    color: #71717a;
-  }
+.field-input:focus {
+  border-color: rgba(104, 255, 219, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02)),
+    rgba(19, 24, 35, 0.96);
+  box-shadow:
+    0 0 0 4px rgba(104, 255, 219, 0.05),
+    0 14px 34px rgba(50, 110, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
 
-  .ui-textarea:focus {
-    border-color: rgba(255, 255, 255, 0.18);
-    background: #131720;
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
-  }
+.field-textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 120px;
+  resize: none;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02)),
+    rgba(16, 20, 29, 0.9);
+  padding: 14px 16px;
+  font-size: 15px;
+  color: #ffffff;
+  outline: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 10px 24px rgba(0, 0, 0, 0.16);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
-  .animate-in {
-    animation: fadeUp 420ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
+.field-textarea::placeholder {
+  color: #71717a;
+}
 
-  .animate-sheet-in {
-    animation: sheetIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
+.field-textarea:focus {
+  border-color: rgba(104, 255, 219, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02)),
+    rgba(19, 24, 35, 0.96);
+  box-shadow:
+    0 0 0 4px rgba(104, 255, 219, 0.05),
+    0 14px 34px rgba(50, 110, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.animate-fade-up {
+  animation: fadeUp 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.animate-sheet-in {
+  animation: sheetIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -287,7 +351,7 @@ select:-webkit-autofill {
 @keyframes sheetIn {
   from {
     opacity: 0;
-    transform: translateY(24px) scale(0.985);
+    transform: translateY(28px) scale(0.985);
   }
   to {
     opacity: 1;
