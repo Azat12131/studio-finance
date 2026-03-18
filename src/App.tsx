@@ -89,6 +89,7 @@ const serviceOptions: ServiceType[] = [
   "Мастеринг",
   "Другое",
 ]
+
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
 
 function cn(...values: Array<string | false | null | undefined>) {
@@ -283,18 +284,18 @@ function getStatusPillClass(status: AppointmentStatus) {
     return "bg-white/[0.06] text-zinc-200 ring-1 ring-white/10"
   }
   if (status === "Подтвердил") {
-    return "bg-sky-400/12 text-sky-200 ring-1 ring-sky-300/20"
+    return "bg-sky-400/12 text-sky-200 ring-1 ring-sky-300/18"
   }
   if (status === "Пришел") {
-    return "bg-emerald-400/12 text-emerald-200 ring-1 ring-emerald-300/20"
+    return "bg-emerald-400/12 text-emerald-200 ring-1 ring-emerald-300/18"
   }
-  return "bg-rose-400/12 text-rose-200 ring-1 ring-rose-300/20"
+  return "bg-rose-400/12 text-rose-200 ring-1 ring-rose-300/18"
 }
 
 function getOwnerGlow(owner: Owner) {
   return owner === "Азат"
-    ? "from-[#67d7ff] via-[#6e8dff] to-[#885dff]"
-    : "from-[#60a5fa] via-[#7c3aed] to-[#a855f7]"
+    ? "from-[#8be4ff] via-[#5f96ff] to-[#7d6bff]"
+    : "from-[#7dd3fc] via-[#6d78ff] to-[#b16dff]"
 }
 
 function getProgressWidth(value: number, total: number) {
@@ -425,6 +426,14 @@ function TrashIcon() {
   )
 }
 
+function SparkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
+    </svg>
+  )
+}
+
 function GlassCard({
   children,
   className = "",
@@ -435,7 +444,7 @@ function GlassCard({
   glow?: boolean
 }) {
   return (
-    <div className={cn("glass-card animate-fade-up", glow && "glass-card-glow", className)}>
+    <div className={cn("neo-card animate-fade-up", glow && "neo-card-glow", className)}>
       {children}
     </div>
   )
@@ -451,14 +460,22 @@ function SectionTitle({
   action?: React.ReactNode
 }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
-        <h1 className="truncate text-[30px] font-semibold tracking-[-0.045em] text-white sm:text-[36px]">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#98a8d4] backdrop-blur-xl">
+          <SparkIcon />
+          Studio control
+        </div>
+        <h1 className="mt-4 truncate text-[34px] font-semibold tracking-[-0.055em] text-white sm:text-[42px]">
           {title}
         </h1>
-        {subtitle ? <p className="mt-1.5 text-sm text-zinc-400">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="mt-2 max-w-[720px] text-[14px] text-[#8f98b3] sm:text-[15px]">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
-      {action}
+      {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   )
 }
@@ -558,15 +575,20 @@ function ProgressLine({
   value,
   total,
   colorClassName,
+  heightClassName = "h-[12px]",
 }: {
   value: number
   total: number
   colorClassName: string
+  heightClassName?: string
 }) {
   return (
-    <div className="h-[10px] w-full overflow-hidden rounded-full bg-white/[0.08]">
+    <div className={cn("w-full overflow-hidden rounded-full bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]", heightClassName)}>
       <div
-        className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-500", colorClassName)}
+        className={cn(
+          "h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out shadow-[0_0_30px_rgba(111,147,255,0.25)]",
+          colorClassName
+        )}
         style={{ width: `${getProgressWidth(value, total)}%` }}
       />
     </div>
@@ -593,10 +615,10 @@ function MonthTabs({
                 key={monthKey}
                 onClick={() => onChange(monthKey)}
                 className={cn(
-                  "rounded-full px-4 py-2.5 text-sm font-medium capitalize transition duration-200",
+                  "rounded-full px-4 py-2.5 text-sm font-semibold capitalize transition duration-200",
                   active
-                    ? "bg-white text-black shadow-[0_10px_30px_rgba(255,255,255,0.16)]"
-                    : "bg-white/[0.05] text-zinc-300 ring-1 ring-white/10 hover:bg-white/[0.08] hover:text-white"
+                    ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_28px_rgba(71,112,255,0.34)]"
+                    : "border border-white/8 bg-white/[0.04] text-[#9aa5c3] hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 {formatMonthLabel(monthKey)}
@@ -622,10 +644,12 @@ function StatMini({
 }) {
   return (
     <GlassCard className="p-5">
-      <p className="text-[13px] font-medium text-zinc-400">{label}</p>
+      <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7d89ab]">
+        {label}
+      </p>
       <p
         className={cn(
-          "mt-3 text-[30px] font-semibold tracking-[-0.04em]",
+          "mt-4 text-[30px] font-semibold tracking-[-0.05em]",
           accent === "good" && "text-emerald-300",
           accent === "danger" && "text-rose-300",
           accent === "default" && "text-white"
@@ -633,7 +657,7 @@ function StatMini({
       >
         {value}
       </p>
-      {sub ? <p className="mt-2 text-sm text-zinc-500">{sub}</p> : null}
+      {sub ? <p className="mt-2 text-sm text-[#8f98b3]">{sub}</p> : null}
     </GlassCard>
   )
 }
@@ -648,23 +672,32 @@ function RecentOperationRow({
   return (
     <button
       onClick={() => onOpen(entry)}
-      className="group flex w-full min-w-0 items-center justify-between gap-4 rounded-[24px] border border-white/8 bg-white/[0.04] px-4 py-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.16)] backdrop-blur-xl transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.06] hover:shadow-[0_16px_50px_rgba(47,120,255,0.12)]"
+      className="finance-row group"
     >
-      <div className="min-w-0">
-        <div className="flex min-w-0 items-center gap-2">
-          <p className="truncate text-[15px] font-medium text-white">{entry.client}</p>
-          <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] text-zinc-400 ring-1 ring-white/10">
-            {entry.owner}
-          </span>
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="finance-row-icon">
+          {entry.source === "appointment" ? <CalendarIcon /> : <ReceiptIcon />}
         </div>
-        <p className="mt-1 text-sm text-zinc-500">
-          {formatDisplayDate(entry.date)} · {entry.services.length} усл.
-        </p>
+
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <p className="truncate text-[15px] font-semibold text-white">{entry.client}</p>
+            <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-[#9aa5c3]">
+              {entry.owner}
+            </span>
+          </div>
+
+          <p className="mt-1 text-sm text-[#7f8aa8]">
+            {formatDisplayDate(entry.date)} · {entry.services.length} усл.
+          </p>
+        </div>
       </div>
 
       <div className="shrink-0 text-right">
-        <p className="text-[16px] font-semibold text-white">{formatMoney(getPaymentsTotal(entry))}</p>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="text-[17px] font-semibold tracking-[-0.03em] text-white">
+          {formatMoney(getPaymentsTotal(entry))}
+        </p>
+        <p className="mt-1 text-xs text-[#7380a2]">
           {entry.source === "appointment" ? "Запись" : "Операция"}
         </p>
       </div>
@@ -690,11 +723,11 @@ function CompactField({
   return (
     <Comp
       {...(onClick ? { onClick, type: "button" as const } : {})}
-      className={cn("field-input flex h-[56px] items-center gap-3 px-4 text-left", className)}
+      className={cn("field-input flex h-[58px] items-center gap-3 px-4 text-left", className)}
     >
-      {icon ? <div className="shrink-0 text-zinc-400">{icon}</div> : null}
+      {icon ? <div className="shrink-0 text-[#7f8cb0]">{icon}</div> : null}
       <div className="min-w-0 flex-1">
-        <div className={cn("truncate text-[15px]", value ? "text-white" : "text-zinc-500")}>
+        <div className={cn("truncate text-[15px] font-medium", value ? "text-white" : "text-[#7f8aa8]")}>
           {value || placeholder}
         </div>
       </div>
@@ -804,13 +837,14 @@ function PickerSheet<T extends string>({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[1200] bg-black/64 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[1200] bg-black/70 backdrop-blur-md">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[32px] border border-white/10 bg-[#0b101a]/95 px-4 pb-6 pt-4 shadow-[0_-24px_80px_rgba(0,0,0,0.56)] backdrop-blur-2xl animate-sheet-in">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/15" />
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-base font-semibold text-white">{title}</p>
-          <IconButton onClick={onClose} className="h-9 w-9 rounded-full">
+      <div className="sheet-panel absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[34px] px-4 pb-6 pt-4">
+        <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/12" />
+
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">{title}</p>
+          <IconButton onClick={onClose} className="h-10 w-10 rounded-full">
             <CloseIcon />
           </IconButton>
         </div>
@@ -826,14 +860,14 @@ function PickerSheet<T extends string>({
                   onClose()
                 }}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-[18px] px-4 py-4 text-left transition",
+                  "flex w-full items-center justify-between rounded-[20px] px-4 py-4 text-left transition",
                   active
-                    ? "bg-white text-black shadow-[0_12px_30px_rgba(255,255,255,0.14)]"
-                    : "bg-white/[0.04] text-zinc-200 ring-1 ring-white/8 hover:bg-white/[0.06]"
+                    ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_14px_32px_rgba(70,108,255,0.32)]"
+                    : "border border-white/8 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.06]"
                 )}
               >
-                <span>{option}</span>
-                {active ? <span className="text-sm text-black/60">Выбрано</span> : null}
+                <span className="font-medium">{option}</span>
+                {active ? <span className="text-sm text-white/75">Выбрано</span> : null}
               </button>
             )
           })}
@@ -853,8 +887,8 @@ function SegmentedControl<T extends string>({
   onChange: (value: T) => void
 }) {
   return (
-    <div className="rounded-[18px] border border-white/10 bg-white/[0.04] p-1 backdrop-blur-xl">
-      <div style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }} className="grid gap-1">
+    <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-1.5 backdrop-blur-xl">
+      <div style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }} className="grid gap-1.5">
         {options.map((option) => {
           const active = option.value === value
           return (
@@ -863,10 +897,10 @@ function SegmentedControl<T extends string>({
               type="button"
               onClick={() => onChange(option.value)}
               className={cn(
-                "min-h-[48px] rounded-[14px] px-3 text-[14px] font-medium transition",
+                "min-h-[48px] rounded-[16px] px-3 text-[14px] font-semibold transition",
                 active
-                  ? "bg-white text-black shadow-[0_10px_25px_rgba(255,255,255,0.12)]"
-                  : "text-zinc-300 hover:bg-white/[0.06]"
+                  ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
+                  : "text-[#9aa5c3] hover:bg-white/[0.05] hover:text-white"
               )}
             >
               {option.label}
@@ -879,7 +913,138 @@ function SegmentedControl<T extends string>({
 }
 
 function FormLabel({ children }: { children: React.ReactNode }) {
-  return <p className="mb-2 text-[13px] font-medium text-zinc-400">{children}</p>
+  return (
+    <p className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#7684a9]">
+      {children}
+    </p>
+  )
+}
+
+function DashboardHero({
+  selectedMonth,
+  monthIncome,
+  monthGoal,
+  leftToMonthGoal,
+  leftToRent,
+  azatIncome,
+  marsIncome,
+  profitAfterRent,
+}: {
+  selectedMonth: string
+  monthIncome: number
+  monthGoal: number
+  leftToMonthGoal: number
+  leftToRent: number
+  azatIncome: number
+  marsIncome: number
+  profitAfterRent: number
+}) {
+  return (
+    <GlassCard glow className="relative overflow-hidden px-5 py-5 sm:px-6 sm:py-6 xl:px-7">
+      <div className="pointer-events-none absolute -left-16 top-[-30px] h-[220px] w-[220px] rounded-full bg-[#71dfff]/12 blur-[80px]" />
+      <div className="pointer-events-none absolute right-[-30px] top-[20px] h-[220px] w-[220px] rounded-full bg-[#6d63ff]/14 blur-[90px]" />
+      <div className="pointer-events-none absolute bottom-[-50px] left-[32%] h-[180px] w-[180px] rounded-full bg-[#4fd4ff]/10 blur-[86px]" />
+
+      <div className="relative z-[1] grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a2afd0]">
+            Финансовый центр
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-sm text-[#90a0c4]">Доход за месяц</p>
+              <h2 className="mt-3 text-[42px] font-semibold tracking-[-0.07em] text-white sm:text-[56px]">
+                {formatMoney(monthIncome)}
+              </h2>
+              <p className="mt-2 text-sm text-[#7f8aa8]">{formatMonthLabel(selectedMonth)}</p>
+            </div>
+
+            <div className="stats-chip">
+              <span className={cn("inline-block h-2.5 w-2.5 rounded-full", profitAfterRent >= 0 ? "bg-emerald-300" : "bg-rose-300")} />
+              {profitAfterRent >= 0 ? "План под контролем" : "Нужно добрать план"}
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            <div className="metric-panel">
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <span className="text-sm text-[#9cabcd]">Цель месяца</span>
+                <span className="text-sm font-semibold text-white">{formatMoney(monthGoal)}</span>
+              </div>
+              <ProgressLine
+                value={monthIncome}
+                total={monthGoal}
+                colorClassName="from-[#8be4ff] via-[#5f96ff] to-[#7d6bff]"
+              />
+              <div className="mt-3 flex items-center justify-between gap-4 text-xs text-[#7f8aa8]">
+                <span>Осталось до цели</span>
+                <span>{formatMoney(leftToMonthGoal)}</span>
+              </div>
+            </div>
+
+            <div className="metric-panel">
+              <div className="mb-3 flex items-center justify-between gap-4">
+                <span className="text-sm text-[#9cabcd]">Аренда</span>
+                <span className="text-sm font-semibold text-white">{formatMoney(RENT_GOAL)}</span>
+              </div>
+              <ProgressLine
+                value={monthIncome}
+                total={RENT_GOAL}
+                colorClassName="from-[#63ffd8] via-[#4fb6ff] to-[#5f84ff]"
+              />
+              <div className="mt-3 flex items-center justify-between gap-4 text-xs text-[#7f8aa8]">
+                <span>Осталось до аренды</span>
+                <span>{formatMoney(leftToRent)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <div className="owner-card">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="text-sm text-[#9cabcd]">Азат</span>
+              <span className="text-[24px] font-semibold tracking-[-0.04em] text-white">
+                {formatMoney(azatIncome)}
+              </span>
+            </div>
+            <ProgressLine
+              value={azatIncome}
+              total={Math.max(monthIncome, 1)}
+              colorClassName={getOwnerGlow("Азат")}
+              heightClassName="h-[10px]"
+            />
+          </div>
+
+          <div className="owner-card owner-card-alt">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="text-sm text-[#9cabcd]">Марс</span>
+              <span className="text-[24px] font-semibold tracking-[-0.04em] text-white">
+                {formatMoney(marsIncome)}
+              </span>
+            </div>
+            <ProgressLine
+              value={marsIncome}
+              total={Math.max(monthIncome, 1)}
+              colorClassName={getOwnerGlow("Марс")}
+              heightClassName="h-[10px]"
+            />
+          </div>
+
+          <div className="profit-panel">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7c8ab0]">
+              Чистая прибыль
+            </p>
+            <p className={cn("mt-3 text-[34px] font-semibold tracking-[-0.06em]", profitAfterRent >= 0 ? "text-white" : "text-rose-300")}>
+              {formatMoney(profitAfterRent)}
+            </p>
+            <p className="mt-2 text-sm text-[#8b97b5]">Доход минус аренда</p>
+          </div>
+        </div>
+      </div>
+    </GlassCard>
+  )
 }
 
 function SidebarNav({
@@ -904,59 +1069,62 @@ function SidebarNav({
   ]
 
   return (
-    <aside className="hidden w-[290px] shrink-0 border-r border-white/6 bg-[rgba(7,11,18,0.68)] px-5 py-6 backdrop-blur-[30px] lg:flex lg:flex-col">
-      <div className="mb-8 flex items-center gap-3">
-        <div className="relative flex h-12 w-12 items-center justify-center rounded-[18px] border border-white/10 bg-white/[0.06] shadow-[0_10px_35px_rgba(62,120,255,0.14)]">
-          <div className="pointer-events-none absolute inset-0 rounded-[18px] bg-[radial-gradient(circle_at_top_left,rgba(113,234,255,0.22),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(112,90,255,0.18),transparent_42%)]" />
-          <img src={logo} alt="logo" className="relative h-6 w-auto object-contain opacity-95" />
+    <aside className="sidebar-shell hidden lg:flex">
+      <div className="sidebar-panel">
+        <div className="mb-8">
+          <div className="flex items-center gap-4">
+            <div className="logo-shell">
+              <div className="pointer-events-none absolute inset-0 rounded-[22px] bg-[radial-gradient(circle_at_30%_25%,rgba(125,227,255,0.24),transparent_35%),radial-gradient(circle_at_70%_75%,rgba(112,92,255,0.22),transparent_40%)]" />
+              <img src={logo} alt="logo" className="relative h-6 w-auto object-contain opacity-95" />
+            </div>
+
+            <div>
+              <p className="text-[16px] font-semibold tracking-[-0.03em] text-white">
+                Studio CRM
+              </p>
+              <p className="mt-1 text-xs text-[#7f8aa8]">Premium control panel</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <p className="text-[15px] font-semibold text-white">Studio CRM</p>
-          <p className="text-xs text-zinc-500">Neo glass workspace</p>
+        <div className="space-y-2.5">
+          {items.map((item) => {
+            const active = item.key === activeTab
+            return (
+              <button
+                key={item.key}
+                onClick={() => onChange(item.key)}
+                className={cn("sidebar-link", active && "sidebar-link-active")}
+              >
+                <span className="sidebar-link-icon">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+              </button>
+            )
+          })}
         </div>
-      </div>
 
-      <div className="space-y-2">
-        {items.map((item) => {
-          const active = item.key === activeTab
-          return (
-            <button
-              key={item.key}
-              onClick={() => onChange(item.key)}
-              className={cn(
-                "relative flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium transition duration-200",
-                active
-                  ? "bg-white text-black shadow-[0_12px_32px_rgba(255,255,255,0.14)]"
-                  : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
-              )}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          )
-        })}
-      </div>
+        <div className="mt-8 grid gap-3">
+          <PrimaryButton onClick={onAdd} className="w-full justify-center h-[50px]">
+            <PlusIcon />
+            Новая запись
+          </PrimaryButton>
 
-      <div className="mt-8 space-y-3">
-        <PrimaryButton onClick={onAdd} className="w-full justify-center">
-          <PlusIcon />
-          Новая запись
-        </PrimaryButton>
+          <GhostButton onClick={onCreateMonth} className="w-full justify-center h-[50px]">
+            <PlusIcon />
+            Новый месяц
+          </GhostButton>
+        </div>
 
-        <GhostButton onClick={onCreateMonth} className="w-full justify-center">
-          <PlusIcon />
-          Новый месяц
-        </GhostButton>
-      </div>
-
-      <div className="mt-auto">
-        <GlassCard className="p-4">
-          <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">Система</p>
-          <p className="mt-2 text-sm text-zinc-300">
-            Темный тактильный интерфейс с акцентом на деньги, фокус и скорость.
-          </p>
-        </GlassCard>
+        <div className="mt-auto">
+          <div className="sidebar-footer">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7b88aa]">
+              Focus mode
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[#99a4c2]">
+              Темный холодный интерфейс без белых рамок, с глубиной, стеклом и читаемой иерархией.
+            </p>
+          </div>
+        </div>
       </div>
     </aside>
   )
@@ -977,15 +1145,13 @@ function BottomNav({
 
   const itemClass = (tab: AppTab) =>
     cn(
-      "flex h-[54px] w-[54px] items-center justify-center rounded-full transition duration-200",
-      activeTab === tab
-        ? "bg-[#5e8cff] text-white shadow-[0_0_0_8px_rgba(94,140,255,0.13),0_16px_36px_rgba(67,114,255,0.38)]"
-        : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"
+      "mobile-nav-item",
+      activeTab === tab && "mobile-nav-item-active"
     )
 
   return (
     <div className="pointer-events-none fixed bottom-5 left-0 right-0 z-[700] flex justify-center lg:hidden">
-      <div className="pointer-events-auto relative flex w-[calc(100%-28px)] max-w-[430px] items-center justify-between rounded-[28px] border border-white/10 bg-[rgba(11,13,20,0.82)] px-4 py-3 shadow-[0_24px_80px_rgba(0,0,0,0.5)] backdrop-blur-[28px]">
+      <div className="pointer-events-auto mobile-nav-shell">
         <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
           <HomeIcon />
         </button>
@@ -994,10 +1160,7 @@ function BottomNav({
           <CalendarIcon />
         </button>
 
-        <button
-          onClick={onAdd}
-          className="relative -mt-10 flex h-[64px] w-[64px] items-center justify-center rounded-full bg-[#7CFF4D] text-black shadow-[0_0_0_10px_rgba(124,255,77,0.12),0_18px_50px_rgba(124,255,77,0.38)] transition duration-200 active:scale-[0.97]"
-        >
+        <button onClick={onAdd} className="mobile-nav-add">
           <PlusIcon />
         </button>
 
@@ -1260,11 +1423,11 @@ export default function App() {
         : 0
 
     const colors = values.map((item) => {
-      if (item.amount === 0) return "rgba(255,255,255,0.10)"
+      if (item.amount === 0) return "rgba(255,255,255,0.09)"
       if (positiveAverage > 0 && item.amount < positiveAverage * 0.6) {
-        return "rgba(94,140,255,0.62)"
+        return "rgba(100,162,255,0.70)"
       }
-      return "rgba(104,255,219,0.82)"
+      return "rgba(102,255,226,0.85)"
     })
 
     const bestDays = [...values]
@@ -1298,7 +1461,7 @@ export default function App() {
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 850,
+        duration: 900,
         easing: "easeOutQuart",
       },
       plugins: {
@@ -1306,11 +1469,11 @@ export default function App() {
           display: false,
         },
         tooltip: {
-          backgroundColor: "rgba(8,11,17,0.96)",
+          backgroundColor: "rgba(8,12,22,0.98)",
           borderColor: "rgba(255,255,255,0.08)",
           borderWidth: 1,
-          titleColor: "#fff",
-          bodyColor: "#d4d4d8",
+          titleColor: "#ffffff",
+          bodyColor: "#d9e0f2",
           displayColors: false,
           callbacks: {
             label(context) {
@@ -1322,8 +1485,8 @@ export default function App() {
       scales: {
         x: {
           ticks: {
-            color: "#71717a",
-            font: { size: 11 },
+            color: "#7782a5",
+            font: { size: 11, weight: 600 },
           },
           grid: {
             display: false,
@@ -1334,11 +1497,11 @@ export default function App() {
         },
         y: {
           ticks: {
-            color: "#71717a",
+            color: "#7782a5",
             callback(value) {
               return formatMoney(Number(value))
             },
-            font: { size: 11 },
+            font: { size: 11, weight: 600 },
           },
           grid: {
             color: "rgba(255,255,255,0.05)",
@@ -1781,11 +1944,11 @@ export default function App() {
     appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#05070b] text-white">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_10%,rgba(105,225,255,0.13),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(110,102,255,0.16),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(133,255,218,0.10),transparent_30%),linear-gradient(180deg,#04060a_0%,#060913_42%,#04060b_100%)]" />
-      <div className="pointer-events-none fixed left-[-120px] top-[8%] -z-10 h-[360px] w-[360px] rounded-full bg-[#69e1ff]/10 blur-[90px]" />
-      <div className="pointer-events-none fixed right-[-100px] top-[14%] -z-10 h-[340px] w-[340px] rounded-full bg-[#705dff]/14 blur-[100px]" />
-      <div className="pointer-events-none fixed bottom-[-100px] left-[25%] -z-10 h-[320px] w-[320px] rounded-full bg-[#63ffd8]/8 blur-[90px]" />
+    <div className="min-h-screen overflow-x-hidden bg-[#050811] text-white">
+      <div className="app-background" />
+      <div className="app-orb app-orb-a" />
+      <div className="app-orb app-orb-b" />
+      <div className="app-orb app-orb-c" />
 
       <div className="flex min-h-screen w-full">
         <SidebarNav
@@ -1796,12 +1959,12 @@ export default function App() {
           logo={logoWhite}
         />
 
-        <main className="min-w-0 flex-1 px-4 pb-32 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
+        <main className="main-shell min-w-0 flex-1 px-4 pb-32 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
           {activeTab === "dashboard" && (
             <>
               <SectionTitle
                 title="Главная"
-                subtitle="Финансовый обзор, прогресс и ключевые показатели"
+                subtitle="Центр управления студией: доход, план, лидеры месяца и ключевые точки роста."
                 action={
                   <PrimaryButton onClick={openCreateAppointmentModal} className="hidden sm:inline-flex">
                     <PlusIcon />
@@ -1816,129 +1979,125 @@ export default function App() {
                 onChange={setSelectedMonth}
               />
 
-              <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-                <GlassCard glow className="relative overflow-hidden p-5 sm:p-6">
-                  <div className="pointer-events-none absolute right-[-40px] top-[-50px] h-[180px] w-[180px] rounded-full bg-[#69e1ff]/14 blur-[70px]" />
-                  <div className="pointer-events-none absolute bottom-[-50px] left-[35%] h-[160px] w-[160px] rounded-full bg-[#705dff]/12 blur-[72px]" />
+              <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+                <DashboardHero
+                  selectedMonth={selectedMonth}
+                  monthIncome={monthIncome}
+                  monthGoal={monthGoal}
+                  leftToMonthGoal={leftToMonthGoal}
+                  leftToRent={leftToRent}
+                  azatIncome={azatIncome}
+                  marsIncome={marsIncome}
+                  profitAfterRent={profitAfterRent}
+                />
 
-                  <div className="relative z-[1] flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm text-zinc-400">Доход за месяц</p>
-                      <h2 className="mt-3 text-[42px] font-semibold tracking-[-0.06em] text-white sm:text-[54px]">
-                        {formatMoney(monthIncome)}
-                      </h2>
+                <div className="grid gap-4">
+                  <StatMini
+                    label="Осталось до цели"
+                    value={formatMoney(leftToMonthGoal)}
+                    sub="Сколько не хватает до плана"
+                  />
+                  <StatMini
+                    label="Лучший клиент"
+                    value={topClient ? topClient[0] : "Нет данных"}
+                    sub={topClient ? formatMoney(topClient[1]) : "Пока нет лидера"}
+                  />
+                  <GlassCard className="p-5">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                      Топ услуг
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {serviceRevenueRows.length > 0 ? (
+                        serviceRevenueRows.slice(0, 4).map(([service, amount], index) => (
+                          <div key={service} className="metric-row">
+                            <div className="flex items-center gap-3">
+                              <span className="metric-dot">{index + 1}</span>
+                              <span className="text-sm font-medium text-white">{service}</span>
+                            </div>
+                            <span className="text-sm font-semibold text-white">
+                              {formatMoney(amount)}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-[#8b97b5]">Пока нет данных</p>
+                      )}
                     </div>
+                  </GlassCard>
+                </div>
+              </div>
 
-                    <div className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs text-zinc-300 backdrop-blur-xl">
-                      {formatMonthLabel(selectedMonth)}
-                    </div>
-                  </div>
-
-                  <div className="relative z-[1] mt-8 grid gap-5 md:grid-cols-2">
+              <div className="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+                <GlassCard className="p-5">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    План / аренда
+                  </p>
+                  <div className="mt-4 space-y-4">
                     <div>
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="text-sm text-zinc-400">Цель месяца</span>
-                        <span className="text-sm font-medium text-white">{formatMoney(monthGoal)}</span>
+                      <div className="mb-2 flex items-center justify-between gap-4">
+                        <span className="text-sm text-[#9cabcd]">План</span>
+                        <span className="text-sm font-semibold text-white">
+                          {formatMoney(monthGoal)}
+                        </span>
                       </div>
                       <ProgressLine
                         value={monthIncome}
                         total={monthGoal}
-                        colorClassName="from-[#67d7ff] via-[#6e8dff] to-[#885dff]"
+                        colorClassName="from-[#86dcff] via-[#6493ff] to-[#7a69ff]"
+                        heightClassName="h-[9px]"
                       />
-                      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-500">
-                        <span>Осталось</span>
-                        <span>{formatMoney(leftToMonthGoal)}</span>
-                      </div>
                     </div>
 
                     <div>
-                      <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="text-sm text-zinc-400">Аренда</span>
-                        <span className="text-sm font-medium text-white">{formatMoney(RENT_GOAL)}</span>
+                      <div className="mb-2 flex items-center justify-between gap-4">
+                        <span className="text-sm text-[#9cabcd]">Аренда</span>
+                        <span className="text-sm font-semibold text-white">
+                          {formatMoney(RENT_GOAL)}
+                        </span>
                       </div>
                       <ProgressLine
                         value={monthIncome}
                         total={RENT_GOAL}
-                        colorClassName="from-[#63ffd8] via-[#57d9ff] to-[#5e8cff]"
+                        colorClassName="from-[#67ffe0] via-[#58b9ff] to-[#5f85ff]"
+                        heightClassName="h-[9px]"
                       />
-                      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-500">
-                        <span>Осталось до аренды</span>
-                        <span>{formatMoney(leftToRent)}</span>
-                      </div>
                     </div>
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-5 sm:p-6">
-                  <div className="mb-4">
-                    <p className="text-sm text-zinc-400">Кто сколько заработал</p>
-                    <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-white">
-                      Разрез по владельцам
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    {[
-                      { owner: "Азат" as Owner, value: azatIncome },
-                      { owner: "Марс" as Owner, value: marsIncome },
-                    ].map((item) => (
-                      <div
-                        key={item.owner}
-                        className="relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.04] p-4 shadow-[0_12px_32px_rgba(0,0,0,0.18)]"
-                      >
-                        <div className={cn("pointer-events-none absolute inset-0 opacity-35 bg-gradient-to-br", getOwnerGlow(item.owner))} />
-                        <div className="relative z-[1]">
-                          <div className="flex items-center justify-between gap-4">
-                            <span className="text-[15px] text-zinc-200">{item.owner}</span>
-                            <span className="text-[26px] font-semibold tracking-[-0.04em] text-white">
-                              {formatMoney(item.value)}
-                            </span>
-                          </div>
-                          <div className="mt-3">
-                            <ProgressLine
-                              value={item.value}
-                              total={Math.max(monthIncome, 1)}
-                              colorClassName={getOwnerGlow(item.owner)}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                <GlassCard className="p-5">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    Доходы по владельцам
+                  </p>
+                  <div className="mt-4 space-y-4">
+                    <div className="owner-inline">
+                      <span className="text-sm text-white">Азат</span>
+                      <span className="text-sm font-semibold text-white">{formatMoney(azatIncome)}</span>
+                    </div>
+                    <div className="owner-inline">
+                      <span className="text-sm text-white">Марс</span>
+                      <span className="text-sm font-semibold text-white">{formatMoney(marsIncome)}</span>
+                    </div>
                   </div>
                 </GlassCard>
-              </div>
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <StatMini
-                  label="Осталось до цели"
-                  value={formatMoney(leftToMonthGoal)}
-                  sub="Сколько не хватает до плана"
-                />
                 <StatMini
                   label="Чистая прибыль"
                   value={formatMoney(profitAfterRent)}
                   sub="Доход минус аренда"
                   accent={profitAfterRent >= 0 ? "good" : "danger"}
                 />
-                <StatMini
-                  label="Лучший клиент"
-                  value={topClient ? topClient[0] : "Нет данных"}
-                  sub={topClient ? formatMoney(topClient[1]) : "Пока нет лидера"}
-                />
+
                 <GlassCard className="p-5">
-                  <p className="text-[13px] font-medium text-zinc-400">Топ услуг</p>
-                  <div className="mt-4 space-y-3">
-                    {serviceRevenueRows.length > 0 ? (
-                      serviceRevenueRows.slice(0, 4).map(([service, amount]) => (
-                        <div key={service} className="flex items-center justify-between gap-4">
-                          <span className="text-sm text-zinc-300">{service}</span>
-                          <span className="text-sm font-medium text-white">{formatMoney(amount)}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-zinc-500">Пока нет данных</p>
-                    )}
-                  </div>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    Записей в месяце
+                  </p>
+                  <p className="mt-4 text-[34px] font-semibold tracking-[-0.05em] text-white">
+                    {selectedMonthEntries.length}
+                  </p>
+                  <p className="mt-2 text-sm text-[#8f98b3]">
+                    Все операции и записи, попавшие в выбранный месяц.
+                  </p>
                 </GlassCard>
               </div>
             </>
@@ -1948,7 +2107,7 @@ export default function App() {
             <>
               <SectionTitle
                 title="График"
-                subtitle="Записи на выбранную дату"
+                subtitle="Записи на выбранную дату с быстрым переходом в карточку клиента."
                 action={
                   <PrimaryButton onClick={openCreateAppointmentModal}>
                     <PlusIcon />
@@ -1957,7 +2116,7 @@ export default function App() {
                 }
               />
 
-              <GlassCard className="mb-4 p-3 sm:p-4">
+              <GlassCard className="mb-4 p-3.5 sm:p-4">
                 <div className="flex items-center gap-2">
                   <IconButton onClick={() => shiftSelectedDate(-1)}>
                     <ChevronLeftIcon />
@@ -1982,17 +2141,17 @@ export default function App() {
                     <button
                       key={a.id}
                       onClick={() => openEditAppointmentModal(a)}
-                      className="group block w-full rounded-[26px] border border-white/10 bg-white/[0.05] p-4 text-left shadow-[0_12px_36px_rgba(0,0,0,0.2)] backdrop-blur-xl transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.07] hover:shadow-[0_20px_50px_rgba(65,110,255,0.12)]"
+                      className="schedule-card"
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] text-zinc-400 ring-1 ring-white/10">
+                            <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-[#97a3c5]">
                               {a.startTime} — {a.endTime}
                             </span>
                             <span
                               className={cn(
-                                "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium",
+                                "inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold",
                                 getStatusPillClass(a.status)
                               )}
                             >
@@ -2004,21 +2163,21 @@ export default function App() {
                             </span>
                           </div>
 
-                          <p className="mt-3 truncate text-[20px] font-semibold tracking-[-0.03em] text-white">
+                          <p className="mt-4 truncate text-[22px] font-semibold tracking-[-0.04em] text-white">
                             {a.client}
                           </p>
 
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8794b5]">
                             <span>{a.owner}</span>
                             {a.phone ? <span>· {a.phone}</span> : null}
                           </div>
                         </div>
 
                         <div className="shrink-0 text-right">
-                          <p className="text-[20px] font-semibold tracking-[-0.03em] text-white">
+                          <p className="text-[22px] font-semibold tracking-[-0.04em] text-white">
                             {formatMoney(paid)}
                           </p>
-                          <p className="mt-1 text-xs text-zinc-500">из {formatMoney(total)}</p>
+                          <p className="mt-1 text-xs text-[#7581a3]">из {formatMoney(total)}</p>
                         </div>
                       </div>
                     </button>
@@ -2027,8 +2186,12 @@ export default function App() {
 
                 {selectedDateAppointments.length === 0 && (
                   <GlassCard className="p-6">
-                    <p className="text-[16px] font-medium text-white">На эту дату записей нет</p>
-                    <p className="mt-1 text-sm text-zinc-500">Добавь новую запись через центральную кнопку.</p>
+                    <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                      На эту дату записей нет
+                    </p>
+                    <p className="mt-2 text-sm text-[#8b97b5]">
+                      Добавь новую запись через кнопку сверху или через центральную кнопку внизу.
+                    </p>
                   </GlassCard>
                 )}
               </div>
@@ -2039,7 +2202,7 @@ export default function App() {
             <>
               <SectionTitle
                 title="Финансы"
-                subtitle="Все движения за выбранный месяц"
+                subtitle="Лента операций в банковом стиле: чисто, плотно и без лишнего шума."
               />
 
               <MonthTabs
@@ -2059,8 +2222,10 @@ export default function App() {
                   ))
                 ) : (
                   <GlassCard className="p-6">
-                    <p className="text-[16px] font-medium text-white">Пока пусто</p>
-                    <p className="mt-1 text-sm text-zinc-500">За этот месяц данных пока нет.</p>
+                    <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                      Пока пусто
+                    </p>
+                    <p className="mt-2 text-sm text-[#8b97b5]">За этот месяц данных пока нет.</p>
                   </GlassCard>
                 )}
               </div>
@@ -2071,7 +2236,7 @@ export default function App() {
             <>
               <SectionTitle
                 title="Аналитика"
-                subtitle="Динамика месяца и сильные дни"
+                subtitle="Динамика выручки по дням и лучшие точки месяца."
               />
 
               <MonthTabs
@@ -2080,62 +2245,73 @@ export default function App() {
                 onChange={setSelectedMonth}
               />
 
-              <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+              <div className="grid gap-4 xl:grid-cols-[1.18fr_0.82fr]">
                 <GlassCard className="p-5 sm:p-6" glow>
-                  <div className="mb-4">
-                    <p className="text-sm text-zinc-400">Выручка по дням</p>
-                    <p className="mt-1 text-[24px] font-semibold tracking-[-0.04em] text-white">
+                  <div className="mb-5">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                      Выручка по дням
+                    </p>
+                    <p className="mt-2 text-[26px] font-semibold tracking-[-0.04em] text-white">
                       {formatMonthLabel(selectedMonth)}
                     </p>
                   </div>
-                  <div className="h-[270px]">
+                  <div className="h-[290px]">
                     <Bar data={chartData} options={chartOptions} />
                   </div>
                 </GlassCard>
 
-                <GlassCard className="p-5 sm:p-6">
-                  <p className="text-sm text-zinc-400">Лучшие дни месяца</p>
-                  <div className="mt-4 space-y-3">
-                    {dailyStats.bestDays.length > 0 ? (
-                      dailyStats.bestDays.map((day, index) => (
-                        <div
-                          key={day.dateKey}
-                          className="rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3"
-                        >
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="min-w-0">
-                              <p className="text-xs text-zinc-500">#{index + 1}</p>
-                              <p className="mt-1 text-sm font-medium text-white">
-                                {formatDisplayDate(day.dateKey)}
-                              </p>
+                <div className="grid gap-4">
+                  <GlassCard className="p-5 sm:p-6">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                      Лучшие дни месяца
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      {dailyStats.bestDays.length > 0 ? (
+                        dailyStats.bestDays.map((day, index) => (
+                          <div key={day.dateKey} className="analytics-day-card">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="min-w-0">
+                                <p className="text-xs text-[#7f8aa8]">#{index + 1}</p>
+                                <p className="mt-1 text-sm font-semibold text-white">
+                                  {formatDisplayDate(day.dateKey)}
+                                </p>
+                              </div>
+                              <span className="text-sm font-semibold text-white">
+                                {formatMoney(day.amount)}
+                              </span>
                             </div>
-                            <span className="text-sm font-semibold text-white">
-                              {formatMoney(day.amount)}
-                            </span>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-zinc-500">Пока нет успешных дней</p>
-                    )}
-                  </div>
-
-                  <div className="mt-6 rounded-[20px] border border-white/10 bg-white/[0.05] px-4 py-3">
-                    <div className="flex justify-between gap-4">
-                      <span className="text-sm text-zinc-400">Пустых дней</span>
-                      <span className="text-sm font-medium text-white">{dailyStats.weakDays}</span>
+                        ))
+                      ) : (
+                        <p className="text-sm text-[#8b97b5]">Пока нет успешных дней</p>
+                      )}
                     </div>
-                  </div>
-                </GlassCard>
+                  </GlassCard>
+
+                  <GlassCard className="p-5 sm:p-6">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                      Слабые дни
+                    </p>
+                    <p className="mt-3 text-[34px] font-semibold tracking-[-0.05em] text-white">
+                      {dailyStats.weakDays}
+                    </p>
+                    <p className="mt-2 text-sm text-[#8b97b5]">
+                      Дней без движения в выбранном месяце.
+                    </p>
+                  </GlassCard>
+                </div>
               </div>
             </>
           )}
 
           {activeTab === "settings" && (
             <>
-              <SectionTitle title="Настройки" subtitle="Цели и управление месяцами" />
+              <SectionTitle
+                title="Настройки"
+                subtitle="Управление целями, месяцами и системными действиями."
+              />
 
-              <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+              <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
                 <GlassCard className="p-5 sm:p-6">
                   <FormLabel>Цель месяца</FormLabel>
                   <TextInput
@@ -2160,22 +2336,24 @@ export default function App() {
                       }
                     }}
                   />
-                  <p className="mt-3 text-sm text-zinc-500">
+                  <p className="mt-3 text-sm text-[#8b97b5]">
                     Актуальная цель для {formatMonthLabel(selectedMonth)}.
                   </p>
                 </GlassCard>
 
                 <GlassCard className="p-5 sm:p-6">
-                  <p className="text-sm text-zinc-400">Опасная зона</p>
-                  <p className="mt-2 text-[20px] font-semibold tracking-[-0.03em] text-white">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#b68ea4]">
+                    Опасная зона
+                  </p>
+                  <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-white">
                     Удаление месяца
                   </p>
-                  <p className="mt-2 text-sm text-zinc-500">
+                  <p className="mt-2 text-sm text-[#8b97b5]">
                     Будут удалены операции, записи и цель выбранного месяца.
                   </p>
                   <button
                     onClick={deleteSelectedMonth}
-                    className="mt-5 inline-flex h-11 items-center justify-center rounded-[14px] border border-rose-400/18 bg-rose-500/10 px-4 text-sm font-medium text-rose-200 transition hover:bg-rose-500/14"
+                    className="danger-button mt-5"
                   >
                     Удалить месяц
                   </button>
@@ -2196,18 +2374,19 @@ export default function App() {
           <div className="fixed inset-0 z-[999] bg-black/74 backdrop-blur-md">
             <div className="absolute inset-0" onClick={() => setShowAppointmentModal(false)} />
 
-            <div className="absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[760px] flex-col rounded-t-[34px] border border-white/10 bg-[rgba(8,11,18,0.92)] shadow-[0_-24px_100px_rgba(0,0,0,0.65)] backdrop-blur-[28px] animate-sheet-in">
-              <div className="pointer-events-none absolute left-[12%] top-0 h-[160px] w-[160px] rounded-full bg-[#69e1ff]/10 blur-[70px]" />
-              <div className="pointer-events-none absolute right-[10%] top-[10px] h-[150px] w-[150px] rounded-full bg-[#705dff]/12 blur-[80px]" />
+            <div className="modal-panel absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[780px] flex-col rounded-t-[36px]">
+              <div className="pointer-events-none absolute left-[8%] top-0 h-[180px] w-[180px] rounded-full bg-[#69e1ff]/10 blur-[78px]" />
+              <div className="pointer-events-none absolute right-[10%] top-[0px] h-[180px] w-[180px] rounded-full bg-[#705dff]/12 blur-[88px]" />
 
               <div className="relative z-[1] px-4 pt-4 sm:px-6">
-                <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/15" />
+                <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/12" />
+
                 <div className="mb-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b88aa]">
                       {editingAppointmentId ? "Редактирование" : "Новая запись"}
                     </p>
-                    <h2 className="mt-1 text-[24px] font-semibold tracking-[-0.04em] text-white">
+                    <h2 className="mt-1 text-[28px] font-semibold tracking-[-0.05em] text-white">
                       {editingAppointmentId ? "Карточка записи" : "Создание записи"}
                     </h2>
                   </div>
@@ -2220,12 +2399,12 @@ export default function App() {
 
               <div className="relative z-[1] min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-6">
                 <div className="space-y-4 pb-4">
-                  <GlassCard className="p-4">
+                  <GlassCard className="p-4 sm:p-5">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <FormLabel>Клиент</FormLabel>
                         <div className="relative">
-                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7280a5]">
                             <UserIcon />
                           </div>
                           <TextInput
@@ -2240,7 +2419,7 @@ export default function App() {
                       <div>
                         <FormLabel>Телефон</FormLabel>
                         <div className="relative">
-                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7280a5]">
                             <PhoneIcon />
                           </div>
                           <TextInput
@@ -2255,7 +2434,7 @@ export default function App() {
                     </div>
                   </GlassCard>
 
-                  <GlassCard className="p-4">
+                  <GlassCard className="p-4 sm:p-5">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <FormLabel>Дата</FormLabel>
@@ -2294,11 +2473,13 @@ export default function App() {
                     </div>
                   </GlassCard>
 
-                  <GlassCard className="p-4">
+                  <GlassCard className="p-4 sm:p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-[16px] font-semibold text-white">Услуги</p>
-                        <p className="text-sm text-zinc-500">Состав и стоимость записи</p>
+                        <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                          Услуги
+                        </p>
+                        <p className="text-sm text-[#8b97b5]">Состав и стоимость записи</p>
                       </div>
                       <IconButton onClick={addAppointmentServiceRow}>
                         <PlusIcon />
@@ -2307,18 +2488,17 @@ export default function App() {
 
                     <div className="space-y-3">
                       {appointmentServices.map((service) => (
-                        <div
-                          key={service.id}
-                          className="rounded-[22px] border border-white/10 bg-white/[0.05] p-3"
-                        >
-                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_44px]">
+                        <div key={service.id} className="inner-block">
+                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_130px_48px]">
                             <button
                               type="button"
                               onClick={() => setServicePickerRowId(service.id)}
-                              className="field-input flex h-[52px] min-w-0 items-center justify-between px-4"
+                              className="field-input flex h-[54px] min-w-0 items-center justify-between px-4"
                             >
-                              <span className="truncate text-[15px] text-white">{service.type}</span>
-                              <span className="ml-3 shrink-0 text-zinc-500">↕</span>
+                              <span className="truncate text-[15px] font-medium text-white">
+                                {service.type}
+                              </span>
+                              <span className="ml-3 shrink-0 text-[#7b88aa]">↕</span>
                             </button>
 
                             {service.type === "Запись" ? (
@@ -2331,7 +2511,7 @@ export default function App() {
                                     hours: e.target.value === "" ? "" : Number(e.target.value),
                                   })
                                 }
-                                className="h-[52px] px-4 text-[16px]"
+                                className="h-[54px] px-4 text-[16px] font-semibold"
                               />
                             ) : (
                               <TextInput
@@ -2343,22 +2523,22 @@ export default function App() {
                                     amount: Number(e.target.value),
                                   })
                                 }
-                                className="h-[52px] px-4 text-[16px]"
+                                className="h-[54px] px-4 text-[16px] font-semibold"
                               />
                             )}
 
                             <button
                               type="button"
                               onClick={() => removeAppointmentServiceRow(service.id)}
-                              className="flex h-[52px] w-[44px] items-center justify-center rounded-[14px] border border-rose-400/18 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/14"
+                              className="remove-mini-button"
                             >
                               <CloseIcon />
                             </button>
                           </div>
 
-                          <div className="mt-2 flex items-center justify-between px-1 text-xs text-zinc-500">
+                          <div className="mt-3 flex items-center justify-between px-1 text-xs text-[#7f8aa8]">
                             <span>{service.type === "Запись" ? "Часы" : "Сумма"}</span>
-                            <span className="text-zinc-300">
+                            <span className="font-semibold text-white">
                               {formatMoney(normalizeServiceRow(service).amount)}
                             </span>
                           </div>
@@ -2367,11 +2547,13 @@ export default function App() {
                     </div>
                   </GlassCard>
 
-                  <GlassCard className="p-4">
+                  <GlassCard className="p-4 sm:p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-[16px] font-semibold text-white">Оплата</p>
-                        <p className="text-sm text-zinc-500">
+                        <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                          Оплата
+                        </p>
+                        <p className="text-sm text-[#8b97b5]">
                           Осталось: {formatMoney(remainingToPay)}
                         </p>
                       </div>
@@ -2379,18 +2561,17 @@ export default function App() {
 
                     <div className="space-y-3">
                       {appointmentPayments.map((payment) => (
-                        <div
-                          key={payment.id}
-                          className="rounded-[22px] border border-white/10 bg-white/[0.05] p-3"
-                        >
-                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_44px]">
+                        <div key={payment.id} className="inner-block">
+                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_130px_48px]">
                             <button
                               type="button"
                               onClick={() => setPaymentPickerRowId(payment.id)}
-                              className="field-input flex h-[52px] min-w-0 items-center justify-between px-4"
+                              className="field-input flex h-[54px] min-w-0 items-center justify-between px-4"
                             >
-                              <span className="truncate text-[15px] text-white">{payment.type}</span>
-                              <span className="ml-3 shrink-0 text-zinc-500">↕</span>
+                              <span className="truncate text-[15px] font-medium text-white">
+                                {payment.type}
+                              </span>
+                              <span className="ml-3 shrink-0 text-[#7b88aa]">↕</span>
                             </button>
 
                             <TextInput
@@ -2402,13 +2583,13 @@ export default function App() {
                                   amount: Number(e.target.value),
                                 })
                               }
-                              className="h-[52px] px-4 text-[16px]"
+                              className="h-[54px] px-4 text-[16px] font-semibold"
                             />
 
                             <button
                               type="button"
                               onClick={() => removeAppointmentPaymentRow(payment.id)}
-                              className="flex h-[52px] w-[44px] items-center justify-center rounded-[14px] border border-rose-400/18 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/14"
+                              className="remove-mini-button"
                             >
                               <CloseIcon />
                             </button>
@@ -2437,7 +2618,7 @@ export default function App() {
                     </div>
                   </GlassCard>
 
-                  <GlassCard className="p-4">
+                  <GlassCard className="p-4 sm:p-5">
                     <FormLabel>Статус</FormLabel>
                     <SegmentedControl
                       options={[
@@ -2462,11 +2643,11 @@ export default function App() {
               </div>
 
               <div className="relative z-[1] border-t border-white/8 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 sm:px-6">
-                <div className="grid grid-cols-[minmax(0,1fr)_52px] gap-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_56px] gap-3">
                   <PrimaryButton
                     type="button"
                     onClick={saveAppointment}
-                    className="h-[56px] justify-center"
+                    className="h-[58px] justify-center"
                   >
                     Сохранить запись
                   </PrimaryButton>
@@ -2475,7 +2656,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => deleteAppointment(editingAppointmentId)}
-                      className="flex h-[56px] items-center justify-center rounded-[16px] border border-rose-400/18 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/14"
+                      className="remove-large-button"
                     >
                       <TrashIcon />
                     </button>
@@ -2483,7 +2664,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowAppointmentModal(false)}
-                      className="flex h-[56px] items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.05] text-zinc-300 transition hover:bg-white/[0.08]"
+                      className="modal-close-button"
                     >
                       <CloseIcon />
                     </button>
