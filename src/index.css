@@ -124,31 +124,144 @@ select:-webkit-autofill {
 
 @layer components {
   .ui-card {
-    @apply relative overflow-hidden rounded-[28px] border border-white/8 bg-white/[0.035] shadow-[0_12px_40px_rgba(0,0,0,0.24)] backdrop-blur-xl;
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.24);
+    backdrop-filter: blur(24px);
   }
 
   .ui-btn {
-    @apply inline-flex h-11 items-center gap-2 rounded-[14px] px-4 text-sm font-medium transition duration-200 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-50;
+    display: inline-flex;
+    height: 44px;
+    align-items: center;
+    gap: 8px;
+    border-radius: 14px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 500;
+    transition:
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .ui-btn:active {
+    transform: scale(0.985);
+  }
+
+  .ui-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
   .ui-btn-primary {
-    @apply bg-white text-black shadow-[0_10px_28px_rgba(255,255,255,0.12)] hover:bg-white/95;
+    background: #ffffff;
+    color: #000000;
+    box-shadow: 0 10px 28px rgba(255, 255, 255, 0.12);
+  }
+
+  .ui-btn-primary:hover {
+    background: rgba(255, 255, 255, 0.95);
   }
 
   .ui-btn-secondary {
-    @apply border border-white/10 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.06] hover:text-white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgb(228, 228, 231);
+  }
+
+  .ui-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
   }
 
   .ui-icon-btn {
-    @apply inline-flex h-11 w-11 items-center justify-center rounded-[14px] border border-white/10 bg-white/[0.04] text-zinc-300 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.985];
+    display: inline-flex;
+    height: 44px;
+    width: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgb(212, 212, 216);
+    transition:
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+
+  .ui-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+  }
+
+  .ui-icon-btn:active {
+    transform: scale(0.985);
   }
 
   .ui-input {
-    @apply h-[56px] w-full min-w-0 rounded-[16px] border border-white/10 bg-[#11141a] px-4 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition duration-200 placeholder:text-zinc-500 focus:border-white/18 focus:bg-[#131720] focus:shadow-[0_0_0_4px_rgba(255,255,255,0.03)];
+    width: 100%;
+    min-width: 0;
+    height: 56px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #11141a;
+    padding: 0 16px;
+    font-size: 15px;
+    color: #ffffff;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .ui-input::placeholder {
+    color: #71717a;
+  }
+
+  .ui-input:focus {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: #131720;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
   }
 
   .ui-textarea {
-    @apply min-h-[120px] w-full min-w-0 resize-none rounded-[16px] border border-white/10 bg-[#11141a] px-4 py-3 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.02)] transition duration-200 placeholder:text-zinc-500 focus:border-white/18 focus:bg-[#131720] focus:shadow-[0_0_0_4px_rgba(255,255,255,0.03)];
+    width: 100%;
+    min-width: 0;
+    min-height: 120px;
+    resize: none;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #11141a;
+    padding: 12px 16px;
+    font-size: 15px;
+    color: #ffffff;
+    outline: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .ui-textarea::placeholder {
+    color: #71717a;
+  }
+
+  .ui-textarea:focus {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: #131720;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
   }
 
   .animate-in {
