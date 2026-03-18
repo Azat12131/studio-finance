@@ -571,6 +571,35 @@ function TextArea({
   )
 }
 
+function InputWithIcon({
+  icon,
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  icon: React.ReactNode
+}) {
+  const [isFocused, setIsFocused] = React.useState(false)
+
+  return (
+    <div className={cn("field-input flex items-center gap-3 px-4", className)}>
+      <div className="shrink-0 text-[#7280a5]">{icon}</div>
+      <input
+        {...props}
+        onFocus={(e) => {
+          setIsFocused(true)
+          props.onFocus?.(e)
+        }}
+        onBlur={(e) => {
+          setIsFocused(false)
+          props.onBlur?.(e)
+        }}
+        placeholder={isFocused ? "" : props.placeholder}
+        className="h-full w-full min-w-0 border-0 bg-transparent p-0 text-[15px] font-medium text-white outline-none placeholder:text-[rgba(214,223,247,0.48)]"
+      />
+    </div>
+  )
+}
+
 function ProgressLine({
   value,
   total,
@@ -670,10 +699,7 @@ function RecentOperationRow({
   onOpen: (entry: FinancialEntry) => void
 }) {
   return (
-    <button
-      onClick={() => onOpen(entry)}
-      className="finance-row group"
-    >
+    <button onClick={() => onOpen(entry)} className="finance-row group">
       <div className="flex min-w-0 items-center gap-4">
         <div className="finance-row-icon">
           {entry.source === "appointment" ? <CalendarIcon /> : <ReceiptIcon />}
@@ -1144,10 +1170,7 @@ function BottomNav({
   if (hidden) return null
 
   const itemClass = (tab: AppTab) =>
-    cn(
-      "mobile-nav-item",
-      activeTab === tab && "mobile-nav-item-active"
-    )
+    cn("mobile-nav-item", activeTab === tab && "mobile-nav-item-active")
 
   return (
     <div className="pointer-events-none fixed bottom-5 left-0 right-0 z-[700] flex justify-center lg:hidden">
@@ -1669,7 +1692,7 @@ export default function App() {
     [monthGoals]
   )
 
-  const saveAppointment = React.useCallback(async () => {
+   const saveAppointment = React.useCallback(async () => {
     if (!appointmentDate) {
       alert("Выбери дату.")
       return
@@ -1940,6 +1963,7 @@ export default function App() {
 
   const activeServicePickerValue =
     appointmentServices.find((row) => row.id === servicePickerRowId)?.type ?? "Запись"
+
   const activePaymentPickerValue =
     appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
@@ -1966,7 +1990,10 @@ export default function App() {
                 title="Главная"
                 subtitle="Центр управления студией: доход, план, лидеры месяца и ключевые точки роста."
                 action={
-                  <PrimaryButton onClick={openCreateAppointmentModal} className="hidden sm:inline-flex">
+                  <PrimaryButton
+                    onClick={openCreateAppointmentModal}
+                    className="hidden sm:inline-flex"
+                  >
                     <PlusIcon />
                     Новая запись
                   </PrimaryButton>
@@ -2072,11 +2099,15 @@ export default function App() {
                   <div className="mt-4 space-y-4">
                     <div className="owner-inline">
                       <span className="text-sm text-white">Азат</span>
-                      <span className="text-sm font-semibold text-white">{formatMoney(azatIncome)}</span>
+                      <span className="text-sm font-semibold text-white">
+                        {formatMoney(azatIncome)}
+                      </span>
                     </div>
                     <div className="owner-inline">
                       <span className="text-sm text-white">Марс</span>
-                      <span className="text-sm font-semibold text-white">{formatMoney(marsIncome)}</span>
+                      <span className="text-sm font-semibold text-white">
+                        {formatMoney(marsIncome)}
+                      </span>
                     </div>
                   </div>
                 </GlassCard>
@@ -2177,7 +2208,9 @@ export default function App() {
                           <p className="text-[22px] font-semibold tracking-[-0.04em] text-white">
                             {formatMoney(paid)}
                           </p>
-                          <p className="mt-1 text-xs text-[#7581a3]">из {formatMoney(total)}</p>
+                          <p className="mt-1 text-xs text-[#7581a3]">
+                            из {formatMoney(total)}
+                          </p>
                         </div>
                       </div>
                     </button>
@@ -2225,7 +2258,9 @@ export default function App() {
                     <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
                       Пока пусто
                     </p>
-                    <p className="mt-2 text-sm text-[#8b97b5]">За этот месяц данных пока нет.</p>
+                    <p className="mt-2 text-sm text-[#8b97b5]">
+                      За этот месяц данных пока нет.
+                    </p>
                   </GlassCard>
                 )}
               </div>
@@ -2351,10 +2386,7 @@ export default function App() {
                   <p className="mt-2 text-sm text-[#8b97b5]">
                     Будут удалены операции, записи и цель выбранного месяца.
                   </p>
-                  <button
-                    onClick={deleteSelectedMonth}
-                    className="danger-button mt-5"
-                  >
+                  <button onClick={deleteSelectedMonth} className="danger-button mt-5">
                     Удалить месяц
                   </button>
                 </GlassCard>
@@ -2403,33 +2435,23 @@ export default function App() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <FormLabel>Клиент</FormLabel>
-                        <div className="relative">
-                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7280a5]">
-                            <UserIcon />
-                          </div>
-                          <TextInput
-                            placeholder="Имя клиента"
-                            value={appointmentClient}
-                            onChange={(e) => setAppointmentClient(e.target.value)}
-                            className="pl-12"
-                          />
-                        </div>
+                        <InputWithIcon
+                          icon={<UserIcon />}
+                          placeholder="Имя клиента"
+                          value={appointmentClient}
+                          onChange={(e) => setAppointmentClient(e.target.value)}
+                        />
                       </div>
 
                       <div>
                         <FormLabel>Телефон</FormLabel>
-                        <div className="relative">
-                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7280a5]">
-                            <PhoneIcon />
-                          </div>
-                          <TextInput
-                            type="tel"
-                            placeholder="Телефон"
-                            value={appointmentPhone}
-                            onChange={(e) => setAppointmentPhone(e.target.value)}
-                            className="pl-12"
-                          />
-                        </div>
+                        <InputWithIcon
+                          icon={<PhoneIcon />}
+                          type="tel"
+                          placeholder="Телефон"
+                          value={appointmentPhone}
+                          onChange={(e) => setAppointmentPhone(e.target.value)}
+                        />
                       </div>
                     </div>
                   </GlassCard>
@@ -2505,7 +2527,11 @@ export default function App() {
                               <TextInput
                                 type="number"
                                 placeholder="0"
-                                value={service.hours}
+                                value={
+                                  service.hours === "" || service.hours === 0
+                                    ? ""
+                                    : String(service.hours)
+                                }
                                 onChange={(e) =>
                                   updateAppointmentServiceRow(service.id, {
                                     hours: e.target.value === "" ? "" : Number(e.target.value),
@@ -2517,10 +2543,10 @@ export default function App() {
                               <TextInput
                                 type="number"
                                 placeholder="0"
-                                value={service.amount}
+                                value={service.amount === 0 ? "" : String(service.amount)}
                                 onChange={(e) =>
                                   updateAppointmentServiceRow(service.id, {
-                                    amount: Number(e.target.value),
+                                    amount: e.target.value === "" ? 0 : Number(e.target.value),
                                   })
                                 }
                                 className="h-[54px] px-4 text-[16px] font-semibold"
@@ -2577,10 +2603,10 @@ export default function App() {
                             <TextInput
                               type="number"
                               placeholder="0"
-                              value={payment.amount}
+                              value={payment.amount === 0 ? "" : String(payment.amount)}
                               onChange={(e) =>
                                 updateAppointmentPaymentRow(payment.id, {
-                                  amount: Number(e.target.value),
+                                  amount: e.target.value === "" ? 0 : Number(e.target.value),
                                 })
                               }
                               className="h-[54px] px-4 text-[16px] font-semibold"
