@@ -92,6 +92,50 @@ const serviceOptions: ServiceType[] = [
 
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
 
+const fontBaseStyle: React.CSSProperties = {
+  fontFamily:
+    '"SF Pro Display","SF Pro Text","Inter","Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif',
+  WebkitFontSmoothing: "antialiased",
+  MozOsxFontSmoothing: "grayscale",
+  textRendering: "optimizeLegibility",
+}
+
+const fontDisplayHeroStyle: React.CSSProperties = {
+  ...fontBaseStyle,
+  fontWeight: 900,
+  letterSpacing: "-0.065em",
+}
+
+const fontDisplayTitleStyle: React.CSSProperties = {
+  ...fontBaseStyle,
+  fontWeight: 800,
+  letterSpacing: "-0.05em",
+}
+
+const fontDisplayMediumStyle: React.CSSProperties = {
+  ...fontBaseStyle,
+  fontWeight: 700,
+  letterSpacing: "-0.035em",
+}
+
+const fontBodyMediumStyle: React.CSSProperties = {
+  ...fontBaseStyle,
+  fontWeight: 500,
+  letterSpacing: "-0.01em",
+}
+
+const fontLabelStyle: React.CSSProperties = {
+  ...fontBaseStyle,
+  fontWeight: 500,
+  letterSpacing: "0.01em",
+}
+
+const fontCapsStyle: React.CSSProperties = {
+  ...fontBaseStyle,
+  fontWeight: 700,
+  letterSpacing: "0.12em",
+}
+
 function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ")
 }
@@ -305,7 +349,15 @@ function getProgressWidth(value: number, total: number) {
 
 function HomeIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 10.5 12 3l9 7.5" />
       <path d="M5.5 9.5V20h13V9.5" />
       <path d="M10 20v-5h4v5" />
@@ -315,7 +367,15 @@ function HomeIcon() {
 
 function ReceiptIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M7 3h10v18l-2-1.5L13 21l-2-1.5L9 21l-2-1.5L5 21V5a2 2 0 0 1 2-2Z" />
       <path d="M9 8h6" />
       <path d="M9 12h6" />
@@ -325,7 +385,15 @@ function ReceiptIcon() {
 
 function ChartIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M4 20V10" />
       <path d="M10 20V4" />
       <path d="M16 20v-7" />
@@ -336,7 +404,15 @@ function ChartIcon() {
 
 function SettingsIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 3.5 13.8 5l2.4-.3.8 2.3 2 1.3-1 2 1 2-2 1.3-.8 2.3-2.4-.3L12 20.5l-1.8-1.5-2.4.3-.8-2.3-2-1.3 1-2-1-2 2-1.3.8-2.3 2.4.3L12 3.5Z" />
       <circle cx="12" cy="12" r="3.2" />
     </svg>
@@ -345,7 +421,15 @@ function SettingsIcon() {
 
 function CalendarIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <rect x="3" y="5" width="18" height="16" rx="3" />
       <path d="M16 3v4" />
       <path d="M8 3v4" />
@@ -356,7 +440,15 @@ function CalendarIcon() {
 
 function ChevronLeftIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="m15 18-6-6 6-6" />
     </svg>
   )
@@ -364,7 +456,15 @@ function ChevronLeftIcon() {
 
 function ChevronRightIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="m9 18 6-6-6-6" />
     </svg>
   )
@@ -372,7 +472,15 @@ function ChevronRightIcon() {
 
 function CloseIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </svg>
@@ -381,7 +489,15 @@ function CloseIcon() {
 
 function ClockIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 7.5V12l3 1.8" />
     </svg>
@@ -390,7 +506,15 @@ function ClockIcon() {
 
 function UserIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
       <path d="M5 20a7 7 0 0 1 14 0" />
     </svg>
@@ -399,7 +523,15 @@ function UserIcon() {
 
 function PhoneIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M22 16.92v2a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.63-3.07A19.5 19.5 0 0 1 5.15 11.8 19.86 19.86 0 0 1 2.08 3.09 2 2 0 0 1 4.06.92h2a2 2 0 0 1 2 1.72c.12.9.33 1.78.63 2.62a2 2 0 0 1-.45 2.11L7.1 8.91a16 16 0 0 0 8 8l1.54-1.14a2 2 0 0 1 2.11-.45c.84.3 1.72.51 2.62.63A2 2 0 0 1 22 16.92Z" />
     </svg>
   )
@@ -407,7 +539,15 @@ function PhoneIcon() {
 
 function PlusIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[20px] w-[20px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[20px] w-[20px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 5v14" />
       <path d="M5 12h14" />
     </svg>
@@ -416,7 +556,15 @@ function PlusIcon() {
 
 function TrashIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[17px] w-[17px]" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[17px] w-[17px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M3 6h18" />
       <path d="M8 6V4h8v2" />
       <path d="m19 6-1 14H6L5 6" />
@@ -428,7 +576,15 @@ function TrashIcon() {
 
 function SparkIcon() {
   return (
-    <svg viewBox="0 0 24 24" className="h-[16px] w-[16px]" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.85"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
     </svg>
   )
@@ -444,7 +600,10 @@ function GlassCard({
   glow?: boolean
 }) {
   return (
-    <div className={cn("neo-card animate-fade-up", glow && "neo-card-glow", className)}>
+    <div
+      className={cn("neo-card animate-fade-up", glow && "neo-card-glow", className)}
+      style={fontBaseStyle}
+    >
       {children}
     </div>
   )
@@ -462,15 +621,24 @@ function SectionTitle({
   return (
     <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#98a8d4] backdrop-blur-xl">
+        <div
+          className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase text-[#98a8d4] backdrop-blur-xl"
+          style={fontCapsStyle}
+        >
           <SparkIcon />
           Studio control
         </div>
-        <h1 className="mt-4 truncate text-[34px] font-semibold tracking-[-0.055em] text-white sm:text-[42px]">
+        <h1
+          className="mt-4 truncate text-[34px] text-white sm:text-[42px]"
+          style={fontDisplayTitleStyle}
+        >
           {title}
         </h1>
         {subtitle ? (
-          <p className="mt-2 max-w-[720px] text-[14px] text-[#8f98b3] sm:text-[15px]">
+          <p
+            className="mt-2 max-w-[720px] text-[14px] text-[#8f98b3] sm:text-[15px]"
+            style={fontBodyMediumStyle}
+          >
             {subtitle}
           </p>
         ) : null}
@@ -486,7 +654,7 @@ function PrimaryButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={cn("btn-primary", className)}>
+    <button {...props} className={cn("btn-primary", className)} style={fontDisplayMediumStyle}>
       {children}
     </button>
   )
@@ -498,7 +666,7 @@ function GhostButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={cn("btn-ghost", className)}>
+    <button {...props} className={cn("btn-ghost", className)} style={fontDisplayMediumStyle}>
       {children}
     </button>
   )
@@ -510,7 +678,7 @@ function IconButton({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button {...props} className={cn("icon-button", className)}>
+    <button {...props} className={cn("icon-button", className)} style={fontBaseStyle}>
       {children}
     </button>
   )
@@ -521,6 +689,7 @@ function TextInput({
   placeholder,
   onFocus,
   onBlur,
+  style,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   const [isFocused, setIsFocused] = React.useState(false)
@@ -540,6 +709,7 @@ function TextInput({
         setIsFocused(false)
         onBlur?.(e)
       }}
+      style={{ ...fontBaseStyle, ...style }}
       className={cn("field-input", className)}
     />
   )
@@ -550,6 +720,7 @@ function TextArea({
   placeholder,
   onFocus,
   onBlur,
+  style,
   ...props
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const [isFocused, setIsFocused] = React.useState(false)
@@ -566,6 +737,7 @@ function TextArea({
         setIsFocused(false)
         onBlur?.(e)
       }}
+      style={{ ...fontBaseStyle, ...style }}
       className={cn("field-textarea", className)}
     />
   )
@@ -581,7 +753,7 @@ function InputWithIcon({
   const [isFocused, setIsFocused] = React.useState(false)
 
   return (
-    <div className={cn("field-input flex items-center gap-3 px-4", className)}>
+    <div className={cn("field-input flex items-center gap-3 px-4", className)} style={fontBaseStyle}>
       <div className="shrink-0 text-[#7280a5]">{icon}</div>
       <input
         {...props}
@@ -594,7 +766,8 @@ function InputWithIcon({
           props.onBlur?.(e)
         }}
         placeholder={isFocused ? "" : props.placeholder}
-        className="h-full w-full min-w-0 border-0 bg-transparent p-0 text-[15px] font-medium text-white outline-none placeholder:text-[rgba(214,223,247,0.48)]"
+        style={fontBodyMediumStyle}
+        className="h-full w-full min-w-0 border-0 bg-transparent p-0 text-[15px] text-white outline-none placeholder:text-[rgba(214,223,247,0.48)]"
       />
     </div>
   )
@@ -612,7 +785,12 @@ function ProgressLine({
   heightClassName?: string
 }) {
   return (
-    <div className={cn("w-full overflow-hidden rounded-full bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]", heightClassName)}>
+    <div
+      className={cn(
+        "w-full overflow-hidden rounded-full bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]",
+        heightClassName
+      )}
+    >
       <div
         className={cn(
           "h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out shadow-[0_0_30px_rgba(111,147,255,0.25)]",
@@ -643,8 +821,9 @@ function MonthTabs({
               <button
                 key={monthKey}
                 onClick={() => onChange(monthKey)}
+                style={fontDisplayMediumStyle}
                 className={cn(
-                  "rounded-full px-4 py-2.5 text-sm font-semibold capitalize transition duration-200",
+                  "rounded-full px-4 py-2.5 text-sm capitalize transition duration-200",
                   active
                     ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_28px_rgba(71,112,255,0.34)]"
                     : "border border-white/8 bg-white/[0.04] text-[#9aa5c3] hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
@@ -673,12 +852,13 @@ function StatMini({
 }) {
   return (
     <GlassCard className="p-5">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7d89ab]">
+      <p className="text-[12px] uppercase text-[#7d89ab]" style={fontCapsStyle}>
         {label}
       </p>
       <p
+        style={fontDisplayTitleStyle}
         className={cn(
-          "mt-4 text-[30px] font-semibold tracking-[-0.05em]",
+          "mt-4 text-[30px]",
           accent === "good" && "text-emerald-300",
           accent === "danger" && "text-rose-300",
           accent === "default" && "text-white"
@@ -686,7 +866,11 @@ function StatMini({
       >
         {value}
       </p>
-      {sub ? <p className="mt-2 text-sm text-[#8f98b3]">{sub}</p> : null}
+      {sub ? (
+        <p className="mt-2 text-sm text-[#8f98b3]" style={fontBodyMediumStyle}>
+          {sub}
+        </p>
+      ) : null}
     </GlassCard>
   )
 }
@@ -699,7 +883,7 @@ function RecentOperationRow({
   onOpen: (entry: FinancialEntry) => void
 }) {
   return (
-    <button onClick={() => onOpen(entry)} className="finance-row group">
+    <button onClick={() => onOpen(entry)} className="finance-row group" style={fontBaseStyle}>
       <div className="flex min-w-0 items-center gap-4">
         <div className="finance-row-icon">
           {entry.source === "appointment" ? <CalendarIcon /> : <ReceiptIcon />}
@@ -707,23 +891,28 @@ function RecentOperationRow({
 
         <div className="min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <p className="truncate text-[15px] font-semibold text-white">{entry.client}</p>
-            <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-[#9aa5c3]">
+            <p className="truncate text-[15px] text-white" style={fontDisplayMediumStyle}>
+              {entry.client}
+            </p>
+            <span
+              className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#9aa5c3]"
+              style={fontBodyMediumStyle}
+            >
               {entry.owner}
             </span>
           </div>
 
-          <p className="mt-1 text-sm text-[#7f8aa8]">
+          <p className="mt-1 text-sm text-[#7f8aa8]" style={fontBodyMediumStyle}>
             {formatDisplayDate(entry.date)} · {entry.services.length} усл.
           </p>
         </div>
       </div>
 
       <div className="shrink-0 text-right">
-        <p className="text-[17px] font-semibold tracking-[-0.03em] text-white">
+        <p className="text-[17px] text-white" style={fontDisplayMediumStyle}>
           {formatMoney(getPaymentsTotal(entry))}
         </p>
-        <p className="mt-1 text-xs text-[#7380a2]">
+        <p className="mt-1 text-xs text-[#7380a2]" style={fontBodyMediumStyle}>
           {entry.source === "appointment" ? "Запись" : "Операция"}
         </p>
       </div>
@@ -750,10 +939,14 @@ function CompactField({
     <Comp
       {...(onClick ? { onClick, type: "button" as const } : {})}
       className={cn("field-input flex h-[58px] items-center gap-3 px-4 text-left", className)}
+      style={fontBaseStyle}
     >
       {icon ? <div className="shrink-0 text-[#7f8cb0]">{icon}</div> : null}
       <div className="min-w-0 flex-1">
-        <div className={cn("truncate text-[15px] font-medium", value ? "text-white" : "text-[#7f8aa8]")}>
+        <div
+          className={cn("truncate text-[15px]", value ? "text-white" : "text-[#7f8aa8]")}
+          style={fontBodyMediumStyle}
+        >
           {value || placeholder}
         </div>
       </div>
@@ -863,13 +1056,15 @@ function PickerSheet<T extends string>({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[1200] bg-black/70 backdrop-blur-md">
+    <div className="fixed inset-0 z-[1200] bg-black/70 backdrop-blur-md" style={fontBaseStyle}>
       <div className="absolute inset-0" onClick={onClose} />
       <div className="sheet-panel absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[34px] px-4 pb-6 pt-4">
         <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/12" />
 
         <div className="mb-5 flex items-center justify-between gap-4">
-          <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">{title}</p>
+          <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
+            {title}
+          </p>
           <IconButton onClick={onClose} className="h-10 w-10 rounded-full">
             <CloseIcon />
           </IconButton>
@@ -885,6 +1080,7 @@ function PickerSheet<T extends string>({
                   onSelect(option)
                   onClose()
                 }}
+                style={fontBodyMediumStyle}
                 className={cn(
                   "flex w-full items-center justify-between rounded-[20px] px-4 py-4 text-left transition",
                   active
@@ -892,7 +1088,7 @@ function PickerSheet<T extends string>({
                     : "border border-white/8 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.06]"
                 )}
               >
-                <span className="font-medium">{option}</span>
+                <span>{option}</span>
                 {active ? <span className="text-sm text-white/75">Выбрано</span> : null}
               </button>
             )
@@ -914,7 +1110,10 @@ function SegmentedControl<T extends string>({
 }) {
   return (
     <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-1.5 backdrop-blur-xl">
-      <div style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }} className="grid gap-1.5">
+      <div
+        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}
+        className="grid gap-1.5"
+      >
         {options.map((option) => {
           const active = option.value === value
           return (
@@ -922,8 +1121,9 @@ function SegmentedControl<T extends string>({
               key={option.value}
               type="button"
               onClick={() => onChange(option.value)}
+              style={fontDisplayMediumStyle}
               className={cn(
-                "min-h-[48px] rounded-[16px] px-3 text-[14px] font-semibold transition",
+                "min-h-[48px] rounded-[16px] px-3 text-[14px] transition",
                 active
                   ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
                   : "text-[#9aa5c3] hover:bg-white/[0.05] hover:text-white"
@@ -940,7 +1140,7 @@ function SegmentedControl<T extends string>({
 
 function FormLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mb-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#7684a9]">
+    <p className="mb-2.5 text-[12px] uppercase text-[#7684a9]" style={fontCapsStyle}>
       {children}
     </p>
   )
@@ -973,21 +1173,36 @@ function DashboardHero({
 
       <div className="relative z-[1] grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#a2afd0]">
+          <div
+            className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.05] px-3 py-1.5 text-[11px] uppercase text-[#a2afd0]"
+            style={fontCapsStyle}
+          >
             Финансовый центр
           </div>
 
           <div className="mt-5 flex flex-wrap items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-[#90a0c4]">Доход за месяц</p>
-              <h2 className="mt-3 text-[42px] font-semibold tracking-[-0.07em] text-white sm:text-[56px]">
+              <p className="text-[13px] text-[#90a0c4]" style={fontLabelStyle}>
+                Доход за месяц
+              </p>
+              <h2
+                className="mt-3 text-[44px] leading-none text-white sm:text-[58px]"
+                style={fontDisplayHeroStyle}
+              >
                 {formatMoney(monthIncome)}
               </h2>
-              <p className="mt-2 text-sm text-[#7f8aa8]">{formatMonthLabel(selectedMonth)}</p>
+              <p className="mt-2 text-sm text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                {formatMonthLabel(selectedMonth)}
+              </p>
             </div>
 
-            <div className="stats-chip">
-              <span className={cn("inline-block h-2.5 w-2.5 rounded-full", profitAfterRent >= 0 ? "bg-emerald-300" : "bg-rose-300")} />
+            <div className="stats-chip" style={fontBodyMediumStyle}>
+              <span
+                className={cn(
+                  "inline-block h-2.5 w-2.5 rounded-full",
+                  profitAfterRent >= 0 ? "bg-emerald-300" : "bg-rose-300"
+                )}
+              />
               {profitAfterRent >= 0 ? "План под контролем" : "Нужно добрать план"}
             </div>
           </div>
@@ -995,15 +1210,22 @@ function DashboardHero({
           <div className="mt-8 grid gap-5 md:grid-cols-2">
             <div className="metric-panel">
               <div className="mb-3 flex items-center justify-between gap-4">
-                <span className="text-sm text-[#9cabcd]">Цель месяца</span>
-                <span className="text-sm font-semibold text-white">{formatMoney(monthGoal)}</span>
+                <span className="text-sm text-[#9cabcd]" style={fontBodyMediumStyle}>
+                  Цель месяца
+                </span>
+                <span className="text-sm text-white" style={fontDisplayMediumStyle}>
+                  {formatMoney(monthGoal)}
+                </span>
               </div>
               <ProgressLine
                 value={monthIncome}
                 total={monthGoal}
                 colorClassName="from-[#8be4ff] via-[#5f96ff] to-[#7d6bff]"
               />
-              <div className="mt-3 flex items-center justify-between gap-4 text-xs text-[#7f8aa8]">
+              <div
+                className="mt-3 flex items-center justify-between gap-4 text-xs text-[#7f8aa8]"
+                style={fontBodyMediumStyle}
+              >
                 <span>Осталось до цели</span>
                 <span>{formatMoney(leftToMonthGoal)}</span>
               </div>
@@ -1011,15 +1233,22 @@ function DashboardHero({
 
             <div className="metric-panel">
               <div className="mb-3 flex items-center justify-between gap-4">
-                <span className="text-sm text-[#9cabcd]">Аренда</span>
-                <span className="text-sm font-semibold text-white">{formatMoney(RENT_GOAL)}</span>
+                <span className="text-sm text-[#9cabcd]" style={fontBodyMediumStyle}>
+                  Аренда
+                </span>
+                <span className="text-sm text-white" style={fontDisplayMediumStyle}>
+                  {formatMoney(RENT_GOAL)}
+                </span>
               </div>
               <ProgressLine
                 value={monthIncome}
                 total={RENT_GOAL}
                 colorClassName="from-[#63ffd8] via-[#4fb6ff] to-[#5f84ff]"
               />
-              <div className="mt-3 flex items-center justify-between gap-4 text-xs text-[#7f8aa8]">
+              <div
+                className="mt-3 flex items-center justify-between gap-4 text-xs text-[#7f8aa8]"
+                style={fontBodyMediumStyle}
+              >
                 <span>Осталось до аренды</span>
                 <span>{formatMoney(leftToRent)}</span>
               </div>
@@ -1030,8 +1259,10 @@ function DashboardHero({
         <div className="grid gap-4">
           <div className="owner-card">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="text-sm text-[#9cabcd]">Азат</span>
-              <span className="text-[24px] font-semibold tracking-[-0.04em] text-white">
+              <span className="text-sm text-[#9cabcd]" style={fontBodyMediumStyle}>
+                Азат
+              </span>
+              <span className="text-[24px] text-white" style={fontDisplayMediumStyle}>
                 {formatMoney(azatIncome)}
               </span>
             </div>
@@ -1045,8 +1276,10 @@ function DashboardHero({
 
           <div className="owner-card owner-card-alt">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="text-sm text-[#9cabcd]">Марс</span>
-              <span className="text-[24px] font-semibold tracking-[-0.04em] text-white">
+              <span className="text-sm text-[#9cabcd]" style={fontBodyMediumStyle}>
+                Марс
+              </span>
+              <span className="text-[24px] text-white" style={fontDisplayMediumStyle}>
                 {formatMoney(marsIncome)}
               </span>
             </div>
@@ -1059,13 +1292,21 @@ function DashboardHero({
           </div>
 
           <div className="profit-panel">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7c8ab0]">
+            <p className="text-[12px] uppercase text-[#7c8ab0]" style={fontCapsStyle}>
               Чистая прибыль
             </p>
-            <p className={cn("mt-3 text-[34px] font-semibold tracking-[-0.06em]", profitAfterRent >= 0 ? "text-white" : "text-rose-300")}>
+            <p
+              style={fontDisplayTitleStyle}
+              className={cn(
+                "mt-3 text-[34px]",
+                profitAfterRent >= 0 ? "text-white" : "text-rose-300"
+              )}
+            >
               {formatMoney(profitAfterRent)}
             </p>
-            <p className="mt-2 text-sm text-[#8b97b5]">Доход минус аренда</p>
+            <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+              Доход минус аренда
+            </p>
           </div>
         </div>
       </div>
@@ -1095,7 +1336,7 @@ function SidebarNav({
   ]
 
   return (
-    <aside className="sidebar-shell hidden lg:flex">
+    <aside className="sidebar-shell hidden lg:flex" style={fontBaseStyle}>
       <div className="sidebar-panel">
         <div className="mb-8">
           <div className="flex items-center gap-4">
@@ -1105,10 +1346,12 @@ function SidebarNav({
             </div>
 
             <div>
-              <p className="text-[16px] font-semibold tracking-[-0.03em] text-white">
+              <p className="text-[16px] text-white" style={fontDisplayMediumStyle}>
                 Studio CRM
               </p>
-              <p className="mt-1 text-xs text-[#7f8aa8]">Premium control panel</p>
+              <p className="mt-1 text-xs text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                Premium control panel
+              </p>
             </div>
           </div>
         </div>
@@ -1120,6 +1363,7 @@ function SidebarNav({
               <button
                 key={item.key}
                 onClick={() => onChange(item.key)}
+                style={fontDisplayMediumStyle}
                 className={cn("sidebar-link", active && "sidebar-link-active")}
               >
                 <span className="sidebar-link-icon">{item.icon}</span>
@@ -1130,12 +1374,12 @@ function SidebarNav({
         </div>
 
         <div className="mt-8 grid gap-3">
-          <PrimaryButton onClick={onAdd} className="w-full justify-center h-[50px]">
+          <PrimaryButton onClick={onAdd} className="h-[50px] w-full justify-center">
             <PlusIcon />
             Новая запись
           </PrimaryButton>
 
-          <GhostButton onClick={onCreateMonth} className="w-full justify-center h-[50px]">
+          <GhostButton onClick={onCreateMonth} className="h-[50px] w-full justify-center">
             <PlusIcon />
             Новый месяц
           </GhostButton>
@@ -1143,11 +1387,12 @@ function SidebarNav({
 
         <div className="mt-auto">
           <div className="sidebar-footer">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7b88aa]">
+            <p className="text-[11px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
               Focus mode
             </p>
-            <p className="mt-2 text-sm leading-6 text-[#99a4c2]">
-              Темный холодный интерфейс без белых рамок, с глубиной, стеклом и читаемой иерархией.
+            <p className="mt-2 text-sm leading-6 text-[#99a4c2]" style={fontBodyMediumStyle}>
+              Темный холодный интерфейс без белых рамок, с глубиной, стеклом и читаемой
+              иерархией.
             </p>
           </div>
         </div>
@@ -1174,7 +1419,7 @@ function BottomNav({
 
   return (
     <div className="pointer-events-none fixed bottom-5 left-0 right-0 z-[700] flex justify-center lg:hidden">
-      <div className="pointer-events-auto mobile-nav-shell">
+      <div className="pointer-events-auto mobile-nav-shell" style={fontBaseStyle}>
         <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
           <HomeIcon />
         </button>
@@ -1692,7 +1937,7 @@ export default function App() {
     [monthGoals]
   )
 
-   const saveAppointment = React.useCallback(async () => {
+  const saveAppointment = React.useCallback(async () => {
     if (!appointmentDate) {
       alert("Выбери дату.")
       return
@@ -1968,7 +2213,10 @@ export default function App() {
     appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#050811] text-white">
+    <div
+      className="min-h-screen overflow-x-hidden bg-[#050811] text-white"
+      style={fontBaseStyle}
+    >
       <div className="app-background" />
       <div className="app-orb app-orb-a" />
       <div className="app-orb app-orb-b" />
@@ -2030,7 +2278,7 @@ export default function App() {
                     sub={topClient ? formatMoney(topClient[1]) : "Пока нет лидера"}
                   />
                   <GlassCard className="p-5">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                       Топ услуг
                     </p>
                     <div className="mt-4 space-y-3">
@@ -2039,15 +2287,19 @@ export default function App() {
                           <div key={service} className="metric-row">
                             <div className="flex items-center gap-3">
                               <span className="metric-dot">{index + 1}</span>
-                              <span className="text-sm font-medium text-white">{service}</span>
+                              <span className="text-sm text-white" style={fontBodyMediumStyle}>
+                                {service}
+                              </span>
                             </div>
-                            <span className="text-sm font-semibold text-white">
+                            <span className="text-sm text-white" style={fontDisplayMediumStyle}>
                               {formatMoney(amount)}
                             </span>
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-[#8b97b5]">Пока нет данных</p>
+                        <p className="text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+                          Пока нет данных
+                        </p>
                       )}
                     </div>
                   </GlassCard>
@@ -2056,14 +2308,16 @@ export default function App() {
 
               <div className="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
                 <GlassCard className="p-5">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                  <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                     План / аренда
                   </p>
                   <div className="mt-4 space-y-4">
                     <div>
                       <div className="mb-2 flex items-center justify-between gap-4">
-                        <span className="text-sm text-[#9cabcd]">План</span>
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm text-[#9cabcd]" style={fontBodyMediumStyle}>
+                          План
+                        </span>
+                        <span className="text-sm text-white" style={fontDisplayMediumStyle}>
                           {formatMoney(monthGoal)}
                         </span>
                       </div>
@@ -2077,8 +2331,10 @@ export default function App() {
 
                     <div>
                       <div className="mb-2 flex items-center justify-between gap-4">
-                        <span className="text-sm text-[#9cabcd]">Аренда</span>
-                        <span className="text-sm font-semibold text-white">
+                        <span className="text-sm text-[#9cabcd]" style={fontBodyMediumStyle}>
+                          Аренда
+                        </span>
+                        <span className="text-sm text-white" style={fontDisplayMediumStyle}>
                           {formatMoney(RENT_GOAL)}
                         </span>
                       </div>
@@ -2093,19 +2349,23 @@ export default function App() {
                 </GlassCard>
 
                 <GlassCard className="p-5">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                  <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                     Доходы по владельцам
                   </p>
                   <div className="mt-4 space-y-4">
                     <div className="owner-inline">
-                      <span className="text-sm text-white">Азат</span>
-                      <span className="text-sm font-semibold text-white">
+                      <span className="text-sm text-white" style={fontBodyMediumStyle}>
+                        Азат
+                      </span>
+                      <span className="text-sm text-white" style={fontDisplayMediumStyle}>
                         {formatMoney(azatIncome)}
                       </span>
                     </div>
                     <div className="owner-inline">
-                      <span className="text-sm text-white">Марс</span>
-                      <span className="text-sm font-semibold text-white">
+                      <span className="text-sm text-white" style={fontBodyMediumStyle}>
+                        Марс
+                      </span>
+                      <span className="text-sm text-white" style={fontDisplayMediumStyle}>
                         {formatMoney(marsIncome)}
                       </span>
                     </div>
@@ -2120,13 +2380,13 @@ export default function App() {
                 />
 
                 <GlassCard className="p-5">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                  <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                     Записей в месяце
                   </p>
-                  <p className="mt-4 text-[34px] font-semibold tracking-[-0.05em] text-white">
+                  <p className="mt-4 text-[34px] text-white" style={fontDisplayTitleStyle}>
                     {selectedMonthEntries.length}
                   </p>
-                  <p className="mt-2 text-sm text-[#8f98b3]">
+                  <p className="mt-2 text-sm text-[#8f98b3]" style={fontBodyMediumStyle}>
                     Все операции и записи, попавшие в выбранный месяц.
                   </p>
                 </GlassCard>
@@ -2173,18 +2433,23 @@ export default function App() {
                       key={a.id}
                       onClick={() => openEditAppointmentModal(a)}
                       className="schedule-card"
+                      style={fontBaseStyle}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-[#97a3c5]">
+                            <span
+                              className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#97a3c5]"
+                              style={fontBodyMediumStyle}
+                            >
                               {a.startTime} — {a.endTime}
                             </span>
                             <span
                               className={cn(
-                                "inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                                "inline-flex rounded-full px-2.5 py-1 text-[11px]",
                                 getStatusPillClass(a.status)
                               )}
+                              style={fontDisplayMediumStyle}
                             >
                               {a.status === "Пришел"
                                 ? "Пришёл"
@@ -2194,21 +2459,27 @@ export default function App() {
                             </span>
                           </div>
 
-                          <p className="mt-4 truncate text-[22px] font-semibold tracking-[-0.04em] text-white">
+                          <p
+                            className="mt-4 truncate text-[22px] text-white"
+                            style={fontDisplayMediumStyle}
+                          >
                             {a.client}
                           </p>
 
-                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8794b5]">
+                          <div
+                            className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8794b5]"
+                            style={fontBodyMediumStyle}
+                          >
                             <span>{a.owner}</span>
                             {a.phone ? <span>· {a.phone}</span> : null}
                           </div>
                         </div>
 
                         <div className="shrink-0 text-right">
-                          <p className="text-[22px] font-semibold tracking-[-0.04em] text-white">
+                          <p className="text-[22px] text-white" style={fontDisplayMediumStyle}>
                             {formatMoney(paid)}
                           </p>
-                          <p className="mt-1 text-xs text-[#7581a3]">
+                          <p className="mt-1 text-xs text-[#7581a3]" style={fontBodyMediumStyle}>
                             из {formatMoney(total)}
                           </p>
                         </div>
@@ -2219,10 +2490,10 @@ export default function App() {
 
                 {selectedDateAppointments.length === 0 && (
                   <GlassCard className="p-6">
-                    <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                    <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
                       На эту дату записей нет
                     </p>
-                    <p className="mt-2 text-sm text-[#8b97b5]">
+                    <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
                       Добавь новую запись через кнопку сверху или через центральную кнопку внизу.
                     </p>
                   </GlassCard>
@@ -2255,10 +2526,10 @@ export default function App() {
                   ))
                 ) : (
                   <GlassCard className="p-6">
-                    <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                    <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
                       Пока пусто
                     </p>
-                    <p className="mt-2 text-sm text-[#8b97b5]">
+                    <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
                       За этот месяц данных пока нет.
                     </p>
                   </GlassCard>
@@ -2283,10 +2554,10 @@ export default function App() {
               <div className="grid gap-4 xl:grid-cols-[1.18fr_0.82fr]">
                 <GlassCard className="p-5 sm:p-6" glow>
                   <div className="mb-5">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                       Выручка по дням
                     </p>
-                    <p className="mt-2 text-[26px] font-semibold tracking-[-0.04em] text-white">
+                    <p className="mt-2 text-[26px] text-white" style={fontDisplayMediumStyle}>
                       {formatMonthLabel(selectedMonth)}
                     </p>
                   </div>
@@ -2297,7 +2568,7 @@ export default function App() {
 
                 <div className="grid gap-4">
                   <GlassCard className="p-5 sm:p-6">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                       Лучшие дни месяца
                     </p>
                     <div className="mt-4 space-y-3">
@@ -2306,31 +2577,35 @@ export default function App() {
                           <div key={day.dateKey} className="analytics-day-card">
                             <div className="flex items-center justify-between gap-4">
                               <div className="min-w-0">
-                                <p className="text-xs text-[#7f8aa8]">#{index + 1}</p>
-                                <p className="mt-1 text-sm font-semibold text-white">
+                                <p className="text-xs text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                                  #{index + 1}
+                                </p>
+                                <p className="mt-1 text-sm text-white" style={fontDisplayMediumStyle}>
                                   {formatDisplayDate(day.dateKey)}
                                 </p>
                               </div>
-                              <span className="text-sm font-semibold text-white">
+                              <span className="text-sm text-white" style={fontDisplayMediumStyle}>
                                 {formatMoney(day.amount)}
                               </span>
                             </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-[#8b97b5]">Пока нет успешных дней</p>
+                        <p className="text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+                          Пока нет успешных дней
+                        </p>
                       )}
                     </div>
                   </GlassCard>
 
                   <GlassCard className="p-5 sm:p-6">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#7b88aa]">
+                    <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                       Слабые дни
                     </p>
-                    <p className="mt-3 text-[34px] font-semibold tracking-[-0.05em] text-white">
+                    <p className="mt-3 text-[34px] text-white" style={fontDisplayTitleStyle}>
                       {dailyStats.weakDays}
                     </p>
-                    <p className="mt-2 text-sm text-[#8b97b5]">
+                    <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
                       Дней без движения в выбранном месяце.
                     </p>
                   </GlassCard>
@@ -2371,22 +2646,26 @@ export default function App() {
                       }
                     }}
                   />
-                  <p className="mt-3 text-sm text-[#8b97b5]">
+                  <p className="mt-3 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
                     Актуальная цель для {formatMonthLabel(selectedMonth)}.
                   </p>
                 </GlassCard>
 
                 <GlassCard className="p-5 sm:p-6">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#b68ea4]">
+                  <p className="text-[12px] uppercase text-[#b68ea4]" style={fontCapsStyle}>
                     Опасная зона
                   </p>
-                  <p className="mt-2 text-[22px] font-semibold tracking-[-0.04em] text-white">
+                  <p className="mt-2 text-[22px] text-white" style={fontDisplayMediumStyle}>
                     Удаление месяца
                   </p>
-                  <p className="mt-2 text-sm text-[#8b97b5]">
+                  <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
                     Будут удалены операции, записи и цель выбранного месяца.
                   </p>
-                  <button onClick={deleteSelectedMonth} className="danger-button mt-5">
+                  <button
+                    onClick={deleteSelectedMonth}
+                    className="danger-button mt-5"
+                    style={fontDisplayMediumStyle}
+                  >
                     Удалить месяц
                   </button>
                 </GlassCard>
@@ -2403,7 +2682,7 @@ export default function App() {
         />
 
         {showAppointmentModal && (
-          <div className="fixed inset-0 z-[999] bg-black/74 backdrop-blur-md">
+          <div className="fixed inset-0 z-[999] bg-black/74 backdrop-blur-md" style={fontBaseStyle}>
             <div className="absolute inset-0" onClick={() => setShowAppointmentModal(false)} />
 
             <div className="modal-panel absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[780px] flex-col rounded-t-[36px]">
@@ -2415,10 +2694,10 @@ export default function App() {
 
                 <div className="mb-4 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#7b88aa]">
+                    <p className="text-[11px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                       {editingAppointmentId ? "Редактирование" : "Новая запись"}
                     </p>
-                    <h2 className="mt-1 text-[28px] font-semibold tracking-[-0.05em] text-white">
+                    <h2 className="mt-1 text-[28px] text-white" style={fontDisplayTitleStyle}>
                       {editingAppointmentId ? "Карточка записи" : "Создание записи"}
                     </h2>
                   </div>
@@ -2498,10 +2777,12 @@ export default function App() {
                   <GlassCard className="p-4 sm:p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                        <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
                           Услуги
                         </p>
-                        <p className="text-sm text-[#8b97b5]">Состав и стоимость записи</p>
+                        <p className="text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+                          Состав и стоимость записи
+                        </p>
                       </div>
                       <IconButton onClick={addAppointmentServiceRow}>
                         <PlusIcon />
@@ -2516,8 +2797,9 @@ export default function App() {
                               type="button"
                               onClick={() => setServicePickerRowId(service.id)}
                               className="field-input flex h-[54px] min-w-0 items-center justify-between px-4"
+                              style={fontBaseStyle}
                             >
-                              <span className="truncate text-[15px] font-medium text-white">
+                              <span className="truncate text-[15px] text-white" style={fontBodyMediumStyle}>
                                 {service.type}
                               </span>
                               <span className="ml-3 shrink-0 text-[#7b88aa]">↕</span>
@@ -2537,7 +2819,8 @@ export default function App() {
                                     hours: e.target.value === "" ? "" : Number(e.target.value),
                                   })
                                 }
-                                className="h-[54px] px-4 text-[16px] font-semibold"
+                                className="h-[54px] px-4 text-[16px]"
+                                style={fontDisplayMediumStyle}
                               />
                             ) : (
                               <TextInput
@@ -2549,7 +2832,8 @@ export default function App() {
                                     amount: e.target.value === "" ? 0 : Number(e.target.value),
                                   })
                                 }
-                                className="h-[54px] px-4 text-[16px] font-semibold"
+                                className="h-[54px] px-4 text-[16px]"
+                                style={fontDisplayMediumStyle}
                               />
                             )}
 
@@ -2557,14 +2841,18 @@ export default function App() {
                               type="button"
                               onClick={() => removeAppointmentServiceRow(service.id)}
                               className="remove-mini-button"
+                              style={fontBaseStyle}
                             >
                               <CloseIcon />
                             </button>
                           </div>
 
-                          <div className="mt-3 flex items-center justify-between px-1 text-xs text-[#7f8aa8]">
+                          <div
+                            className="mt-3 flex items-center justify-between px-1 text-xs text-[#7f8aa8]"
+                            style={fontBodyMediumStyle}
+                          >
                             <span>{service.type === "Запись" ? "Часы" : "Сумма"}</span>
-                            <span className="font-semibold text-white">
+                            <span className="text-white" style={fontDisplayMediumStyle}>
                               {formatMoney(normalizeServiceRow(service).amount)}
                             </span>
                           </div>
@@ -2576,10 +2864,10 @@ export default function App() {
                   <GlassCard className="p-4 sm:p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-[18px] font-semibold tracking-[-0.03em] text-white">
+                        <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
                           Оплата
                         </p>
-                        <p className="text-sm text-[#8b97b5]">
+                        <p className="text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
                           Осталось: {formatMoney(remainingToPay)}
                         </p>
                       </div>
@@ -2593,8 +2881,9 @@ export default function App() {
                               type="button"
                               onClick={() => setPaymentPickerRowId(payment.id)}
                               className="field-input flex h-[54px] min-w-0 items-center justify-between px-4"
+                              style={fontBaseStyle}
                             >
-                              <span className="truncate text-[15px] font-medium text-white">
+                              <span className="truncate text-[15px] text-white" style={fontBodyMediumStyle}>
                                 {payment.type}
                               </span>
                               <span className="ml-3 shrink-0 text-[#7b88aa]">↕</span>
@@ -2609,13 +2898,15 @@ export default function App() {
                                   amount: e.target.value === "" ? 0 : Number(e.target.value),
                                 })
                               }
-                              className="h-[54px] px-4 text-[16px] font-semibold"
+                              className="h-[54px] px-4 text-[16px]"
+                              style={fontDisplayMediumStyle}
                             />
 
                             <button
                               type="button"
                               onClick={() => removeAppointmentPaymentRow(payment.id)}
                               className="remove-mini-button"
+                              style={fontBaseStyle}
                             >
                               <CloseIcon />
                             </button>
@@ -2683,6 +2974,7 @@ export default function App() {
                       type="button"
                       onClick={() => deleteAppointment(editingAppointmentId)}
                       className="remove-large-button"
+                      style={fontBaseStyle}
                     >
                       <TrashIcon />
                     </button>
@@ -2691,6 +2983,7 @@ export default function App() {
                       type="button"
                       onClick={() => setShowAppointmentModal(false)}
                       className="modal-close-button"
+                      style={fontBaseStyle}
                     >
                       <CloseIcon />
                     </button>
