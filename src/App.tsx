@@ -81,8 +81,6 @@ type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
 
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 50000
-
-const ownerOptions: Owner[] = ["Азат", "Марс"]
 const serviceOptions: ServiceType[] = [
   "Запись",
   "Сведение",
@@ -91,12 +89,6 @@ const serviceOptions: ServiceType[] = [
   "Другое",
 ]
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
-const appointmentStatusOptions: AppointmentStatus[] = [
-  "Ожидание",
-  "Подтвердил",
-  "Пришел",
-  "Не пришел",
-]
 
 function makeId() {
   return Date.now() + Math.floor(Math.random() * 100000)
@@ -282,25 +274,25 @@ function appointmentToFinancialEntry(appointment: Appointment): FinancialEntry {
 }
 
 function getStatusPillClass(status: AppointmentStatus) {
-  if (status === "Ожидание") return "bg-white/[0.06] text-zinc-200 ring-1 ring-white/8"
-  if (status === "Подтвердил") {
-    return "bg-violet-500/15 text-violet-200 ring-1 ring-violet-300/10"
-  }
-  if (status === "Пришел") {
-    return "bg-green-500/15 text-green-200 ring-1 ring-green-300/10"
-  }
-  return "bg-red-500/15 text-red-200 ring-1 ring-red-300/10"
+  if (status === "Ожидание") return "bg-white/[0.05] text-zinc-200 ring-1 ring-white/10"
+  if (status === "Подтвердил")
+    return "bg-sky-500/10 text-sky-200 ring-1 ring-sky-400/15"
+  if (status === "Пришел")
+    return "bg-emerald-500/12 text-emerald-200 ring-1 ring-emerald-400/15"
+  return "bg-rose-500/12 text-rose-200 ring-1 ring-rose-400/15"
 }
 
-function getOwnerGradient(owner: Owner) {
-  return owner === "Азат"
-    ? "from-[#7c8bff] to-[#39c8ff]"
-    : "from-[#8a7dff] to-[#5a74ff]"
+function getOwnerAccent(owner: Owner) {
+  return owner === "Азат" ? "from-sky-400 to-indigo-400" : "from-violet-400 to-indigo-400"
 }
 
 function getProgressWidth(value: number, total: number) {
   if (total <= 0) return 0
   return Math.max(0, Math.min(100, (value / total) * 100))
+}
+
+function cn(...values: Array<string | false | null | undefined>) {
+  return values.filter(Boolean).join(" ")
 }
 
 function HomeIcon() {
@@ -310,7 +302,7 @@ function HomeIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -328,7 +320,7 @@ function ReceiptIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -346,7 +338,7 @@ function ChartIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -365,7 +357,7 @@ function SettingsIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -382,7 +374,7 @@ function CalendarIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -467,7 +459,7 @@ function UserIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -484,7 +476,7 @@ function PhoneIcon() {
       className="h-[18px] w-[18px]"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.9"
+      strokeWidth="1.85"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -493,7 +485,44 @@ function PhoneIcon() {
   )
 }
 
-function SoftCard({
+function PlusIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  )
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[16px] w-[16px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="m19 6-1 14H6L5 6" />
+      <path d="M10 11v5" />
+      <path d="M14 11v5" />
+    </svg>
+  )
+}
+
+function ShellCard({
   children,
   className = "",
 }: {
@@ -501,12 +530,43 @@ function SoftCard({
   className?: string
 }) {
   return (
-    <div
-      className={`relative overflow-hidden rounded-[28px] bg-[linear-gradient(180deg,rgba(255,255,255,0.065),rgba(255,255,255,0.02))] shadow-[0_22px_55px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[24px] ${className}`}
-    >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(69,136,255,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(147,51,234,0.08),transparent_22%)]" />
-      <div className="relative z-[1]">{children}</div>
+    <div className={cn("ui-card animate-in", className)}>
+      {children}
     </div>
+  )
+}
+
+function StatCard({
+  label,
+  value,
+  hint,
+  accent = "neutral",
+}: {
+  label: string
+  value: string
+  hint?: string
+  accent?: "neutral" | "good" | "brand" | "danger"
+}) {
+  return (
+    <ShellCard className="p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[13px] font-medium text-zinc-400">{label}</p>
+          <p
+            className={cn(
+              "mt-3 text-[30px] font-semibold tracking-[-0.03em]",
+              accent === "good" && "text-emerald-300",
+              accent === "brand" && "text-white",
+              accent === "neutral" && "text-white",
+              accent === "danger" && "text-rose-300"
+            )}
+          >
+            {value}
+          </p>
+          {hint ? <p className="mt-2 text-sm text-zinc-500">{hint}</p> : null}
+        </div>
+      </div>
+    </ShellCard>
   )
 }
 
@@ -520,13 +580,51 @@ function SectionTitle({
   action?: React.ReactNode
 }) {
   return (
-    <div className="mb-5 flex items-start justify-between gap-4">
+    <div className="mb-6 flex items-end justify-between gap-4">
       <div className="min-w-0">
-        <h2 className="truncate text-2xl font-bold text-white">{title}</h2>
-        {subtitle ? <p className="mt-1 text-sm text-zinc-400">{subtitle}</p> : null}
+        <h1 className="truncate text-[28px] font-semibold tracking-[-0.035em] text-white sm:text-[32px]">
+          {title}
+        </h1>
+        {subtitle ? <p className="mt-1.5 text-sm text-zinc-400">{subtitle}</p> : null}
       </div>
       {action}
     </div>
+  )
+}
+
+function PrimaryButton({
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={cn("ui-btn ui-btn-primary", className)}>
+      {children}
+    </button>
+  )
+}
+
+function SecondaryButton({
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={cn("ui-btn ui-btn-secondary", className)}>
+      {children}
+    </button>
+  )
+}
+
+function IconButton({
+  children,
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...props} className={cn("ui-icon-btn", className)}>
+      {children}
+    </button>
   )
 }
 
@@ -556,22 +654,15 @@ function TextInput({
         onBlur?.(e)
       }}
       style={{
-        background: "#070b14",
-        color: "#ffffff",
-        WebkitTextFillColor: "#ffffff",
-        colorScheme: "dark",
-        WebkitAppearance: "none",
-        appearance: "none",
         ...style,
       }}
-      className={`h-[74px] w-full min-w-0 rounded-[26px] border border-[#3d63ff] bg-[#070b14] px-5 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.22)] transition placeholder:text-white/40 focus:border-[#6f86ff] ${className}`}
+      className={cn("ui-input", className)}
     />
   )
 }
 
 function TextArea({
   className = "",
-  style,
   placeholder,
   onFocus,
   onBlur,
@@ -591,16 +682,7 @@ function TextArea({
         setIsFocused(false)
         onBlur?.(e)
       }}
-      style={{
-        background: "#070b14",
-        color: "#ffffff",
-        WebkitTextFillColor: "#ffffff",
-        colorScheme: "dark",
-        WebkitAppearance: "none",
-        appearance: "none",
-        ...style,
-      }}
-      className={`min-h-[96px] w-full min-w-0 resize-none rounded-[24px] border border-[#20315f] bg-[#070b14] px-4 py-3 text-[15px] text-white outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.2)] transition placeholder:text-white/40 focus:border-[#6f86ff] ${className}`}
+      className={cn("ui-textarea", className)}
     />
   )
 }
@@ -615,9 +697,9 @@ function ProgressLine({
   colorClassName: string
 }) {
   return (
-    <div className="h-[18px] w-full rounded-full bg-white/[0.07] p-[2px]">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
       <div
-        className={`h-full rounded-full bg-gradient-to-r ${colorClassName} transition-all duration-500`}
+        className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-500", colorClassName)}
         style={{ width: `${getProgressWidth(value, total)}%` }}
       />
     </div>
@@ -634,21 +716,21 @@ function MonthTabs({
   onChange: (month: string) => void
 }) {
   return (
-    <div className="mb-6 py-1">
-      <div className="mx-[-8px] overflow-x-auto overflow-y-visible px-[8px] py-[10px] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max gap-3 pr-4">
+    <div className="mb-6">
+      <div className="no-scrollbar -mx-4 overflow-x-auto px-4">
+        <div className="flex w-max gap-2.5">
           {months.map((monthKey) => {
             const active = monthKey === selectedMonth
-
             return (
               <button
                 key={monthKey}
                 onClick={() => onChange(monthKey)}
-                className={`shrink-0 rounded-[24px] px-5 py-4 text-sm font-medium capitalize transition ${
+                className={cn(
+                  "rounded-full px-4 py-2.5 text-sm font-medium capitalize transition",
                   active
-                    ? "bg-[linear-gradient(180deg,#7c8bff,#5a74ff)] text-white ring-1 ring-white/10 font-semibold"
-                    : "bg-white/[0.03] text-zinc-200 ring-1 ring-[#2f66d9] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] hover:bg-white/[0.05]"
-                }`}
+                    ? "bg-white text-black shadow-[0_8px_30px_rgba(255,255,255,0.14)]"
+                    : "bg-white/[0.04] text-zinc-300 ring-1 ring-white/8 hover:bg-white/[0.06] hover:text-white"
+                )}
               >
                 {formatMonthLabel(monthKey)}
               </button>
@@ -667,52 +749,32 @@ function RecentOperationRow({
   entry: FinancialEntry
   onOpen: (entry: FinancialEntry) => void
 }) {
+  const payment = getPaymentsTotal(entry)
+  const serviceCount = entry.services.length
+
   return (
     <button
       onClick={() => onOpen(entry)}
-      className="flex w-full min-w-0 items-center justify-between gap-3 rounded-[20px] bg-white/[0.04] px-4 py-4 text-left ring-1 ring-white/6 transition hover:bg-white/[0.07]"
+      className="group flex w-full min-w-0 items-center justify-between gap-4 rounded-[22px] border border-white/8 bg-white/[0.03] px-4 py-4 text-left transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.045] hover:border-white/12"
     >
       <div className="min-w-0">
-        <p className="truncate font-medium text-white">{entry.client}</p>
-        <p className="mt-1 text-sm text-zinc-400">
-          {formatDisplayDate(entry.date)} · {entry.owner}
+        <div className="flex min-w-0 items-center gap-2">
+          <p className="truncate text-[15px] font-medium text-white">{entry.client}</p>
+          <span className="rounded-full bg-white/[0.04] px-2 py-1 text-[11px] text-zinc-400 ring-1 ring-white/8">
+            {entry.owner}
+          </span>
+        </div>
+        <p className="mt-1 text-sm text-zinc-500">
+          {formatDisplayDate(entry.date)} · {serviceCount} усл.
         </p>
       </div>
-      <p className="shrink-0 font-semibold text-white">
-        {formatMoney(getPaymentsTotal(entry))}
-      </p>
-    </button>
-  )
-}
 
-function PickerField({
-  label,
-  value,
-  onClick,
-  icon,
-  className = "",
-}: {
-  label?: string
-  value: string
-  onClick: () => void
-  icon?: React.ReactNode
-  className?: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex h-[48px] w-full items-center justify-between rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.055),rgba(255,255,255,0.02))] px-4 text-left text-[15px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_8px_22px_rgba(0,0,0,0.12)] transition hover:border-white/15 ${className}`}
-    >
-      <div className="min-w-0">
-        {label ? (
-          <p className="mb-0.5 text-[10px] uppercase tracking-[0.12em] text-white/35">
-            {label}
-          </p>
-        ) : null}
-        <p className="truncate">{value}</p>
+      <div className="shrink-0 text-right">
+        <p className="text-[16px] font-semibold text-white">{formatMoney(payment)}</p>
+        <p className="mt-1 text-xs text-zinc-500">
+          {entry.source === "appointment" ? "Запись" : "Операция"}
+        </p>
       </div>
-      <div className="ml-3 shrink-0 text-white/65">{icon ?? <ChevronRightIcon />}</div>
     </button>
   )
 }
@@ -735,11 +797,11 @@ function CompactField({
   return (
     <Comp
       {...(onClick ? { onClick, type: "button" as const } : {})}
-      className={`flex h-[70px] w-full items-center gap-3 rounded-[24px] border border-[#233d86] bg-[#070b14] px-5 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.22)] ${className}`}
+      className={cn("ui-input flex h-[56px] items-center gap-3 px-4 text-left", className)}
     >
-      {icon ? <div className="shrink-0 text-white">{icon}</div> : null}
+      {icon ? <div className="shrink-0 text-zinc-400">{icon}</div> : null}
       <div className="min-w-0 flex-1">
-        <div className={`truncate text-[15px] ${value ? "text-white" : "text-white/40"}`}>
+        <div className={cn("truncate text-[15px]", value ? "text-white" : "text-zinc-500")}>
           {value || placeholder}
         </div>
       </div>
@@ -803,7 +865,6 @@ function ModalTimeField({
   )
 }
 
-
 function PickerSheet<T extends string>({
   open,
   title,
@@ -822,18 +883,15 @@ function PickerSheet<T extends string>({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-[1200] bg-black/55 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[1200] bg-black/60 backdrop-blur-sm">
       <div className="absolute inset-0" onClick={onClose} />
-      <div className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[28px] border border-white/10 bg-[#0c111a] px-4 pb-6 pt-4 shadow-[0_-20px_60px_rgba(0,0,0,0.45)]">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/15" />
+      <div className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[28px] border border-white/10 bg-[#0f1117] px-4 pb-6 pt-4 shadow-[0_-20px_80px_rgba(0,0,0,0.48)] animate-sheet-in">
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/14" />
         <div className="mb-4 flex items-center justify-between">
           <p className="text-base font-semibold text-white">{title}</p>
-          <button
-            onClick={onClose}
-            className="rounded-full bg-white/[0.06] p-2 text-white/80 ring-1 ring-white/10"
-          >
+          <IconButton onClick={onClose} className="h-9 w-9 rounded-full">
             <CloseIcon />
-          </button>
+          </IconButton>
         </div>
 
         <div className="space-y-2">
@@ -846,14 +904,15 @@ function PickerSheet<T extends string>({
                   onSelect(option)
                   onClose()
                 }}
-                className={`flex w-full items-center justify-between rounded-[18px] px-4 py-4 text-left transition ${
+                className={cn(
+                  "flex w-full items-center justify-between rounded-[18px] px-4 py-4 text-left transition",
                   active
-                    ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white"
-                    : "bg-white/[0.04] text-zinc-200 ring-1 ring-white/8"
-                }`}
+                    ? "bg-white text-black"
+                    : "bg-white/[0.04] text-zinc-200 ring-1 ring-white/8 hover:bg-white/[0.06]"
+                )}
               >
                 <span>{option}</span>
-                {active ? <span className="text-sm text-white/80">Выбрано</span> : null}
+                {active ? <span className="text-sm text-black/60">Выбрано</span> : null}
               </button>
             )
           })}
@@ -881,8 +940,9 @@ function NativeDateButton({
         onChange={(e) => onChange(e.target.value)}
         className="sr-only"
       />
-      <PickerField
+      <CompactField
         value={formatCompactDate(value)}
+        placeholder="Выбрать дату"
         onClick={() => inputRef.current?.showPicker?.() ?? inputRef.current?.click()}
         icon={<CalendarIcon />}
       />
@@ -912,23 +972,30 @@ function SidebarNav({
   ]
 
   return (
-    <aside className="hidden w-[280px] shrink-0 border-r border-white/5 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.012))] p-6 backdrop-blur-[24px] lg:flex lg:flex-col">
-      <div className="mb-8">
-        <img src={logo} alt="logo" className="h-auto w-[88px] object-contain opacity-95" />
+    <aside className="hidden w-[280px] shrink-0 border-r border-white/6 bg-[#0b0d12]/90 px-5 py-6 backdrop-blur-xl lg:flex lg:flex-col">
+      <div className="mb-8 flex items-center gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] ring-1 ring-white/8">
+          <img src={logo} alt="logo" className="h-6 w-auto object-contain opacity-95" />
+        </div>
+        <div>
+          <p className="text-[15px] font-semibold text-white">Studio CRM</p>
+          <p className="text-xs text-zinc-500">Premium workspace</p>
+        </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {items.map((item) => {
           const active = item.key === activeTab
           return (
             <button
               key={item.key}
               onClick={() => onChange(item.key)}
-              className={`flex w-full items-center gap-3 rounded-[20px] px-4 py-3 text-left text-sm font-medium transition ${
+              className={cn(
+                "flex w-full items-center gap-3 rounded-[18px] px-4 py-3 text-left text-sm font-medium transition",
                 active
-                  ? "bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] text-white shadow-[0_16px_34px_rgba(79,101,255,0.28)]"
-                  : "bg-white/[0.03] text-zinc-300 ring-1 ring-white/6 hover:bg-white/[0.06] hover:text-white"
-              }`}
+                  ? "bg-white text-black shadow-[0_10px_30px_rgba(255,255,255,0.12)]"
+                  : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"
+              )}
             >
               {item.icon}
               <span>{item.label}</span>
@@ -938,19 +1005,22 @@ function SidebarNav({
       </div>
 
       <div className="mt-8 space-y-3">
-        <button
-          onClick={onAdd}
-          className="w-full rounded-[20px] bg-[linear-gradient(180deg,#6d84ff,#4c63f0)] px-4 py-4 text-base font-semibold text-white shadow-[0_18px_38px_rgba(79,101,255,0.34)]"
-        >
-          + Новая запись
-        </button>
+        <PrimaryButton onClick={onAdd} className="w-full justify-center">
+          <PlusIcon />
+          Новая запись
+        </PrimaryButton>
 
-        <button
-          onClick={onCreateMonth}
-          className="w-full rounded-[20px] bg-white/[0.04] px-4 py-4 text-base font-semibold text-white ring-1 ring-white/6 transition hover:bg-white/[0.07]"
-        >
-          + Новый месяц
-        </button>
+        <SecondaryButton onClick={onCreateMonth} className="w-full justify-center">
+          <PlusIcon />
+          Новый месяц
+        </SecondaryButton>
+      </div>
+
+      <div className="mt-auto rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
+        <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">Система</p>
+        <p className="mt-2 text-sm text-zinc-300">
+          Чистый интерфейс, быстрый доступ и фокус на ежедневной работе.
+        </p>
       </div>
     </aside>
   )
@@ -968,13 +1038,14 @@ function BottomNav({
   if (hidden) return null
 
   const itemClass = (tab: AppTab) =>
-    `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-[11px] transition ${
-      activeTab === tab ? "text-white" : "text-zinc-400"
-    }`
+    cn(
+      "flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-2 text-[11px] transition",
+      activeTab === tab ? "bg-white text-black" : "text-zinc-400"
+    )
 
   return (
-    <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[600] flex justify-center lg:hidden">
-      <div className="pointer-events-auto mx-4 flex w-[calc(100%-32px)] max-w-[460px] items-center gap-2 rounded-[28px] bg-[rgba(13,16,24,0.82)] px-3 py-2 shadow-[0_24px_70px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-[#2558d2] backdrop-blur-[24px]">
+    <div className="pointer-events-none fixed bottom-4 left-0 right-0 z-[700] flex justify-center lg:hidden">
+      <div className="pointer-events-auto mx-4 flex w-[calc(100%-32px)] max-w-[480px] items-center gap-2 rounded-[26px] border border-white/10 bg-[#0d0f15]/86 p-2 shadow-[0_20px_80px_rgba(0,0,0,0.42)] backdrop-blur-xl">
         <button className={itemClass("dashboard")} onClick={() => onChange("dashboard")}>
           <HomeIcon />
           <span>Главная</span>
@@ -992,7 +1063,7 @@ function BottomNav({
 
         <button className={itemClass("analytics")} onClick={() => onChange("analytics")}>
           <ChartIcon />
-          <span>Аналитика</span>
+          <span>График</span>
         </button>
 
         <button className={itemClass("settings")} onClick={() => onChange("settings")}>
@@ -1002,6 +1073,43 @@ function BottomNav({
       </div>
     </div>
   )
+}
+
+function SegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly { value: T; label: string }[]
+  value: T
+  onChange: (value: T) => void
+}) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-white/[0.03] p-1">
+      <div className={`grid gap-1`} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}>
+        {options.map((option) => {
+          const active = option.value === value
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={cn(
+                "min-h-[48px] rounded-[14px] px-3 text-[14px] font-medium transition",
+                active ? "bg-white text-black" : "text-zinc-300 hover:bg-white/[0.05]"
+              )}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function FormLabel({ children }: { children: React.ReactNode }) {
+  return <p className="mb-2 text-[13px] font-medium text-zinc-400">{children}</p>
 }
 
 export default function App() {
@@ -1038,10 +1146,8 @@ export default function App() {
     makePaymentRow("Нал"),
   ])
 
-  const [ownerPickerOpen, setOwnerPickerOpen] = React.useState(false)
   const [servicePickerRowId, setServicePickerRowId] = React.useState<number | null>(null)
   const [paymentPickerRowId, setPaymentPickerRowId] = React.useState<number | null>(null)
-  const [statusPickerOpen, setStatusPickerOpen] = React.useState(false)
 
   const resetAppointmentForm = React.useCallback(() => {
     const today = formatInputDate(new Date())
@@ -1253,11 +1359,11 @@ export default function App() {
         : 0
 
     const colors = values.map((item) => {
-      if (item.amount === 0) return "rgba(239,68,68,0.72)"
+      if (item.amount === 0) return "rgba(255,255,255,0.12)"
       if (positiveAverage > 0 && item.amount < positiveAverage * 0.6) {
-        return "rgba(250,204,21,0.82)"
+        return "rgba(129,140,248,0.72)"
       }
-      return "rgba(34,197,94,0.82)"
+      return "rgba(56,189,248,0.88)"
     })
 
     const bestDays = [...values]
@@ -1278,8 +1384,9 @@ export default function App() {
           label: "Выручка по дням",
           data: dailyStats.values.map((item) => item.amount),
           backgroundColor: dailyStats.colors,
-          borderRadius: 12,
-          barThickness: 16,
+          borderRadius: 999,
+          barThickness: 12,
+          borderSkipped: false as const,
         },
       ],
     }
@@ -1290,21 +1397,20 @@ export default function App() {
       responsive: true,
       maintainAspectRatio: false,
       animation: {
-        duration: 900,
+        duration: 800,
         easing: "easeOutQuart",
       },
       plugins: {
         legend: {
-          labels: {
-            color: "#d4d4d8",
-          },
+          display: false,
         },
         tooltip: {
-          backgroundColor: "rgba(12,14,20,0.96)",
+          backgroundColor: "rgba(10,12,16,0.96)",
           borderColor: "rgba(255,255,255,0.08)",
           borderWidth: 1,
           titleColor: "#fff",
           bodyColor: "#d4d4d8",
+          displayColors: false,
           callbacks: {
             label(context) {
               return formatMoney(Number(context.raw))
@@ -1315,21 +1421,29 @@ export default function App() {
       scales: {
         x: {
           ticks: {
-            color: "#8b8b95",
+            color: "#71717a",
+            font: { size: 11 },
           },
           grid: {
-            color: "rgba(255,255,255,0.03)",
+            display: false,
+          },
+          border: {
+            display: false,
           },
         },
         y: {
           ticks: {
-            color: "#8b8b95",
+            color: "#71717a",
             callback(value) {
               return formatMoney(Number(value))
             },
+            font: { size: 11 },
           },
           grid: {
-            color: "rgba(255,255,255,0.03)",
+            color: "rgba(255,255,255,0.05)",
+          },
+          border: {
+            display: false,
           },
         },
       },
@@ -1766,8 +1880,11 @@ export default function App() {
     appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#05060a] text-white">
-      <div className="flex min-h-screen w-full max-w-full">
+    <div className="min-h-screen bg-[#080a0f] text-white">
+      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.08),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.10),transparent_28%),linear-gradient(180deg,#07090d_0%,#090b10_100%)]" />
+      <div className="fixed inset-0 -z-10 opacity-[0.028] [background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.9)_0.6px,transparent_0.8px),radial-gradient(circle_at_80%_40%,rgba(255,255,255,0.6)_0.6px,transparent_0.8px),radial-gradient(circle_at_40%_80%,rgba(255,255,255,0.75)_0.6px,transparent_0.8px)] [background-size:170px_170px,210px_210px,190px_190px]" />
+
+      <div className="flex min-h-screen w-full">
         <SidebarNav
           activeTab={activeTab}
           onChange={setActiveTab}
@@ -1776,10 +1893,19 @@ export default function App() {
           logo={logoWhite}
         />
 
-        <main className="min-w-0 flex-1 p-4 pb-28 lg:p-8">
+        <main className="min-w-0 flex-1 px-4 pb-28 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
           {activeTab === "dashboard" && (
             <>
-              <SectionTitle title="Главная" subtitle="Общий обзор бизнеса" />
+              <SectionTitle
+                title="Главная"
+                subtitle="Финансовый срез, прогресс и ключевые показатели месяца"
+                action={
+                  <PrimaryButton onClick={openCreateAppointmentModal} className="hidden sm:inline-flex">
+                    <PlusIcon />
+                    Новая запись
+                  </PrimaryButton>
+                }
+              />
 
               <MonthTabs
                 months={normalizedMonths}
@@ -1787,26 +1913,32 @@ export default function App() {
                 onChange={setSelectedMonth}
               />
 
-              <div className="grid gap-5">
-                <SoftCard className="p-5 sm:p-6">
-                  <h3 className="text-[22px] font-bold text-white sm:text-[24px]">
-                    Прогресс месяца
-                  </h3>
+              <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+                <ShellCard className="p-5 sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-zinc-400">Месячный прогресс</p>
+                      <h2 className="mt-2 text-[24px] font-semibold tracking-[-0.03em] text-white sm:text-[28px]">
+                        {formatMoney(monthIncome)}
+                      </h2>
+                    </div>
+                    <div className="rounded-full bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300 ring-1 ring-white/8">
+                      {formatMonthLabel(selectedMonth)}
+                    </div>
+                  </div>
 
                   <div className="mt-6 space-y-6">
                     <div>
                       <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="text-zinc-300">Цель месяца</span>
-                        <span className="font-semibold text-white">
-                          {formatMoney(monthGoal)}
-                        </span>
+                        <span className="text-sm text-zinc-400">Цель месяца</span>
+                        <span className="text-sm font-medium text-white">{formatMoney(monthGoal)}</span>
                       </div>
                       <ProgressLine
                         value={monthIncome}
                         total={monthGoal}
-                        colorClassName="from-[#7a80ff] to-[#3bc7ff]"
+                        colorClassName="from-sky-400 to-indigo-400"
                       />
-                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-zinc-400">
+                      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-500">
                         <span>Собрано</span>
                         <span>{formatMoney(monthIncome)}</span>
                       </div>
@@ -1814,29 +1946,24 @@ export default function App() {
 
                     <div>
                       <div className="mb-3 flex items-center justify-between gap-3">
-                        <span className="text-zinc-300">Аренда</span>
-                        <span className="font-semibold text-white">
-                          {formatMoney(RENT_GOAL)}
-                        </span>
+                        <span className="text-sm text-zinc-400">Аренда</span>
+                        <span className="text-sm font-medium text-white">{formatMoney(RENT_GOAL)}</span>
                       </div>
                       <ProgressLine
                         value={monthIncome}
                         total={RENT_GOAL}
-                        colorClassName="from-[#22c55e] to-[#54f09a]"
+                        colorClassName="from-emerald-400 to-teal-400"
                       />
-                      <div className="mt-3 flex items-center justify-between gap-3 text-sm text-zinc-400">
+                      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-500">
                         <span>Осталось до аренды</span>
                         <span>{formatMoney(leftToRent)}</span>
                       </div>
                     </div>
                   </div>
-                </SoftCard>
+                </ShellCard>
 
-                <SoftCard className="p-5 sm:p-6">
-                  <h3 className="text-[22px] font-bold text-white sm:text-[24px]">
-                    Кто сколько заработал
-                  </h3>
-
+                <ShellCard className="p-5 sm:p-6">
+                  <p className="text-sm text-zinc-400">Кто сколько заработал</p>
                   <div className="mt-5 space-y-4">
                     {[
                       { owner: "Азат" as Owner, value: azatIncome },
@@ -1844,76 +1971,60 @@ export default function App() {
                     ].map((item) => (
                       <div
                         key={item.owner}
-                        className="rounded-[24px] border border-[#2357cf] bg-white/[0.025] p-4 sm:p-5"
+                        className="rounded-[20px] border border-white/8 bg-white/[0.03] p-4"
                       >
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-[18px] text-zinc-300">{item.owner}</span>
-                          <span className="text-[28px] font-bold text-white">
+                          <span className="text-[15px] text-zinc-300">{item.owner}</span>
+                          <span className="text-[22px] font-semibold tracking-[-0.02em] text-white">
                             {formatMoney(item.value)}
                           </span>
                         </div>
-
-                        <div className="mt-4">
+                        <div className="mt-3">
                           <ProgressLine
                             value={item.value}
                             total={Math.max(monthIncome, 1)}
-                            colorClassName={getOwnerGradient(item.owner)}
+                            colorClassName={getOwnerAccent(item.owner)}
                           />
                         </div>
                       </div>
                     ))}
                   </div>
-                </SoftCard>
+                </ShellCard>
+              </div>
 
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <SoftCard className="p-5">
-                    <p className="text-sm text-zinc-400">Осталось до цели</p>
-                    <p className="mt-3 text-4xl font-bold text-white">
-                      {formatMoney(leftToMonthGoal)}
-                    </p>
-                  </SoftCard>
-
-                  <SoftCard className="p-5">
-                    <p className="text-sm text-zinc-400">Чистая прибыль</p>
-                    <p
-                      className={`mt-3 text-4xl font-bold ${
-                        profitAfterRent >= 0 ? "text-white" : "text-red-400"
-                      }`}
-                    >
-                      {formatMoney(profitAfterRent)}
-                    </p>
-                  </SoftCard>
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <SoftCard className="p-5">
-                    <p className="text-sm text-zinc-400">Лучший клиент</p>
-                    <p className="mt-3 text-2xl font-semibold text-white">
-                      {topClient ? topClient[0] : "Нет данных"}
-                    </p>
-                    {topClient ? (
-                      <p className="mt-2 text-sm text-zinc-400">{formatMoney(topClient[1])}</p>
-                    ) : null}
-                  </SoftCard>
-
-                  <SoftCard className="p-5">
-                    <p className="text-sm text-zinc-400">Услуги по выручке</p>
-                    <div className="mt-4 space-y-3">
-                      {serviceRevenueRows.length > 0 ? (
-                        serviceRevenueRows.slice(0, 4).map(([service, amount]) => (
-                          <div key={service} className="flex items-center justify-between gap-4">
-                            <span className="text-zinc-300">{service}</span>
-                            <span className="font-medium text-white">
-                              {formatMoney(amount)}
-                            </span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-zinc-500">Пока нет данных за месяц</p>
-                      )}
-                    </div>
-                  </SoftCard>
-                </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <StatCard
+                  label="Осталось до цели"
+                  value={formatMoney(leftToMonthGoal)}
+                  hint="Сколько не хватает до плана"
+                  accent="brand"
+                />
+                <StatCard
+                  label="Чистая прибыль"
+                  value={formatMoney(profitAfterRent)}
+                  hint="Доход минус аренда"
+                  accent={profitAfterRent >= 0 ? "good" : "danger"}
+                />
+                <StatCard
+                  label="Лучший клиент"
+                  value={topClient ? topClient[0] : "Нет данных"}
+                  hint={topClient ? formatMoney(topClient[1]) : "Пока нет лидера"}
+                />
+                <ShellCard className="p-5">
+                  <p className="text-[13px] font-medium text-zinc-400">Топ услуг</p>
+                  <div className="mt-4 space-y-3">
+                    {serviceRevenueRows.length > 0 ? (
+                      serviceRevenueRows.slice(0, 4).map(([service, amount]) => (
+                        <div key={service} className="flex items-center justify-between gap-4">
+                          <span className="text-sm text-zinc-300">{service}</span>
+                          <span className="text-sm font-medium text-white">{formatMoney(amount)}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-zinc-500">Пока нет данных</p>
+                    )}
+                  </div>
+                </ShellCard>
               </div>
             </>
           )}
@@ -1922,36 +2033,30 @@ export default function App() {
             <>
               <SectionTitle
                 title="График"
-                subtitle="Управление записями"
+                subtitle="Ежедневная запись клиентов"
                 action={
-                  <button
-                    onClick={openCreateAppointmentModal}
-                    className="rounded-[16px] bg-blue-600 px-4 py-2 text-sm"
-                  >
-                    + Запись
-                  </button>
+                  <PrimaryButton onClick={openCreateAppointmentModal}>
+                    <PlusIcon />
+                    Запись
+                  </PrimaryButton>
                 }
               />
 
-              <div className="mb-4 flex items-center gap-2">
-                <button
-                  onClick={() => shiftSelectedDate(-1)}
-                  className="rounded-[16px] bg-white/[0.05] p-3 ring-1 ring-white/8"
-                >
-                  <ChevronLeftIcon />
-                </button>
+              <ShellCard className="mb-4 p-3 sm:p-4">
+                <div className="flex items-center gap-2">
+                  <IconButton onClick={() => shiftSelectedDate(-1)}>
+                    <ChevronLeftIcon />
+                  </IconButton>
 
-                <div className="min-w-0 flex-1">
-                  <NativeDateButton value={selectedDate} onChange={setSelectedDate} />
+                  <div className="min-w-0 flex-1">
+                    <NativeDateButton value={selectedDate} onChange={setSelectedDate} />
+                  </div>
+
+                  <IconButton onClick={() => shiftSelectedDate(1)}>
+                    <ChevronRightIcon />
+                  </IconButton>
                 </div>
-
-                <button
-                  onClick={() => shiftSelectedDate(1)}
-                  className="rounded-[16px] bg-white/[0.05] p-3 ring-1 ring-white/8"
-                >
-                  <ChevronRightIcon />
-                </button>
-              </div>
+              </ShellCard>
 
               <div className="space-y-3">
                 {selectedDateAppointments.map((a) => {
@@ -1959,37 +2064,57 @@ export default function App() {
                   const paid = getPaymentsTotal(a)
 
                   return (
-                    <div
+                    <button
                       key={a.id}
                       onClick={() => openEditAppointmentModal(a)}
-                      className="cursor-pointer rounded-[20px] border border-white/5 bg-[#0b0c11] p-4"
+                      className="group block w-full rounded-[24px] border border-white/8 bg-white/[0.03] p-4 text-left transition duration-200 hover:-translate-y-[1px] hover:bg-white/[0.05]"
                     >
-                      <div className="flex justify-between gap-4">
+                      <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <p className="text-sm text-zinc-400">
-                            {a.startTime} – {a.endTime}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-zinc-400 ring-1 ring-white/8">
+                              {a.startTime} — {a.endTime}
+                            </span>
+                            <span
+                              className={cn(
+                                "inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium",
+                                getStatusPillClass(a.status)
+                              )}
+                            >
+                              {a.status === "Пришел"
+                                ? "Пришёл"
+                                : a.status === "Не пришел"
+                                  ? "Не пришёл"
+                                  : a.status}
+                            </span>
+                          </div>
+
+                          <p className="mt-3 truncate text-[18px] font-semibold tracking-[-0.02em] text-white">
+                            {a.client}
                           </p>
-                          <p className="mt-1 truncate text-lg font-semibold">{a.client}</p>
-                          <span
-                            className={`mt-2 inline-block rounded px-2 py-1 text-xs ${getStatusPillClass(a.status)}`}
-                          >
-                            {a.status}
-                          </span>
+
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-500">
+                            <span>{a.owner}</span>
+                            {a.phone ? <span>· {a.phone}</span> : null}
+                          </div>
                         </div>
 
                         <div className="shrink-0 text-right">
-                          <p>{formatMoney(paid)}</p>
-                          <p className="text-xs text-zinc-500">из {formatMoney(total)}</p>
+                          <p className="text-[18px] font-semibold text-white">{formatMoney(paid)}</p>
+                          <p className="mt-1 text-xs text-zinc-500">из {formatMoney(total)}</p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   )
                 })}
 
                 {selectedDateAppointments.length === 0 && (
-                  <SoftCard className="p-5">
-                    <p className="text-zinc-400">На эту дату записей нет</p>
-                  </SoftCard>
+                  <ShellCard className="p-6">
+                    <p className="text-[16px] font-medium text-white">На эту дату записей нет</p>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      Добавь новую запись, чтобы заполнить расписание.
+                    </p>
+                  </ShellCard>
                 )}
               </div>
             </>
@@ -1997,37 +2122,78 @@ export default function App() {
 
           {activeTab === "operations" && (
             <>
-              <SectionTitle title="Финансы" />
+              <SectionTitle
+                title="Финансы"
+                subtitle="Все движения по выбранному месяцу"
+              />
+
+              <MonthTabs
+                months={normalizedMonths}
+                selectedMonth={selectedMonth}
+                onChange={setSelectedMonth}
+              />
 
               <div className="space-y-3">
-                {selectedMonthEntries.map((entry) => (
-                  <RecentOperationRow
-                    key={entry.source === "appointment" ? `a-${entry.id}` : `o-${entry.id}`}
-                    entry={entry}
-                    onOpen={openFinancialEntry}
-                  />
-                ))}
+                {selectedMonthEntries.length > 0 ? (
+                  selectedMonthEntries.map((entry) => (
+                    <RecentOperationRow
+                      key={entry.source === "appointment" ? `a-${entry.id}` : `o-${entry.id}`}
+                      entry={entry}
+                      onOpen={openFinancialEntry}
+                    />
+                  ))
+                ) : (
+                  <ShellCard className="p-6">
+                    <p className="text-[16px] font-medium text-white">Пока пусто</p>
+                    <p className="mt-1 text-sm text-zinc-500">За этот месяц данных пока нет.</p>
+                  </ShellCard>
+                )}
               </div>
             </>
           )}
 
           {activeTab === "analytics" && (
             <>
-              <SectionTitle title="Аналитика" />
+              <SectionTitle
+                title="Аналитика"
+                subtitle="Ритм месяца и сильные дни"
+              />
 
-              <div className="grid gap-6 lg:grid-cols-2">
-                <SoftCard className="h-[300px] p-5">
-                  <Bar data={chartData} options={chartOptions} />
-                </SoftCard>
+              <MonthTabs
+                months={normalizedMonths}
+                selectedMonth={selectedMonth}
+                onChange={setSelectedMonth}
+              />
 
-                <SoftCard className="p-5">
+              <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+                <ShellCard className="h-[340px] p-5 sm:p-6">
+                  <div className="mb-4">
+                    <p className="text-sm text-zinc-400">Выручка по дням</p>
+                    <p className="mt-1 text-[22px] font-semibold tracking-[-0.025em] text-white">
+                      {formatMonthLabel(selectedMonth)}
+                    </p>
+                  </div>
+                  <div className="h-[250px]">
+                    <Bar data={chartData} options={chartOptions} />
+                  </div>
+                </ShellCard>
+
+                <ShellCard className="p-5 sm:p-6">
                   <p className="text-sm text-zinc-400">Лучшие дни месяца</p>
                   <div className="mt-4 space-y-3">
                     {dailyStats.bestDays.length > 0 ? (
-                      dailyStats.bestDays.map((day) => (
-                        <div key={day.dateKey} className="flex justify-between gap-4">
-                          <span className="text-zinc-300">{formatDisplayDate(day.dateKey)}</span>
-                          <span className="font-medium text-white">
+                      dailyStats.bestDays.map((day, index) => (
+                        <div
+                          key={day.dateKey}
+                          className="flex items-center justify-between gap-4 rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm text-zinc-500">#{index + 1}</p>
+                            <p className="mt-1 text-sm font-medium text-white">
+                              {formatDisplayDate(day.dateKey)}
+                            </p>
+                          </div>
+                          <span className="text-sm font-semibold text-white">
                             {formatMoney(day.amount)}
                           </span>
                         </div>
@@ -2037,24 +2203,24 @@ export default function App() {
                     )}
                   </div>
 
-                  <div className="mt-6 border-t border-white/8 pt-4">
+                  <div className="mt-6 rounded-[18px] border border-white/8 bg-white/[0.03] px-4 py-3">
                     <div className="flex justify-between gap-4">
-                      <span className="text-zinc-400">Пустых дней</span>
-                      <span className="text-white">{dailyStats.weakDays}</span>
+                      <span className="text-sm text-zinc-400">Пустых дней</span>
+                      <span className="text-sm font-medium text-white">{dailyStats.weakDays}</span>
                     </div>
                   </div>
-                </SoftCard>
+                </ShellCard>
               </div>
             </>
           )}
 
           {activeTab === "settings" && (
             <>
-              <SectionTitle title="Настройки" />
+              <SectionTitle title="Настройки" subtitle="Цели и управление месяцами" />
 
-              <div className="space-y-4">
-                <SoftCard className="p-5">
-                  <p className="mb-2 text-sm text-zinc-400">Цель месяца</p>
+              <div className="grid gap-4 xl:grid-cols-[1fr_auto]">
+                <ShellCard className="p-5 sm:p-6">
+                  <FormLabel>Цель месяца</FormLabel>
                   <TextInput
                     type="number"
                     value={monthGoal}
@@ -2077,11 +2243,24 @@ export default function App() {
                       }
                     }}
                   />
-                </SoftCard>
+                  <p className="mt-3 text-sm text-zinc-500">
+                    Актуальная цель для {formatMonthLabel(selectedMonth)}.
+                  </p>
+                </ShellCard>
 
-                <button onClick={deleteSelectedMonth} className="rounded bg-red-500 px-4 py-2">
-                  Удалить месяц
-                </button>
+                <ShellCard className="p-5 sm:p-6 xl:w-[280px]">
+                  <p className="text-sm text-zinc-400">Опасная зона</p>
+                  <p className="mt-2 text-[18px] font-semibold text-white">Удаление месяца</p>
+                  <p className="mt-2 text-sm text-zinc-500">
+                    Будут удалены операции, записи и цель выбранного месяца.
+                  </p>
+                  <button
+                    onClick={deleteSelectedMonth}
+                    className="mt-5 inline-flex h-11 items-center justify-center rounded-[14px] border border-rose-400/18 bg-rose-500/10 px-4 text-sm font-medium text-rose-200 transition hover:bg-rose-500/14"
+                  >
+                    Удалить месяц
+                  </button>
+                </ShellCard>
               </div>
             </>
           )}
@@ -2094,112 +2273,129 @@ export default function App() {
         />
 
         {showAppointmentModal && (
-          <div className="fixed inset-0 z-[999] bg-black/72 backdrop-blur-md">
+          <div className="fixed inset-0 z-[999] bg-black/70 backdrop-blur-md">
             <div className="absolute inset-0" onClick={() => setShowAppointmentModal(false)} />
 
-            <div className="absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[620px] rounded-t-[34px] border border-white/10 bg-[linear-gradient(180deg,#06101d_0%,#050b14_100%)] text-white shadow-[0_-30px_80px_rgba(0,0,0,0.55)]">
-              <div className="px-4 pt-4 sm:px-5">
-                <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/20" />
+            <div className="absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[760px] flex-col rounded-t-[32px] border border-white/10 bg-[#0e1117] shadow-[0_-24px_90px_rgba(0,0,0,0.58)] animate-sheet-in">
+              <div className="px-4 pt-4 sm:px-6">
+                <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/14" />
+                <div className="mb-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.14em] text-zinc-500">
+                      {editingAppointmentId ? "Редактирование" : "Новая запись"}
+                    </p>
+                    <h2 className="mt-1 text-[22px] font-semibold tracking-[-0.03em] text-white">
+                      {editingAppointmentId ? "Карточка записи" : "Создание записи"}
+                    </h2>
+                  </div>
 
-                <div className="relative mb-4 flex items-center justify-center">
-                  <h2 className="text-[19px] font-semibold text-white">
-                    {editingAppointmentId ? "Редактировать запись" : "Новая запись"}
-                  </h2>
+                  <IconButton onClick={() => setShowAppointmentModal(false)}>
+                    <CloseIcon />
+                  </IconButton>
                 </div>
               </div>
 
-              <div className="max-h-[calc(100vh-110px)] overflow-y-auto px-4 pb-5 sm:px-5">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="relative">
-                      <div className="pointer-events-none absolute left-5 top-1/2 z-[2] -translate-y-1/2 text-white">
-                        <UserIcon />
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-6">
+                <div className="space-y-4 pb-4">
+                  <ShellCard className="p-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <FormLabel>Клиент</FormLabel>
+                        <div className="relative">
+                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                            <UserIcon />
+                          </div>
+                          <TextInput
+                            placeholder="Имя клиента"
+                            value={appointmentClient}
+                            onChange={(e) => setAppointmentClient(e.target.value)}
+                            className="pl-12"
+                          />
+                        </div>
                       </div>
-                      <TextInput
-                        placeholder="Имя клиента"
-                        value={appointmentClient}
-                        onChange={(e) => setAppointmentClient(e.target.value)}
-                        className="pl-14"
-                      />
-                    </div>
 
-                    <div className="relative">
-                      <div className="pointer-events-none absolute left-5 top-1/2 z-[2] -translate-y-1/2 text-white">
-                        <PhoneIcon />
-                      </div>
-                      <TextInput
-                        type="tel"
-                        placeholder="Телефон"
-                        value={appointmentPhone}
-                        onChange={(e) => setAppointmentPhone(e.target.value)}
-                        className="pl-14"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <ModalDateField value={appointmentDate} onChange={setAppointmentDate} />
-                    <ModalTimeField
-                      value={appointmentStartTime}
-                      onChange={setAppointmentStartTime}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <ModalTimeField
-                      value={appointmentEndTime}
-                      onChange={setAppointmentEndTime}
-                    />
-
-                    <div className="rounded-[24px] border border-[#233d86] bg-[#070b14] p-[4px] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.22)]">
-                      <div className="grid h-[62px] grid-cols-2 gap-[4px]">
-                        {ownerOptions.map((owner) => {
-                          const active = appointmentOwner === owner
-                          return (
-                            <button
-                              key={owner}
-                              type="button"
-                              onClick={() => setAppointmentOwner(owner)}
-                              className={`rounded-[20px] text-[15px] font-semibold transition ${
-                                active
-                                  ? "bg-[linear-gradient(180deg,#7b89ff,#6476ef)] text-white shadow-[0_10px_24px_rgba(107,126,255,0.28)]"
-                                  : "text-white/90"
-                              }`}
-                            >
-                              {owner}
-                            </button>
-                          )
-                        })}
+                      <div>
+                        <FormLabel>Телефон</FormLabel>
+                        <div className="relative">
+                          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+                            <PhoneIcon />
+                          </div>
+                          <TextInput
+                            type="tel"
+                            placeholder="Телефон"
+                            value={appointmentPhone}
+                            onChange={(e) => setAppointmentPhone(e.target.value)}
+                            className="pl-12"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </ShellCard>
 
-                  <div className="rounded-[28px] bg-white/[0.03] p-3 ring-1 ring-white/6">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="text-[15px] font-semibold text-white">Услуги</p>
-                      <button
-                        type="button"
-                        onClick={addAppointmentServiceRow}
-                        className="flex h-[44px] w-[44px] items-center justify-center rounded-[16px] bg-[linear-gradient(180deg,#7b89ff,#6476ef)] text-[26px] leading-none text-white shadow-[0_10px_24px_rgba(107,126,255,0.26)]"
-                      >
-                        +
-                      </button>
+                  <ShellCard className="p-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <FormLabel>Дата</FormLabel>
+                        <ModalDateField value={appointmentDate} onChange={setAppointmentDate} />
+                      </div>
+
+                      <div>
+                        <FormLabel>Исполнитель</FormLabel>
+                        <SegmentedControl
+                          options={[
+                            { value: "Азат", label: "Азат" },
+                            { value: "Марс", label: "Марс" },
+                          ]}
+                          value={appointmentOwner}
+                          onChange={setAppointmentOwner}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <FormLabel>Начало</FormLabel>
+                        <ModalTimeField
+                          value={appointmentStartTime}
+                          onChange={setAppointmentStartTime}
+                        />
+                      </div>
+
+                      <div>
+                        <FormLabel>Конец</FormLabel>
+                        <ModalTimeField
+                          value={appointmentEndTime}
+                          onChange={setAppointmentEndTime}
+                        />
+                      </div>
+                    </div>
+                  </ShellCard>
+
+                  <ShellCard className="p-4">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[16px] font-semibold text-white">Услуги</p>
+                        <p className="text-sm text-zinc-500">Состав и стоимость записи</p>
+                      </div>
+                      <IconButton onClick={addAppointmentServiceRow}>
+                        <PlusIcon />
+                      </IconButton>
                     </div>
 
                     <div className="space-y-3">
                       {appointmentServices.map((service) => (
                         <div
                           key={service.id}
-                          className="rounded-[24px] bg-[#0a1220] p-3 ring-1 ring-white/5"
+                          className="rounded-[20px] border border-white/8 bg-white/[0.03] p-3"
                         >
-                          <div className="grid grid-cols-[minmax(0,1fr)_120px_44px] gap-3 max-[420px]:grid-cols-[minmax(0,1fr)_92px_44px]">
+                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_44px]">
                             <button
                               type="button"
                               onClick={() => setServicePickerRowId(service.id)}
-                              className="flex h-[60px] min-w-0 items-center justify-between rounded-[20px] border border-[#3557d9] bg-[#070b14] px-4 text-left text-white"
+                              className="ui-input flex h-[52px] min-w-0 items-center justify-between px-4"
                             >
-                              <span className="truncate text-[15px]">{service.type}</span>
-                              <span className="ml-3 shrink-0 text-white/80">↕</span>
+                              <span className="truncate text-[15px] text-white">{service.type}</span>
+                              <span className="ml-3 shrink-0 text-zinc-500">↕</span>
                             </button>
 
                             {service.type === "Запись" ? (
@@ -2212,7 +2408,7 @@ export default function App() {
                                     hours: e.target.value === "" ? "" : Number(e.target.value),
                                   })
                                 }
-                                className="h-[60px] rounded-[20px] px-4 text-[18px]"
+                                className="h-[52px] px-4 text-[16px]"
                               />
                             ) : (
                               <TextInput
@@ -2224,52 +2420,54 @@ export default function App() {
                                     amount: Number(e.target.value),
                                   })
                                 }
-                                className="h-[60px] rounded-[20px] px-4 text-[18px]"
+                                className="h-[52px] px-4 text-[16px]"
                               />
                             )}
 
                             <button
                               type="button"
                               onClick={() => removeAppointmentServiceRow(service.id)}
-                              className="flex h-[60px] w-[44px] items-center justify-center rounded-[18px] bg-red-500/15 text-red-300 ring-1 ring-red-400/20"
+                              className="flex h-[52px] w-[44px] items-center justify-center rounded-[14px] border border-rose-400/18 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/14"
                             >
                               <CloseIcon />
                             </button>
                           </div>
 
-                          <div className="mt-2 flex items-center justify-between px-1 text-xs text-white/45">
-                            <span>
-                              {service.type === "Запись" ? "Часы" : "Сумма"}
+                          <div className="mt-2 flex items-center justify-between px-1 text-xs text-zinc-500">
+                            <span>{service.type === "Запись" ? "Часы" : "Сумма"}</span>
+                            <span className="text-zinc-300">
+                              {formatMoney(normalizeServiceRow(service).amount)}
                             </span>
-                            <span>{formatMoney(normalizeServiceRow(service).amount)}</span>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </ShellCard>
 
-                  <div className="rounded-[28px] bg-white/[0.03] p-3 ring-1 ring-white/6">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="text-[15px] font-semibold text-white">Оплата</p>
-                      <p className="text-xs text-white/45">
-                        Осталось: {formatMoney(remainingToPay)}
-                      </p>
+                  <ShellCard className="p-4">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[16px] font-semibold text-white">Оплата</p>
+                        <p className="text-sm text-zinc-500">
+                          Осталось: {formatMoney(remainingToPay)}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
                       {appointmentPayments.map((payment) => (
                         <div
                           key={payment.id}
-                          className="rounded-[24px] bg-[#0a1220] p-3 ring-1 ring-white/5"
+                          className="rounded-[20px] border border-white/8 bg-white/[0.03] p-3"
                         >
-                          <div className="grid grid-cols-[minmax(0,1fr)_120px_44px] gap-3 max-[420px]:grid-cols-[minmax(0,1fr)_92px_44px]">
+                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_44px]">
                             <button
                               type="button"
                               onClick={() => setPaymentPickerRowId(payment.id)}
-                              className="flex h-[60px] min-w-0 items-center justify-between rounded-[20px] border border-[#3557d9] bg-[#070b14] px-4 text-left text-white"
+                              className="ui-input flex h-[52px] min-w-0 items-center justify-between px-4"
                             >
-                              <span className="truncate text-[15px]">{payment.type}</span>
-                              <span className="ml-3 shrink-0 text-white/80">↕</span>
+                              <span className="truncate text-[15px] text-white">{payment.type}</span>
+                              <span className="ml-3 shrink-0 text-zinc-500">↕</span>
                             </button>
 
                             <TextInput
@@ -2281,13 +2479,13 @@ export default function App() {
                                   amount: Number(e.target.value),
                                 })
                               }
-                              className="h-[60px] rounded-[20px] px-4 text-[18px]"
+                              className="h-[52px] px-4 text-[16px]"
                             />
 
                             <button
                               type="button"
                               onClick={() => removeAppointmentPaymentRow(payment.id)}
-                              className="flex h-[60px] w-[44px] items-center justify-center rounded-[18px] bg-red-500/15 text-red-300 ring-1 ring-red-400/20"
+                              className="flex h-[52px] w-[44px] items-center justify-center rounded-[14px] border border-rose-400/18 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/14"
                             >
                               <CloseIcon />
                             </button>
@@ -2297,98 +2495,81 @@ export default function App() {
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-3">
-                      <button
+                      <SecondaryButton
                         type="button"
                         onClick={() => addAppointmentPaymentRow("Нал")}
-                        className="rounded-[20px] bg-[linear-gradient(180deg,#7b89ff,#6476ef)] py-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(107,126,255,0.26)]"
+                        className="justify-center"
                       >
-                        + Нал
-                      </button>
-                      <button
+                        <PlusIcon />
+                        Нал
+                      </SecondaryButton>
+                      <SecondaryButton
                         type="button"
                         onClick={() => addAppointmentPaymentRow("Карта")}
-                        className="rounded-[20px] bg-[linear-gradient(180deg,#7b89ff,#6476ef)] py-4 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(107,126,255,0.26)]"
+                        className="justify-center"
                       >
-                        + Карта
-                      </button>
+                        <PlusIcon />
+                        Карта
+                      </SecondaryButton>
                     </div>
-                  </div>
+                  </ShellCard>
 
-                  <div className="rounded-[24px] border border-[#233d86] bg-[#070b14] p-[4px] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.22)]">
-                    <div className="grid grid-cols-3 gap-[4px]">
-                      {[
-                        { value: "Ожидание" as AppointmentStatus, label: "Ожидание" },
-                        { value: "Пришел" as AppointmentStatus, label: "Пришёл" },
-                        { value: "Не пришел" as AppointmentStatus, label: "Не пришёл" },
-                      ].map((status) => {
-                        const active = appointmentStatus === status.value
-                        return (
-                          <button
-                            key={status.value}
-                            type="button"
-                            onClick={() => setAppointmentStatus(status.value)}
-                            className={`min-h-[62px] rounded-[20px] px-3 text-[14px] font-semibold transition ${
-                              active
-                                ? "bg-[linear-gradient(180deg,#7b89ff,#6476ef)] text-white shadow-[0_10px_24px_rgba(107,126,255,0.26)]"
-                                : "text-white/90"
-                            }`}
-                          >
-                            {status.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <TextArea
-                      placeholder="Комментарий"
-                      value={appointmentNote}
-                      onChange={(e) => setAppointmentNote(e.target.value)}
+                  <ShellCard className="p-4">
+                    <FormLabel>Статус</FormLabel>
+                    <SegmentedControl
+                      options={[
+                        { value: "Ожидание", label: "Ожидание" },
+                        { value: "Пришел", label: "Пришёл" },
+                        { value: "Не пришел", label: "Не пришёл" },
+                      ]}
+                      value={appointmentStatus}
+                      onChange={setAppointmentStatus}
                     />
-                  </div>
 
-                  <div className="grid grid-cols-[minmax(0,1fr)_92px] gap-3 pb-[max(env(safe-area-inset-bottom),8px)]">
+                    <div className="mt-4">
+                      <FormLabel>Комментарий</FormLabel>
+                      <TextArea
+                        placeholder="Комментарий"
+                        value={appointmentNote}
+                        onChange={(e) => setAppointmentNote(e.target.value)}
+                      />
+                    </div>
+                  </ShellCard>
+                </div>
+              </div>
+
+              <div className="border-t border-white/8 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 sm:px-6">
+                <div className="grid grid-cols-[minmax(0,1fr)_52px] gap-3">
+                  <PrimaryButton
+                    type="button"
+                    onClick={saveAppointment}
+                    className="h-[56px] justify-center"
+                  >
+                    Сохранить запись
+                  </PrimaryButton>
+
+                  {editingAppointmentId ? (
                     <button
                       type="button"
-                      onClick={saveAppointment}
-                      className="h-[72px] rounded-[24px] bg-[linear-gradient(180deg,#7b89ff,#6b7deb)] text-[18px] font-semibold text-white shadow-[0_16px_34px_rgba(107,126,255,0.3)]"
+                      onClick={() => deleteAppointment(editingAppointmentId)}
+                      className="flex h-[56px] items-center justify-center rounded-[16px] border border-rose-400/18 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/14"
                     >
-                      Сохранить
+                      <TrashIcon />
                     </button>
-
-                    {editingAppointmentId ? (
-                      <button
-                        type="button"
-                        onClick={() => deleteAppointment(editingAppointmentId)}
-                        className="flex h-[72px] items-center justify-center rounded-[24px] bg-[#cf6439] text-white shadow-[0_16px_30px_rgba(207,100,57,0.28)]"
-                      >
-                        <CloseIcon />
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setShowAppointmentModal(false)}
-                        className="flex h-[72px] items-center justify-center rounded-[24px] bg-[#cf6439] text-white shadow-[0_16px_30px_rgba(207,100,57,0.28)]"
-                      >
-                        <CloseIcon />
-                      </button>
-                    )}
-                  </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowAppointmentModal(false)}
+                      className="flex h-[56px] items-center justify-center rounded-[16px] border border-white/10 bg-white/[0.04] text-zinc-300 transition hover:bg-white/[0.06]"
+                    >
+                      <CloseIcon />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         )}
-
-        <PickerSheet
-          open={ownerPickerOpen}
-          title="Выбери звукорежиссёра"
-          options={ownerOptions}
-          value={appointmentOwner}
-          onSelect={setAppointmentOwner}
-          onClose={() => setOwnerPickerOpen(false)}
-        />
 
         <PickerSheet
           open={servicePickerRowId !== null}
@@ -2418,15 +2599,6 @@ export default function App() {
             })
           }}
           onClose={() => setPaymentPickerRowId(null)}
-        />
-
-        <PickerSheet
-          open={statusPickerOpen}
-          title="Статус записи"
-          options={appointmentStatusOptions}
-          value={appointmentStatus}
-          onSelect={setAppointmentStatus}
-          onClose={() => setStatusPickerOpen(false)}
         />
       </div>
     </div>
