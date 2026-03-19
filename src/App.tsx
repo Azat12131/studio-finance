@@ -14,6 +14,7 @@ import logoWhite from "./assets/logo-white.png"
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
+type EntityId = string | number
 type Owner = "Азат" | "Марс"
 type PaymentType = "Нал" | "Карта"
 
@@ -44,7 +45,7 @@ type PaymentItem = {
 }
 
 type Operation = {
-  id: number
+  id: EntityId
   date: string
   client: string
   owner: Owner
@@ -53,7 +54,7 @@ type Operation = {
 }
 
 type Appointment = {
-  id: number
+  id: EntityId
   date: string
   startTime: string
   endTime: string
@@ -67,7 +68,7 @@ type Appointment = {
 }
 
 type FinancialEntry = {
-  id: number
+  id: EntityId
   source: "operation" | "appointment"
   date: string
   client: string
@@ -1460,7 +1461,7 @@ export default function App() {
 
   const [selectedDate, setSelectedDate] = React.useState(formatInputDate(new Date()))
   const [showAppointmentModal, setShowAppointmentModal] = React.useState(false)
-  const [editingAppointmentId, setEditingAppointmentId] = React.useState<number | null>(null)
+  const [editingAppointmentId, setEditingAppointmentId] = React.useState<EntityId | null>(null)
 
   const [appointmentClient, setAppointmentClient] = React.useState("")
   const [appointmentPhone, setAppointmentPhone] = React.useState("")
@@ -1523,7 +1524,7 @@ export default function App() {
     }
 
     const mappedOperations: Operation[] = (operationsData || []).map((item) => ({
-      id: Number(item.id),
+      id: item.id as EntityId,
       date: String(item.date),
       client: String(item.client || "Без клиента"),
       owner: (item.owner as Owner) || "Азат",
@@ -1532,7 +1533,7 @@ export default function App() {
     }))
 
     const mappedAppointments: Appointment[] = (appointmentsData || []).map((item) => ({
-      id: Number(item.id),
+      id: item.id as EntityId,
       date: String(item.date),
       startTime: String(item.start_time || "14:00"),
       endTime: String(item.end_time || "15:00"),
@@ -1842,21 +1843,22 @@ export default function App() {
     setShowAppointmentModal(true)
   }, [])
 
-    const deleteLegacyOperation = React.useCallback(async (id: number) => {
+  const deleteLegacyOperation = React.useCallback(async (id: EntityId) => {
     const { error } = await supabase.from("operations").delete().eq("id", id)
 
     if (error) {
       console.error("Error deleting operation", error)
-      alert("Не удалось удалить операцию")
+      alert(`Не удалось удалить операцию: ${error.message}`)
       return
     }
 
-    setLegacyOperations((prev) => prev.filter((item) => item.id !== id))
+    setLegacyOperations((prev) => prev.filter((item) => String(item.id) !== String(id)))
   }, [])
+
   const openFinancialEntry = React.useCallback(
     (entry: FinancialEntry) => {
       if (entry.source === "appointment") {
-        const found = appointments.find((item) => item.id === entry.id)
+        const found = appointments.find((item) => String(item.id) === String(entry.id))
         if (found) openEditAppointmentModal(found)
         return
       }
@@ -2013,7 +2015,7 @@ export default function App() {
       payments: cleanedPayments,
     }
 
-    if (editingAppointmentId) {
+    if (editingAppointmentId !== null) {
       const { data, error } = await supabase
         .from("appointments")
         .update(payload)
@@ -2028,7 +2030,7 @@ export default function App() {
       }
 
       const updatedAppointment: Appointment = {
-        id: Number(data.id),
+        id: data.id as EntityId,
         date: String(data.date),
         startTime: String(data.start_time),
         endTime: String(data.end_time),
@@ -2042,7 +2044,9 @@ export default function App() {
       }
 
       setAppointments((prev) =>
-        prev.map((item) => (item.id === editingAppointmentId ? updatedAppointment : item))
+        prev.map((item) =>
+          String(item.id) === String(editingAppointmentId) ? updatedAppointment : item
+        )
       )
     } else {
       const { data, error } = await supabase
@@ -2058,7 +2062,7 @@ export default function App() {
       }
 
       const newAppointment: Appointment = {
-        id: Number(data.id),
+        id: data.id as EntityId,
         date: String(data.date),
         startTime: String(data.start_time),
         endTime: String(data.end_time),
@@ -2105,16 +2109,16 @@ export default function App() {
   ])
 
   const deleteAppointment = React.useCallback(
-    async (id: number) => {
+    async (id: EntityId) => {
       const { error } = await supabase.from("appointments").delete().eq("id", id)
 
       if (error) {
         console.error("Error deleting appointment", error)
-        alert("Не удалось удалить запись")
+        alert(`Не удалось удалить запись: ${error.message}`)
         return
       }
 
-      setAppointments((prev) => prev.filter((item) => item.id !== id))
+      setAppointments((prev) => prev.filter((item) => String(item.id) !== String(id)))
       setShowAppointmentModal(false)
       resetAppointmentForm()
     },
@@ -2450,7 +2454,7 @@ export default function App() {
 
                   return (
                     <button
-                      key={a.id}
+                      key={String(a.id)}
                       onClick={() => openEditAppointmentModal(a)}
                       className="schedule-card"
                       style={fontBaseStyle}
@@ -2539,7 +2543,7 @@ export default function App() {
                 {selectedMonthEntries.length > 0 ? (
                   selectedMonthEntries.map((entry) => (
                     <RecentOperationRow
-                      key={entry.source === "appointment" ? `a-${entry.id}` : `o-${entry.id}`}
+                      key={`${entry.source}-${String(entry.id)}`}
                       entry={entry}
                       onOpen={openFinancialEntry}
                     />
@@ -2634,7 +2638,7 @@ export default function App() {
             </>
           )}
 
-                 {activeTab === "settings" && (
+          {activeTab === "settings" && (
             <>
               <SectionTitle
                 title="Настройки"
@@ -2726,10 +2730,10 @@ export default function App() {
                 <div className="mb-4 flex items-center justify-between gap-4">
                   <div>
                     <p className="text-[11px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
-                      {editingAppointmentId ? "Редактирование" : "Новая запись"}
+                      {editingAppointmentId !== null ? "Редактирование" : "Новая запись"}
                     </p>
                     <h2 className="mt-1 text-[28px] text-white" style={fontDisplayTitleStyle}>
-                      {editingAppointmentId ? "Карточка записи" : "Создание записи"}
+                      {editingAppointmentId !== null ? "Карточка записи" : "Создание записи"}
                     </h2>
                   </div>
 
@@ -3000,7 +3004,7 @@ export default function App() {
                     Сохранить запись
                   </PrimaryButton>
 
-                  {editingAppointmentId ? (
+                  {editingAppointmentId !== null ? (
                     <button
                       type="button"
                       onClick={() => deleteAppointment(editingAppointmentId)}
