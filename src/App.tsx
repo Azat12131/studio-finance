@@ -1842,14 +1842,34 @@ export default function App() {
     setShowAppointmentModal(true)
   }, [])
 
+    const deleteLegacyOperation = React.useCallback(async (id: number) => {
+    const { error } = await supabase.from("operations").delete().eq("id", id)
+
+    if (error) {
+      console.error("Error deleting operation", error)
+      alert("Не удалось удалить операцию")
+      return
+    }
+
+    setLegacyOperations((prev) => prev.filter((item) => item.id !== id))
+  }, [])
   const openFinancialEntry = React.useCallback(
     (entry: FinancialEntry) => {
       if (entry.source === "appointment") {
         const found = appointments.find((item) => item.id === entry.id)
         if (found) openEditAppointmentModal(found)
+        return
       }
+
+      const confirmed = window.confirm(
+        `Удалить операцию "${entry.client}" от ${formatDisplayDate(entry.date)}?`
+      )
+
+      if (!confirmed) return
+
+      void deleteLegacyOperation(entry.id)
     },
-    [appointments, openEditAppointmentModal]
+    [appointments, openEditAppointmentModal, deleteLegacyOperation]
   )
 
   const addAppointmentServiceRow = React.useCallback(() => {
@@ -2614,7 +2634,7 @@ export default function App() {
             </>
           )}
 
-          {activeTab === "settings" && (
+                 {activeTab === "settings" && (
             <>
               <SectionTitle
                 title="Настройки"
@@ -2652,22 +2672,33 @@ export default function App() {
                 </GlassCard>
 
                 <GlassCard className="p-5 sm:p-6">
-                  <p className="text-[12px] uppercase text-[#b68ea4]" style={fontCapsStyle}>
-                    Опасная зона
+                  <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+                    Месяцы
                   </p>
                   <p className="mt-2 text-[22px] text-white" style={fontDisplayMediumStyle}>
-                    Удаление месяца
+                    Управление месяцами
                   </p>
                   <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
-                    Будут удалены операции, записи и цель выбранного месяца.
+                    Создание нового месяца и удаление текущего выбранного месяца.
                   </p>
-                  <button
-                    onClick={deleteSelectedMonth}
-                    className="danger-button mt-5"
-                    style={fontDisplayMediumStyle}
-                  >
-                    Удалить месяц
-                  </button>
+
+                  <div className="mt-5 grid gap-3">
+                    <GhostButton
+                      onClick={createNewMonth}
+                      className="h-[50px] w-full justify-center"
+                    >
+                      <PlusIcon />
+                      Новый месяц
+                    </GhostButton>
+
+                    <button
+                      onClick={deleteSelectedMonth}
+                      className="danger-button"
+                      style={fontDisplayMediumStyle}
+                    >
+                      Удалить месяц
+                    </button>
+                  </div>
                 </GlassCard>
               </div>
             </>
