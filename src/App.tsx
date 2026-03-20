@@ -990,24 +990,23 @@ function ModalTimeField({
   value: string
   onChange: (value: string) => void
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
-
   return (
-    <>
+    <label className="relative block cursor-pointer">
       <input
-        ref={inputRef}
         type="time"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
+        className="absolute inset-0 z-[2] h-full w-full cursor-pointer opacity-0"
       />
-      <CompactField
-        value={value || "Время"}
-        placeholder="Время"
-        icon={<ClockIcon />}
-        onClick={() => inputRef.current?.showPicker?.() ?? inputRef.current?.click()}
-      />
-    </>
+
+      <div className="pointer-events-none">
+        <CompactField
+          value={value || "Время"}
+          placeholder="Время"
+          icon={<ClockIcon />}
+        />
+      </div>
+    </label>
   )
 }
 
