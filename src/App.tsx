@@ -71,6 +71,7 @@ type FinancialEntry = {
   id: EntityId
   source: "operation" | "appointment"
   date: string
+  startTime?: string
   client: string
   owner: Owner
   services: ServiceItem[]
@@ -317,6 +318,7 @@ function appointmentToFinancialEntry(appointment: Appointment): FinancialEntry {
     id: appointment.id,
     source: "appointment",
     date: appointment.date,
+    startTime: appointment.startTime,
     client: appointment.client,
     owner: appointment.owner,
     services: appointment.services,
@@ -904,7 +906,10 @@ function RecentOperationRow({
           </div>
 
           <p className="mt-1 text-sm text-[#7f8aa8]" style={fontBodyMediumStyle}>
-            {formatDisplayDate(entry.date)} · {entry.services.length} усл.
+            {formatDisplayDate(entry.date)}
+            {entry.source === "appointment" && entry.startTime ? ` · ${entry.startTime}` : ""}
+            {" · "}
+            {entry.services.length} усл.
           </p>
         </div>
       </div>
@@ -990,23 +995,37 @@ function ModalTimeField({
   value: string
   onChange: (value: string) => void
 }) {
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+
+  const openPicker = () => {
+    if (!inputRef.current) return
+
+    if (typeof inputRef.current.showPicker === "function") {
+      inputRef.current.showPicker()
+      return
+    }
+
+    inputRef.current.focus()
+    inputRef.current.click()
+  }
+
   return (
-    <label className="relative block cursor-pointer">
+    <>
       <input
+        ref={inputRef}
         type="time"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="absolute inset-0 z-[2] h-full w-full cursor-pointer opacity-0"
+        className="sr-only"
       />
 
-      <div className="pointer-events-none">
-        <CompactField
-          value={value || "Время"}
-          placeholder="Время"
-          icon={<ClockIcon />}
-        />
-      </div>
-    </label>
+      <CompactField
+        value={value || "Время"}
+        placeholder="Время"
+        icon={<ClockIcon />}
+        onClick={openPicker}
+      />
+    </>
   )
 }
 
@@ -1610,23 +1629,29 @@ export default function App() {
     return Array.from(all).sort().reverse()
   }, [appointments, initialMonthKey, legacyOperations, months])
 
-  const financialEntries = React.useMemo<FinancialEntry[]>(() => {
-    const legacyEntries: FinancialEntry[] = legacyOperations.map((operation) => ({
-      id: operation.id,
-      source: "operation",
-      date: operation.date,
-      client: operation.client,
-      owner: operation.owner,
-      services: operation.services,
-      payments: operation.payments,
-    }))
+const financialEntries = React.useMemo<FinancialEntry[]>(() => {
+  const legacyEntries: FinancialEntry[] = legacyOperations.map((operation) => ({
+    id: operation.id,
+    source: "operation",
+    date: operation.date,
+    startTime: undefined,
+    client: operation.client,
+    owner: operation.owner,
+    services: operation.services,
+    payments: operation.payments,
+  }))
 
-    const appointmentEntries = appointments.map(appointmentToFinancialEntry)
+  const appointmentEntries = appointments.map(appointmentToFinancialEntry)
 
-    return [...legacyEntries, ...appointmentEntries].sort(
-      (a, b) => parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
-    )
-  }, [appointments, legacyOperations])
+  return [...legacyEntries, ...appointmentEntries].sort((a, b) => {
+    const dateDiff = parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
+    if (dateDiff !== 0) return dateDiff
+
+    const aTime = a.startTime || "00:00"
+    const bTime = b.startTime || "00:00"
+    return bTime.localeCompare(aTime)
+  })
+}, [appointments, legacyOperations])
 
   const selectedMonthEntries = React.useMemo(() => {
     return financialEntries.filter((entry) => toMonthKey(entry.date) === selectedMonth)
