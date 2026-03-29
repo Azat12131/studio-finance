@@ -49,6 +49,7 @@ select {
 
 button {
   -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 
 input,
@@ -417,6 +418,7 @@ select:-webkit-autofill {
   display: inline-flex;
   min-height: 46px;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   border: none;
   border-radius: 17px;
@@ -459,6 +461,7 @@ select:-webkit-autofill {
   display: inline-flex;
   min-height: 46px;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 17px;
@@ -501,6 +504,7 @@ select:-webkit-autofill {
   width: 46px;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background:
@@ -631,6 +635,7 @@ select:-webkit-autofill {
     0 18px 40px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -678,6 +683,7 @@ select:-webkit-autofill {
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
+  overscroll-behavior: contain;
 }
 
 .remove-mini-button,
@@ -886,6 +892,11 @@ select:-webkit-autofill {
   .btn-primary,
   .btn-ghost {
     font-size: 13px;
+  }
+
+  .finance-row,
+  .schedule-card {
+    align-items: flex-start;
   }
 }
 

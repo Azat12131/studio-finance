@@ -72,6 +72,7 @@ type FinancialEntry = {
   source: "operation" | "appointment"
   date: string
   startTime?: string
+  endTime?: string
   client: string
   owner: Owner
   services: ServiceItem[]
@@ -93,6 +94,14 @@ const serviceOptions: ServiceType[] = [
 ]
 
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
+
+const timeHourOptions = Array.from({ length: 24 }, (_, index) =>
+  String(index).padStart(2, "0")
+)
+
+const timeMinuteOptions = Array.from({ length: 60 }, (_, index) =>
+  String(index).padStart(2, "0")
+)
 
 const fontBaseStyle: React.CSSProperties = {
   fontFamily:
@@ -319,6 +328,7 @@ function appointmentToFinancialEntry(appointment: Appointment): FinancialEntry {
     source: "appointment",
     date: appointment.date,
     startTime: appointment.startTime,
+    endTime: appointment.endTime,
     client: appointment.client,
     owner: appointment.owner,
     services: appointment.services,
@@ -348,6 +358,47 @@ function getOwnerGlow(owner: Owner) {
 function getProgressWidth(value: number, total: number) {
   if (total <= 0) return 0
   return Math.max(0, Math.min(100, (value / total) * 100))
+}
+
+function normalizeTimeValue(value: string) {
+  const safe = /^\d{2}:\d{2}$/.test(value) ? value : "14:00"
+  const [hour, minute] = safe.split(":")
+  return {
+    hour: timeHourOptions.includes(hour) ? hour : "14",
+    minute: timeMinuteOptions.includes(minute) ? minute : "00",
+  }
+}
+
+function formatTimeRange(startTime?: string, endTime?: string) {
+  if (!startTime && !endTime) return ""
+  if (startTime && endTime) return `${startTime} — ${endTime}`
+  return startTime || endTime || ""
+}
+
+function getEntryServiceLabel(entry: Pick<FinancialEntry, "services">) {
+  if (!entry.services.length) return "Без услуг"
+
+  if (entry.services.length === 1) {
+    return entry.services[0].type
+  }
+
+  const uniqueTypes = Array.from(new Set(entry.services.map((service) => service.type)))
+
+  if (uniqueTypes.length === 1) {
+    return `${uniqueTypes[0]} · ${entry.services.length} усл.`
+  }
+
+  return `${entry.services[0].type} · ${entry.services.length} усл.`
+}
+
+function getPaymentTypeTotal(entries: FinancialEntry[], type: PaymentType) {
+  return entries.reduce((sum, entry) => {
+    const entryTotal = entry.payments
+      .filter((payment) => payment.type === type)
+      .reduce((innerSum, payment) => innerSum + Number(payment.amount || 0), 0)
+
+    return sum + entryTotal
+  }, 0)
 }
 
 function HomeIcon() {
@@ -885,6 +936,10 @@ function RecentOperationRow({
   entry: FinancialEntry
   onOpen: (entry: FinancialEntry) => void
 }) {
+  const serviceLabel = getEntryServiceLabel(entry)
+  const timeRange =
+    entry.source === "appointment" ? formatTimeRange(entry.startTime, entry.endTime) : ""
+
   return (
     <button onClick={() => onOpen(entry)} className="finance-row group" style={fontBaseStyle}>
       <div className="flex min-w-0 items-center gap-4">
@@ -897,17 +952,26 @@ function RecentOperationRow({
             <p className="truncate text-[15px] text-white" style={fontDisplayMediumStyle}>
               {entry.client}
             </p>
+
             <span
               className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#9aa5c3]"
               style={fontBodyMediumStyle}
             >
               {entry.owner}
             </span>
+
+            {timeRange ? (
+              <span
+                className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#9aa5c3]"
+                style={fontBodyMediumStyle}
+              >
+                {timeRange}
+              </span>
+            ) : null}
           </div>
 
           <p className="mt-1 text-sm text-[#7f8aa8]" style={fontBodyMediumStyle}>
             {formatDisplayDate(entry.date)}
-            {entry.source === "appointment" && entry.startTime ? ` · ${entry.startTime}` : ""}
             {" · "}
             {entry.services.length} усл.
           </p>
@@ -919,7 +983,7 @@ function RecentOperationRow({
           {formatMoney(getPaymentsTotal(entry))}
         </p>
         <p className="mt-1 text-xs text-[#7380a2]" style={fontBodyMediumStyle}>
-          {entry.source === "appointment" ? "Запись" : "Операция"}
+          {serviceLabel}
         </p>
       </div>
     </button>
@@ -990,42 +1054,18 @@ function ModalDateField({
 
 function ModalTimeField({
   value,
-  onChange,
+  onClick,
 }: {
   value: string
-  onChange: (value: string) => void
+  onClick: () => void
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
-
-  const openPicker = () => {
-    if (!inputRef.current) return
-
-    if (typeof inputRef.current.showPicker === "function") {
-      inputRef.current.showPicker()
-      return
-    }
-
-    inputRef.current.focus()
-    inputRef.current.click()
-  }
-
   return (
-    <>
-      <input
-        ref={inputRef}
-        type="time"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
-      />
-
-      <CompactField
-        value={value || "Время"}
-        placeholder="Время"
-        icon={<ClockIcon />}
-        onClick={openPicker}
-      />
-    </>
+    <CompactField
+      value={value || "Время"}
+      placeholder="Время"
+      icon={<ClockIcon />}
+      onClick={onClick}
+    />
   )
 }
 
@@ -1112,6 +1152,125 @@ function PickerSheet<T extends string>({
               </button>
             )
           })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TimePickerSheet({
+  open,
+  title,
+  value,
+  onSelect,
+  onClose,
+}: {
+  open: boolean
+  title: string
+  value: string
+  onSelect: (value: string) => void
+  onClose: () => void
+}) {
+  const normalized = React.useMemo(() => normalizeTimeValue(value), [value])
+  const [hour, setHour] = React.useState(normalized.hour)
+  const [minute, setMinute] = React.useState(normalized.minute)
+
+  React.useEffect(() => {
+    if (!open) return
+    const next = normalizeTimeValue(value)
+    setHour(next.hour)
+    setMinute(next.minute)
+  }, [open, value])
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-md" style={fontBaseStyle}>
+      <div className="absolute inset-0" onClick={onClose} />
+
+      <div className="sheet-panel absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[34px] px-4 pb-6 pt-4">
+        <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/12" />
+
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
+            {title}
+          </p>
+          <IconButton onClick={onClose} className="h-10 w-10 rounded-full">
+            <CloseIcon />
+          </IconButton>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <GlassCard className="max-h-[320px] overflow-y-auto p-2">
+            <p className="mb-2 px-2 text-[12px] uppercase text-[#7d89ab]" style={fontCapsStyle}>
+              Часы
+            </p>
+            <div className="space-y-1">
+              {timeHourOptions.map((option) => {
+                const active = option === hour
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setHour(option)}
+                    className={cn(
+                      "flex h-[46px] w-full items-center justify-center rounded-[16px] text-[15px] transition",
+                      active
+                        ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
+                        : "text-[#aab4d1] hover:bg-white/[0.05] hover:text-white"
+                    )}
+                    style={fontDisplayMediumStyle}
+                  >
+                    {option}
+                  </button>
+                )
+              })}
+            </div>
+          </GlassCard>
+
+          <GlassCard className="max-h-[320px] overflow-y-auto p-2">
+            <p className="mb-2 px-2 text-[12px] uppercase text-[#7d89ab]" style={fontCapsStyle}>
+              Минуты
+            </p>
+            <div className="space-y-1">
+              {timeMinuteOptions.map((option) => {
+                const active = option === minute
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setMinute(option)}
+                    className={cn(
+                      "flex h-[46px] w-full items-center justify-center rounded-[16px] text-[15px] transition",
+                      active
+                        ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
+                        : "text-[#aab4d1] hover:bg-white/[0.05] hover:text-white"
+                    )}
+                    style={fontDisplayMediumStyle}
+                  >
+                    {option}
+                  </button>
+                )
+              })}
+            </div>
+          </GlassCard>
+        </div>
+
+        <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+          <GhostButton type="button" onClick={onClose} className="justify-center">
+            Отмена
+          </GhostButton>
+
+          <PrimaryButton
+            type="button"
+            onClick={() => {
+              onSelect(`${hour}:${minute}`)
+              onClose()
+            }}
+            className="justify-center"
+          >
+            Сохранить
+          </PrimaryButton>
         </div>
       </div>
     </div>
@@ -1480,6 +1639,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = React.useState(formatInputDate(new Date()))
   const [showAppointmentModal, setShowAppointmentModal] = React.useState(false)
   const [editingAppointmentId, setEditingAppointmentId] = React.useState<EntityId | null>(null)
+  const [activeTimePicker, setActiveTimePicker] = React.useState<"start" | "end" | null>(null)
 
   const [appointmentClient, setAppointmentClient] = React.useState("")
   const [appointmentPhone, setAppointmentPhone] = React.useState("")
@@ -1513,6 +1673,7 @@ export default function App() {
     setAppointmentServices([makeServiceRow()])
     setAppointmentPayments([makePaymentRow("Нал")])
     setEditingAppointmentId(null)
+    setActiveTimePicker(null)
   }, [selectedDate])
 
   const loadData = React.useCallback(async () => {
@@ -1629,29 +1790,30 @@ export default function App() {
     return Array.from(all).sort().reverse()
   }, [appointments, initialMonthKey, legacyOperations, months])
 
-const financialEntries = React.useMemo<FinancialEntry[]>(() => {
-  const legacyEntries: FinancialEntry[] = legacyOperations.map((operation) => ({
-    id: operation.id,
-    source: "operation",
-    date: operation.date,
-    startTime: undefined,
-    client: operation.client,
-    owner: operation.owner,
-    services: operation.services,
-    payments: operation.payments,
-  }))
+  const financialEntries = React.useMemo<FinancialEntry[]>(() => {
+    const legacyEntries: FinancialEntry[] = legacyOperations.map((operation) => ({
+      id: operation.id,
+      source: "operation",
+      date: operation.date,
+      startTime: undefined,
+      endTime: undefined,
+      client: operation.client,
+      owner: operation.owner,
+      services: operation.services,
+      payments: operation.payments,
+    }))
 
-  const appointmentEntries = appointments.map(appointmentToFinancialEntry)
+    const appointmentEntries = appointments.map(appointmentToFinancialEntry)
 
-  return [...legacyEntries, ...appointmentEntries].sort((a, b) => {
-    const dateDiff = parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
-    if (dateDiff !== 0) return dateDiff
+    return [...legacyEntries, ...appointmentEntries].sort((a, b) => {
+      const dateDiff = parseInputDate(b.date).getTime() - parseInputDate(a.date).getTime()
+      if (dateDiff !== 0) return dateDiff
 
-    const aTime = a.startTime || "00:00"
-    const bTime = b.startTime || "00:00"
-    return bTime.localeCompare(aTime)
-  })
-}, [appointments, legacyOperations])
+      const aTime = a.startTime || "00:00"
+      const bTime = b.startTime || "00:00"
+      return bTime.localeCompare(aTime)
+    })
+  }, [appointments, legacyOperations])
 
   const selectedMonthEntries = React.useMemo(() => {
     return financialEntries.filter((entry) => toMonthKey(entry.date) === selectedMonth)
@@ -1676,6 +1838,14 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
     return selectedMonthEntries
       .filter((entry) => entry.owner === "Марс")
       .reduce((sum, entry) => sum + getPaymentsTotal(entry), 0)
+  }, [selectedMonthEntries])
+
+  const cashIncome = React.useMemo(() => {
+    return getPaymentTypeTotal(selectedMonthEntries, "Нал")
+  }, [selectedMonthEntries])
+
+  const cardIncome = React.useMemo(() => {
+    return getPaymentTypeTotal(selectedMonthEntries, "Карта")
   }, [selectedMonthEntries])
 
   const serviceRevenueRows = React.useMemo(() => {
@@ -1864,6 +2034,7 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
           }))
         : [makePaymentRow("Нал")]
     )
+    setActiveTimePicker(null)
     setShowAppointmentModal(true)
   }, [])
 
@@ -1994,6 +2165,11 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
       return
     }
 
+    if (appointmentEndTime <= appointmentStartTime) {
+      alert("Время окончания должно быть позже времени начала.")
+      return
+    }
+
     if (appointmentServices.length === 0) {
       alert("Добавь хотя бы одну услугу.")
       return
@@ -2115,6 +2291,7 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
     setSelectedMonth(monthKey)
     setSelectedDate(appointmentDate)
     setShowAppointmentModal(false)
+    setActiveTimePicker(null)
     resetAppointmentForm()
   }, [
     appointmentClient,
@@ -2144,6 +2321,7 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
 
       setAppointments((prev) => prev.filter((item) => String(item.id) !== String(id)))
       setShowAppointmentModal(false)
+      setActiveTimePicker(null)
       resetAppointmentForm()
     },
     [resetAppointmentForm]
@@ -2259,6 +2437,9 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
 
   const activePaymentPickerValue =
     appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
+
+  const activeTimePickerValue =
+    activeTimePicker === "start" ? appointmentStartTime : appointmentEndTime
 
   return (
     <div
@@ -2648,6 +2829,46 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
 
                   <GlassCard className="p-5 sm:p-6">
                     <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+                      Оплаты по типам
+                    </p>
+
+                    <div className="mt-4 grid gap-3">
+                      <div className="analytics-day-card">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="text-xs text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                              Наличные
+                            </p>
+                            <p className="mt-1 text-sm text-white" style={fontDisplayMediumStyle}>
+                              Нал
+                            </p>
+                          </div>
+                          <span className="text-sm text-white" style={fontDisplayMediumStyle}>
+                            {formatMoney(cashIncome)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="analytics-day-card">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="min-w-0">
+                            <p className="text-xs text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                              Безналичная оплата
+                            </p>
+                            <p className="mt-1 text-sm text-white" style={fontDisplayMediumStyle}>
+                              Карта
+                            </p>
+                          </div>
+                          <span className="text-sm text-white" style={fontDisplayMediumStyle}>
+                            {formatMoney(cardIncome)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-5 sm:p-6">
+                    <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
                       Слабые дни
                     </p>
                     <p className="mt-3 text-[34px] text-white" style={fontDisplayTitleStyle}>
@@ -2819,7 +3040,7 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
                         <FormLabel>Начало</FormLabel>
                         <ModalTimeField
                           value={appointmentStartTime}
-                          onChange={setAppointmentStartTime}
+                          onClick={() => setActiveTimePicker("start")}
                         />
                       </div>
 
@@ -2827,7 +3048,7 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
                         <FormLabel>Конец</FormLabel>
                         <ModalTimeField
                           value={appointmentEndTime}
-                          onChange={setAppointmentEndTime}
+                          onClick={() => setActiveTimePicker("end")}
                         />
                       </div>
                     </div>
@@ -3081,6 +3302,21 @@ const financialEntries = React.useMemo<FinancialEntry[]>(() => {
             })
           }}
           onClose={() => setPaymentPickerRowId(null)}
+        />
+
+        <TimePickerSheet
+          open={activeTimePicker !== null}
+          title={activeTimePicker === "start" ? "Время начала" : "Время окончания"}
+          value={activeTimePickerValue}
+          onSelect={(value) => {
+            if (activeTimePicker === "start") {
+              setAppointmentStartTime(value)
+              return
+            }
+
+            setAppointmentEndTime(value)
+          }}
+          onClose={() => setActiveTimePicker(null)}
         />
       </div>
     </div>
