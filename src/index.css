@@ -910,3 +910,27 @@ select:-webkit-autofill {
     scroll-behavior: auto !important;
   }
 }
+button {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(120, 170, 255, 0.65);
+  outline-offset: 2px;
+}
+
+.sheet-panel,
+.modal-panel {
+  overflow: hidden;
+}
+
+@supports (padding: max(0px)) {
+  .sheet-panel,
+  .modal-panel {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}

@@ -81,6 +81,20 @@ type FinancialEntry = {
 
 type MonthGoals = Record<string, number>
 type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
+type TimePickerTarget = "start" | "end" | null
+
+type AppointmentDraft = {
+  client: string
+  phone: string
+  owner: Owner
+  status: AppointmentStatus
+  date: string
+  startTime: string
+  endTime: string
+  note: string
+  services: ServiceItem[]
+  payments: PaymentItem[]
+}
 
 const RENT_GOAL = 20000
 const DEFAULT_MONTH_GOAL = 50000
@@ -95,13 +109,7 @@ const serviceOptions: ServiceType[] = [
 
 const paymentOptions: PaymentType[] = ["Нал", "Карта"]
 
-const timeHourOptions = Array.from({ length: 24 }, (_, index) =>
-  String(index).padStart(2, "0")
-)
-
-const timeMinuteOptions = Array.from({ length: 60 }, (_, index) =>
-  String(index).padStart(2, "0")
-)
+const timeMinutePresets = ["00", "15", "30", "45"] as const
 
 const fontBaseStyle: React.CSSProperties = {
   fontFamily:
@@ -153,6 +161,10 @@ function cn(...values: Array<string | false | null | undefined>) {
 
 function makeId() {
   return Date.now() + Math.floor(Math.random() * 100000)
+}
+
+function pad2(value: number | string) {
+  return String(value).padStart(2, "0")
 }
 
 function formatMoney(value: number) {
@@ -304,13 +316,20 @@ function normalizeServices(rawServices: unknown): ServiceItem[] {
   return rawServices.map((item, index) => {
     const raw = item as Partial<ServiceItem>
     const type = (raw.type as ServiceType) || "Запись"
-    const hoursRaw = raw.hours === "" ? "" : Number(raw.hours)
+    const rawHours =
+      raw.hours === "" || raw.hours === undefined || raw.hours === null
+        ? ""
+        : Number(raw.hours)
+
     const hours =
       type === "Запись"
-        ? Number.isFinite(hoursRaw) && Number(hoursRaw) > 0
-          ? Number(hoursRaw)
-          : 1
+        ? rawHours === ""
+          ? 1
+          : Number.isFinite(rawHours) && Number(rawHours) > 0
+            ? Number(rawHours)
+            : 1
         : ""
+
     const amount = type === "Запись" ? Number(hours) * 1000 : Number(raw.amount) || 0
 
     return {
@@ -349,6 +368,12 @@ function getStatusPillClass(status: AppointmentStatus) {
   return "bg-rose-400/12 text-rose-200 ring-1 ring-rose-300/18"
 }
 
+function formatStatusLabel(status: AppointmentStatus) {
+  if (status === "Пришел") return "Пришёл"
+  if (status === "Не пришел") return "Не пришёл"
+  return status
+}
+
 function getOwnerGlow(owner: Owner) {
   return owner === "Азат"
     ? "from-[#8be4ff] via-[#5f96ff] to-[#7d6bff]"
@@ -360,13 +385,68 @@ function getProgressWidth(value: number, total: number) {
   return Math.max(0, Math.min(100, (value / total) * 100))
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
 function normalizeTimeValue(value: string) {
-  const safe = /^\d{2}:\d{2}$/.test(value) ? value : "14:00"
-  const [hour, minute] = safe.split(":")
-  return {
-    hour: timeHourOptions.includes(hour) ? hour : "14",
-    minute: timeMinuteOptions.includes(minute) ? minute : "00",
+  if (!/^\d{2}:\d{2}$/.test(value)) {
+    return { hour: 14, minute: 0 }
   }
+
+  const [rawHour, rawMinute] = value.split(":").map(Number)
+
+  return {
+    hour: clamp(Number.isFinite(rawHour) ? rawHour : 14, 0, 23),
+    minute: clamp(Number.isFinite(rawMinute) ? rawMinute : 0, 0, 59),
+  }
+}
+
+function toTimeString(hour: number, minute: number) {
+  return `${pad2(hour)}:${pad2(minute)}`
+}
+
+function addMinutesToTime(time: string, delta: number) {
+  const normalized = normalizeTimeValue(time)
+  const total = normalized.hour * 60 + normalized.minute + delta
+  const wrapped = ((total % 1440) + 1440) % 1440
+  const hour = Math.floor(wrapped / 60)
+  const minute = wrapped % 60
+  return toTimeString(hour, minute)
+}
+
+function setTimeHour(time: string, hour: number) {
+  const normalized = normalizeTimeValue(time)
+  return toTimeString(clamp(hour, 0, 23), normalized.minute)
+}
+
+function setTimeMinute(time: string, minute: number) {
+  const normalized = normalizeTimeValue(time)
+  return toTimeString(normalized.hour, clamp(minute, 0, 59))
+}
+
+function roundMinuteToClosestPreset(minute: number) {
+  const presets = [0, 15, 30, 45]
+  let best = presets[0]
+  let bestDiff = Math.abs(minute - presets[0])
+
+  presets.forEach((preset) => {
+    const diff = Math.abs(minute - preset)
+    if (diff < bestDiff) {
+      best = preset
+      bestDiff = diff
+    }
+  })
+
+  return best
+}
+
+function applyTimePreset(key: "morning" | "day" | "evening" | "late", baseTime: string) {
+  if (key === "morning") return "10:00"
+  if (key === "day") return "14:00"
+  if (key === "evening") return "18:00"
+  if (key === "late") return setTimeMinute(baseTime, roundMinuteToClosestPreset(30))
+  return baseTime
 }
 
 function formatTimeRange(startTime?: string, endTime?: string) {
@@ -399,6 +479,57 @@ function getPaymentTypeTotal(entries: FinancialEntry[], type: PaymentType) {
 
     return sum + entryTotal
   }, 0)
+}
+
+function buildDefaultAppointmentDraft(selectedDate?: string): AppointmentDraft {
+  const today = formatInputDate(new Date())
+
+  return {
+    client: "",
+    phone: "",
+    owner: "Азат",
+    status: "Ожидание",
+    date: selectedDate || today,
+    startTime: "14:00",
+    endTime: "15:00",
+    note: "",
+    services: [makeServiceRow()],
+    payments: [makePaymentRow("Нал")],
+  }
+}
+
+function appointmentToDraft(appointment: Appointment): AppointmentDraft {
+  return {
+    client: appointment.client,
+    phone: appointment.phone,
+    owner: appointment.owner,
+    status: appointment.status,
+    date: appointment.date,
+    startTime: appointment.startTime,
+    endTime: appointment.endTime,
+    note: appointment.note,
+    services:
+      appointment.services.length > 0
+        ? appointment.services.map((service) => ({
+            ...service,
+            id: service.id || makeId(),
+            hours:
+              service.type === "Запись"
+                ? Number(service.hours) > 0
+                  ? Number(service.hours)
+                  : 1
+                : "",
+          }))
+        : [makeServiceRow()],
+    payments:
+      appointment.payments.length > 0
+        ? appointment.payments.map((payment) => ({
+            ...payment,
+            id: payment.id || makeId(),
+            amount: Number(payment.amount) || 0,
+          }))
+        : [makePaymentRow("Нал")],
+  }
 }
 
 function HomeIcon() {
@@ -640,6 +771,22 @@ function SparkIcon() {
       strokeLinejoin="round"
     >
       <path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z" />
+    </svg>
+  )
+}
+
+function MinusIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[18px] w-[18px]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12h14" />
     </svg>
   )
 }
@@ -1024,6 +1171,29 @@ function CompactField({
   )
 }
 
+function useNativeDatePicker() {
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+
+  const open = React.useCallback(() => {
+    const input = inputRef.current
+    if (!input) return
+
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker()
+        return
+      }
+    } catch {
+      // ignore
+    }
+
+    input.focus({ preventScroll: true })
+    input.click()
+  }, [])
+
+  return { inputRef, open }
+}
+
 function ModalDateField({
   value,
   onChange,
@@ -1031,7 +1201,7 @@ function ModalDateField({
   value: string
   onChange: (value: string) => void
 }) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const { inputRef, open } = useNativeDatePicker()
 
   return (
     <>
@@ -1040,13 +1210,45 @@ function ModalDateField({
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
+        className="pointer-events-none absolute h-0 w-0 opacity-0"
+        tabIndex={-1}
+        aria-hidden="true"
       />
       <CompactField
         value={formatHumanDate(value)}
         placeholder="Дата"
         icon={<CalendarIcon />}
-        onClick={() => inputRef.current?.showPicker?.() ?? inputRef.current?.click()}
+        onClick={open}
+      />
+    </>
+  )
+}
+
+function NativeDateButton({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  const { inputRef, open } = useNativeDatePicker()
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="pointer-events-none absolute h-0 w-0 opacity-0"
+        tabIndex={-1}
+        aria-hidden="true"
+      />
+      <CompactField
+        value={formatCompactDate(value)}
+        placeholder="Выбрать дату"
+        icon={<CalendarIcon />}
+        onClick={open}
       />
     </>
   )
@@ -1069,34 +1271,6 @@ function ModalTimeField({
   )
 }
 
-function NativeDateButton({
-  value,
-  onChange,
-}: {
-  value: string
-  onChange: (value: string) => void
-}) {
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
-
-  return (
-    <>
-      <input
-        ref={inputRef}
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="sr-only"
-      />
-      <CompactField
-        value={formatCompactDate(value)}
-        placeholder="Выбрать дату"
-        icon={<CalendarIcon />}
-        onClick={() => inputRef.current?.showPicker?.() ?? inputRef.current?.click()}
-      />
-    </>
-  )
-}
-
 function PickerSheet<T extends string>({
   open,
   title,
@@ -1112,6 +1286,22 @@ function PickerSheet<T extends string>({
   onSelect: (value: T) => void
   onClose: () => void
 }) {
+  React.useEffect(() => {
+    if (!open) return
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose()
+    }
+
+    window.addEventListener("keydown", handleEscape)
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape)
+      document.body.style.overflow = ""
+    }
+  }, [open, onClose])
+
   if (!open) return null
 
   return (
@@ -1158,6 +1348,28 @@ function PickerSheet<T extends string>({
   )
 }
 
+function TimeAdjustButton({
+  label,
+  icon,
+  onClick,
+}: {
+  label: string
+  icon: React.ReactNode
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-[54px] items-center justify-center gap-2 rounded-[18px] border border-white/8 bg-white/[0.05] text-white transition hover:bg-white/[0.08]"
+      style={fontDisplayMediumStyle}
+    >
+      {icon}
+      <span className="text-[14px]">{label}</span>
+    </button>
+  )
+}
+
 function TimePickerSheet({
   open,
   title,
@@ -1171,24 +1383,40 @@ function TimePickerSheet({
   onSelect: (value: string) => void
   onClose: () => void
 }) {
-  const normalized = React.useMemo(() => normalizeTimeValue(value), [value])
-  const [hour, setHour] = React.useState(normalized.hour)
-  const [minute, setMinute] = React.useState(normalized.minute)
+  const [draftTime, setDraftTime] = React.useState(value || "14:00")
 
   React.useEffect(() => {
     if (!open) return
-    const next = normalizeTimeValue(value)
-    setHour(next.hour)
-    setMinute(next.minute)
+    setDraftTime(value || "14:00")
   }, [open, value])
 
+  React.useEffect(() => {
+    if (!open) return
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose()
+    }
+
+    window.addEventListener("keydown", handleEscape)
+    document.body.style.overflow = "hidden"
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape)
+      document.body.style.overflow = ""
+    }
+  }, [open, onClose])
+
   if (!open) return null
+
+  const normalized = normalizeTimeValue(draftTime)
+  const hour = normalized.hour
+  const minute = normalized.minute
 
   return (
     <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-md" style={fontBaseStyle}>
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="sheet-panel absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[560px] rounded-t-[34px] px-4 pb-6 pt-4">
+      <div className="sheet-panel absolute bottom-0 left-0 right-0 mx-auto w-full max-w-[620px] rounded-t-[34px] px-4 pb-6 pt-4">
         <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-white/12" />
 
         <div className="mb-5 flex items-center justify-between gap-4">
@@ -1200,61 +1428,144 @@ function TimePickerSheet({
           </IconButton>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <GlassCard className="max-h-[320px] overflow-y-auto p-2">
-            <p className="mb-2 px-2 text-[12px] uppercase text-[#7d89ab]" style={fontCapsStyle}>
-              Часы
-            </p>
-            <div className="space-y-1">
-              {timeHourOptions.map((option) => {
-                const active = option === hour
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setHour(option)}
-                    className={cn(
-                      "flex h-[46px] w-full items-center justify-center rounded-[16px] text-[15px] transition",
-                      active
-                        ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
-                        : "text-[#aab4d1] hover:bg-white/[0.05] hover:text-white"
-                    )}
-                    style={fontDisplayMediumStyle}
-                  >
-                    {option}
-                  </button>
-                )
-              })}
-            </div>
-          </GlassCard>
+        <GlassCard glow className="p-5 sm:p-6">
+          <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+            Выбранное время
+          </p>
 
-          <GlassCard className="max-h-[320px] overflow-y-auto p-2">
-            <p className="mb-2 px-2 text-[12px] uppercase text-[#7d89ab]" style={fontCapsStyle}>
-              Минуты
-            </p>
-            <div className="space-y-1">
-              {timeMinuteOptions.map((option) => {
-                const active = option === minute
-                return (
+          <div className="mt-4 flex items-end justify-center gap-3">
+            <div
+              className="rounded-[24px] border border-white/8 bg-white/[0.05] px-6 py-4 text-[44px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:text-[54px]"
+              style={fontDisplayHeroStyle}
+            >
+              {pad2(hour)}
+            </div>
+            <div className="pb-3 text-[32px] text-[#8ea1cf]" style={fontDisplayTitleStyle}>
+              :
+            </div>
+            <div
+              className="rounded-[24px] border border-white/8 bg-white/[0.05] px-6 py-4 text-[44px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:text-[54px]"
+              style={fontDisplayHeroStyle}
+            >
+              {pad2(minute)}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+                  Часы
+                </p>
+                <span className="text-sm text-white" style={fontDisplayMediumStyle}>
+                  {pad2(hour)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <TimeAdjustButton
+                  label="−1 час"
+                  icon={<MinusIcon />}
+                  onClick={() => setDraftTime(addMinutesToTime(draftTime, -60))}
+                />
+                <TimeAdjustButton
+                  label="+1 час"
+                  icon={<PlusIcon />}
+                  onClick={() => setDraftTime(addMinutesToTime(draftTime, 60))}
+                />
+              </div>
+
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {[9, 12, 15, 18].map((hourPreset) => (
                   <button
-                    key={option}
+                    key={hourPreset}
                     type="button"
-                    onClick={() => setMinute(option)}
+                    onClick={() => setDraftTime(setTimeHour(draftTime, hourPreset))}
                     className={cn(
-                      "flex h-[46px] w-full items-center justify-center rounded-[16px] text-[15px] transition",
-                      active
+                      "rounded-[16px] px-3 py-3 text-sm transition",
+                      hour === hourPreset
                         ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
-                        : "text-[#aab4d1] hover:bg-white/[0.05] hover:text-white"
+                        : "border border-white/8 bg-white/[0.04] text-[#a9b5d3] hover:bg-white/[0.06] hover:text-white"
                     )}
                     style={fontDisplayMediumStyle}
                   >
-                    {option}
+                    {pad2(hourPreset)}
                   </button>
-                )
-              })}
+                ))}
+              </div>
             </div>
-          </GlassCard>
-        </div>
+
+            <div className="rounded-[24px] border border-white/8 bg-white/[0.04] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+                  Минуты
+                </p>
+                <span className="text-sm text-white" style={fontDisplayMediumStyle}>
+                  {pad2(minute)}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <TimeAdjustButton
+                  label="−15 мин"
+                  icon={<MinusIcon />}
+                  onClick={() => setDraftTime(addMinutesToTime(draftTime, -15))}
+                />
+                <TimeAdjustButton
+                  label="+15 мин"
+                  icon={<PlusIcon />}
+                  onClick={() => setDraftTime(addMinutesToTime(draftTime, 15))}
+                />
+              </div>
+
+              <div className="mt-3 grid grid-cols-4 gap-2">
+                {timeMinutePresets.map((minutePreset) => (
+                  <button
+                    key={minutePreset}
+                    type="button"
+                    onClick={() => setDraftTime(setTimeMinute(draftTime, Number(minutePreset)))}
+                    className={cn(
+                      "rounded-[16px] px-3 py-3 text-sm transition",
+                      pad2(minute) === minutePreset
+                        ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_24px_rgba(65,106,255,0.28)]"
+                        : "border border-white/8 bg-white/[0.04] text-[#a9b5d3] hover:bg-white/[0.06] hover:text-white"
+                    )}
+                    style={fontDisplayMediumStyle}
+                  >
+                    {minutePreset}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="mb-3 text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+              Быстрые пресеты
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { key: "morning" as const, label: "Утро", value: "10:00" },
+                { key: "day" as const, label: "День", value: "14:00" },
+                { key: "evening" as const, label: "Вечер", value: "18:00" },
+                { key: "late" as const, label: "Половина", value: "xx:30" },
+              ].map((preset) => (
+                <button
+                  key={preset.key}
+                  type="button"
+                  onClick={() => setDraftTime(applyTimePreset(preset.key, draftTime))}
+                  className="rounded-[18px] border border-white/8 bg-white/[0.04] px-4 py-3 text-left text-[#dfe7fb] transition hover:bg-white/[0.06]"
+                  style={fontDisplayMediumStyle}
+                >
+                  <div className="text-sm">{preset.label}</div>
+                  <div className="mt-1 text-xs text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                    {preset.value}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </GlassCard>
 
         <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
           <GhostButton type="button" onClick={onClose} className="justify-center">
@@ -1264,7 +1575,7 @@ function TimePickerSheet({
           <PrimaryButton
             type="button"
             onClick={() => {
-              onSelect(`${hour}:${minute}`)
+              onSelect(draftTime)
               onClose()
             }}
             className="justify-center"
@@ -1633,48 +1944,38 @@ export default function App() {
   })
   const [months, setMonths] = React.useState<string[]>([initialMonthKey])
   const [selectedMonth, setSelectedMonth] = React.useState(initialMonthKey)
-
   const [activeTab, setActiveTab] = React.useState<AppTab>("dashboard")
-
   const [selectedDate, setSelectedDate] = React.useState(formatInputDate(new Date()))
+
   const [showAppointmentModal, setShowAppointmentModal] = React.useState(false)
   const [editingAppointmentId, setEditingAppointmentId] = React.useState<EntityId | null>(null)
-  const [activeTimePicker, setActiveTimePicker] = React.useState<"start" | "end" | null>(null)
+  const [draft, setDraft] = React.useState<AppointmentDraft>(() =>
+    buildDefaultAppointmentDraft(formatInputDate(new Date()))
+  )
 
-  const [appointmentClient, setAppointmentClient] = React.useState("")
-  const [appointmentPhone, setAppointmentPhone] = React.useState("")
-  const [appointmentOwner, setAppointmentOwner] = React.useState<Owner>("Азат")
-  const [appointmentStatus, setAppointmentStatus] =
-    React.useState<AppointmentStatus>("Ожидание")
-  const [appointmentDate, setAppointmentDate] = React.useState(formatInputDate(new Date()))
-  const [appointmentStartTime, setAppointmentStartTime] = React.useState("14:00")
-  const [appointmentEndTime, setAppointmentEndTime] = React.useState("15:00")
-  const [appointmentNote, setAppointmentNote] = React.useState("")
-  const [appointmentServices, setAppointmentServices] = React.useState<ServiceItem[]>([
-    makeServiceRow(),
-  ])
-  const [appointmentPayments, setAppointmentPayments] = React.useState<PaymentItem[]>([
-    makePaymentRow("Нал"),
-  ])
-
+  const [activeTimePicker, setActiveTimePicker] = React.useState<TimePickerTarget>(null)
   const [servicePickerRowId, setServicePickerRowId] = React.useState<number | null>(null)
   const [paymentPickerRowId, setPaymentPickerRowId] = React.useState<number | null>(null)
 
-  const resetAppointmentForm = React.useCallback(() => {
-    const today = formatInputDate(new Date())
-    setAppointmentClient("")
-    setAppointmentPhone("")
-    setAppointmentOwner("Азат")
-    setAppointmentStatus("Ожидание")
-    setAppointmentDate(selectedDate || today)
-    setAppointmentStartTime("14:00")
-    setAppointmentEndTime("15:00")
-    setAppointmentNote("")
-    setAppointmentServices([makeServiceRow()])
-    setAppointmentPayments([makePaymentRow("Нал")])
-    setEditingAppointmentId(null)
+  const closeAllPickers = React.useCallback(() => {
     setActiveTimePicker(null)
-  }, [selectedDate])
+    setServicePickerRowId(null)
+    setPaymentPickerRowId(null)
+  }, [])
+
+  const resetAppointmentForm = React.useCallback(
+    (nextDate?: string) => {
+      setDraft(buildDefaultAppointmentDraft(nextDate || selectedDate))
+      setEditingAppointmentId(null)
+      closeAllPickers()
+    },
+    [closeAllPickers, selectedDate]
+  )
+
+  const closeAppointmentModal = React.useCallback(() => {
+    setShowAppointmentModal(false)
+    resetAppointmentForm()
+  }, [resetAppointmentForm])
 
   const loadData = React.useCallback(async () => {
     const [
@@ -1984,12 +2285,12 @@ export default function App() {
   }, [appointments, selectedDate])
 
   const currentAppointmentServicesTotal = React.useMemo(() => {
-    return appointmentServices.reduce((sum, row) => sum + normalizeServiceRow(row).amount, 0)
-  }, [appointmentServices])
+    return draft.services.reduce((sum, row) => sum + normalizeServiceRow(row).amount, 0)
+  }, [draft.services])
 
   const currentAppointmentPaymentsTotal = React.useMemo(() => {
-    return appointmentPayments.reduce((sum, row) => sum + normalizePaymentRow(row).amount, 0)
-  }, [appointmentPayments])
+    return draft.payments.reduce((sum, row) => sum + normalizePaymentRow(row).amount, 0)
+  }, [draft.payments])
 
   const remainingToPay = Math.max(
     currentAppointmentServicesTotal - currentAppointmentPaymentsTotal,
@@ -1997,46 +2298,28 @@ export default function App() {
   )
 
   const openCreateAppointmentModal = React.useCallback(() => {
-    resetAppointmentForm()
+    setEditingAppointmentId(null)
+    setDraft(buildDefaultAppointmentDraft(selectedDate))
+    closeAllPickers()
     setShowAppointmentModal(true)
-  }, [resetAppointmentForm])
+  }, [closeAllPickers, selectedDate])
 
-  const openEditAppointmentModal = React.useCallback((appointment: Appointment) => {
-    setEditingAppointmentId(appointment.id)
-    setAppointmentClient(appointment.client)
-    setAppointmentPhone(appointment.phone)
-    setAppointmentOwner(appointment.owner)
-    setAppointmentStatus(appointment.status)
-    setAppointmentDate(appointment.date)
-    setAppointmentStartTime(appointment.startTime)
-    setAppointmentEndTime(appointment.endTime)
-    setAppointmentNote(appointment.note)
-    setAppointmentServices(
-      appointment.services.length > 0
-        ? appointment.services.map((service) => ({
-            ...service,
-            id: service.id || makeId(),
-            hours:
-              service.type === "Запись"
-                ? Number(service.hours) > 0
-                  ? Number(service.hours)
-                  : ""
-                : "",
-          }))
-        : [makeServiceRow()]
-    )
-    setAppointmentPayments(
-      appointment.payments.length > 0
-        ? appointment.payments.map((payment) => ({
-            ...payment,
-            id: payment.id || makeId(),
-            amount: payment.amount,
-          }))
-        : [makePaymentRow("Нал")]
-    )
-    setActiveTimePicker(null)
-    setShowAppointmentModal(true)
-  }, [])
+  const openEditAppointmentModal = React.useCallback(
+    (appointment: Appointment) => {
+      setEditingAppointmentId(appointment.id)
+      setDraft(appointmentToDraft(appointment))
+      closeAllPickers()
+      setShowAppointmentModal(true)
+    },
+    [closeAllPickers]
+  )
+
+  const updateDraft = React.useCallback(
+    <K extends keyof AppointmentDraft>(key: K, value: AppointmentDraft[K]) => {
+      setDraft((prev) => ({ ...prev, [key]: value }))
+    },
+    []
+  )
 
   const deleteLegacyOperation = React.useCallback(async (id: EntityId) => {
     const { error } = await supabase.from("operations").delete().eq("id", id)
@@ -2070,13 +2353,17 @@ export default function App() {
   )
 
   const addAppointmentServiceRow = React.useCallback(() => {
-    setAppointmentServices((prev) => [...prev, makeServiceRow()])
+    setDraft((prev) => ({
+      ...prev,
+      services: [...prev.services, makeServiceRow()],
+    }))
   }, [])
 
   const updateAppointmentServiceRow = React.useCallback(
     (id: number, patch: Partial<ServiceItem>) => {
-      setAppointmentServices((prev) =>
-        prev.map((row) => {
+      setDraft((prev) => ({
+        ...prev,
+        services: prev.services.map((row) => {
           if (row.id !== id) return row
 
           const next = { ...row, ...patch }
@@ -2085,7 +2372,7 @@ export default function App() {
             const hoursValue = next.hours === "" ? "" : Number(next.hours) || 0
             return {
               ...next,
-              hours: hoursValue,
+              hours: hoursValue === "" ? "" : hoursValue,
               amount: hoursValue === "" ? 0 : Number(hoursValue) * 1000,
             }
           }
@@ -2095,48 +2382,62 @@ export default function App() {
             hours: "",
             amount: Number(next.amount) || 0,
           }
-        })
-      )
+        }),
+      }))
     },
     []
   )
 
   const removeAppointmentServiceRow = React.useCallback((id: number) => {
-    setAppointmentServices((prev) => prev.filter((row) => row.id !== id))
+    setDraft((prev) => ({
+      ...prev,
+      services: prev.services.filter((row) => row.id !== id),
+    }))
   }, [])
 
-  const addAppointmentPaymentRow = React.useCallback(
-    (type: PaymentType) => {
-      setAppointmentPayments((prev) => [
+  const addAppointmentPaymentRow = React.useCallback((type: PaymentType) => {
+    setDraft((prev) => {
+      const currentPaid = prev.payments.reduce(
+        (sum, row) => sum + normalizePaymentRow(row).amount,
+        0
+      )
+
+      return {
         ...prev,
-        {
-          id: makeId(),
-          type,
-          amount: Math.max(
-            currentAppointmentServicesTotal -
-              prev.reduce((sum, row) => sum + normalizePaymentRow(row).amount, 0),
-            0
-          ),
-        },
-      ])
-    },
-    [currentAppointmentServicesTotal]
-  )
+        payments: [
+          ...prev.payments,
+          {
+            id: makeId(),
+            type,
+            amount: Math.max(
+              prev.services.reduce((sum, row) => sum + normalizeServiceRow(row).amount, 0) -
+                currentPaid,
+              0
+            ),
+          },
+        ],
+      }
+    })
+  }, [])
 
   const updateAppointmentPaymentRow = React.useCallback(
     (id: number, patch: Partial<PaymentItem>) => {
-      setAppointmentPayments((prev) =>
-        prev.map((row) => {
+      setDraft((prev) => ({
+        ...prev,
+        payments: prev.payments.map((row) => {
           if (row.id !== id) return row
           return normalizePaymentRow({ ...row, ...patch })
-        })
-      )
+        }),
+      }))
     },
     []
   )
 
   const removeAppointmentPaymentRow = React.useCallback((id: number) => {
-    setAppointmentPayments((prev) => prev.filter((row) => row.id !== id))
+    setDraft((prev) => ({
+      ...prev,
+      payments: prev.payments.filter((row) => row.id !== id),
+    }))
   }, [])
 
   const ensureMonthExists = React.useCallback(
@@ -2155,33 +2456,33 @@ export default function App() {
   )
 
   const saveAppointment = React.useCallback(async () => {
-    if (!appointmentDate) {
+    if (!draft.date) {
       alert("Выбери дату.")
       return
     }
 
-    if (!appointmentStartTime || !appointmentEndTime) {
+    if (!draft.startTime || !draft.endTime) {
       alert("Укажи время начала и конца.")
       return
     }
 
-    if (appointmentEndTime <= appointmentStartTime) {
+    if (draft.endTime <= draft.startTime) {
       alert("Время окончания должно быть позже времени начала.")
       return
     }
 
-    if (appointmentServices.length === 0) {
+    if (draft.services.length === 0) {
       alert("Добавь хотя бы одну услугу.")
       return
     }
 
-    if (appointmentPayments.length === 0) {
+    if (draft.payments.length === 0) {
       alert("Добавь хотя бы одну оплату.")
       return
     }
 
-    const cleanedServices = appointmentServices.map(normalizeServiceRow)
-    const cleanedPayments = appointmentPayments.map(normalizePaymentRow)
+    const cleanedServices = draft.services.map(normalizeServiceRow)
+    const cleanedPayments = draft.payments.map(normalizePaymentRow)
 
     if (cleanedServices.some((row) => row.amount <= 0)) {
       alert("Во всех услугах должна быть корректная сумма.")
@@ -2193,7 +2494,7 @@ export default function App() {
       return
     }
 
-    const monthKey = toMonthKey(appointmentDate)
+    const monthKey = toMonthKey(draft.date)
 
     try {
       await ensureMonthExists(monthKey)
@@ -2203,14 +2504,14 @@ export default function App() {
     }
 
     const payload = {
-      date: appointmentDate,
-      start_time: appointmentStartTime,
-      end_time: appointmentEndTime,
-      client: appointmentClient.trim() || "Без клиента",
-      phone: appointmentPhone.trim(),
-      owner: appointmentOwner,
-      status: appointmentStatus,
-      comment: appointmentNote.trim(),
+      date: draft.date,
+      start_time: draft.startTime,
+      end_time: draft.endTime,
+      client: draft.client.trim() || "Без клиента",
+      phone: draft.phone.trim(),
+      owner: draft.owner,
+      status: draft.status,
+      comment: draft.note.trim(),
       services: cleanedServices,
       payments: cleanedPayments,
     }
@@ -2289,25 +2590,10 @@ export default function App() {
     })
 
     setSelectedMonth(monthKey)
-    setSelectedDate(appointmentDate)
+    setSelectedDate(draft.date)
     setShowAppointmentModal(false)
-    setActiveTimePicker(null)
-    resetAppointmentForm()
-  }, [
-    appointmentClient,
-    appointmentDate,
-    appointmentEndTime,
-    appointmentNote,
-    appointmentOwner,
-    appointmentPayments,
-    appointmentPhone,
-    appointmentServices,
-    appointmentStartTime,
-    appointmentStatus,
-    editingAppointmentId,
-    ensureMonthExists,
-    resetAppointmentForm,
-  ])
+    resetAppointmentForm(draft.date)
+  }, [draft, editingAppointmentId, ensureMonthExists, resetAppointmentForm])
 
   const deleteAppointment = React.useCallback(
     async (id: EntityId) => {
@@ -2321,7 +2607,6 @@ export default function App() {
 
       setAppointments((prev) => prev.filter((item) => String(item.id) !== String(id)))
       setShowAppointmentModal(false)
-      setActiveTimePicker(null)
       resetAppointmentForm()
     },
     [resetAppointmentForm]
@@ -2433,15 +2718,14 @@ export default function App() {
   )
 
   const activeServicePickerValue =
-    appointmentServices.find((row) => row.id === servicePickerRowId)?.type ?? "Запись"
+    draft.services.find((row) => row.id === servicePickerRowId)?.type ?? "Запись"
 
   const activePaymentPickerValue =
-    appointmentPayments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
+    draft.payments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
   const activeTimePickerValue =
-    activeTimePicker === "start" ? appointmentStartTime : appointmentEndTime
-
-  return (
+    activeTimePicker === "start" ? draft.startTime : draft.endTime
+      return (
     <div
       className="min-h-screen overflow-x-hidden bg-[#050811] text-white"
       style={fontBaseStyle}
@@ -2653,14 +2937,14 @@ export default function App() {
               </GlassCard>
 
               <div className="space-y-3">
-                {selectedDateAppointments.map((a) => {
-                  const total = getServicesTotal(a)
-                  const paid = getPaymentsTotal(a)
+                {selectedDateAppointments.map((appointment) => {
+                  const total = getServicesTotal(appointment)
+                  const paid = getPaymentsTotal(appointment)
 
                   return (
                     <button
-                      key={String(a.id)}
-                      onClick={() => openEditAppointmentModal(a)}
+                      key={String(appointment.id)}
+                      onClick={() => openEditAppointmentModal(appointment)}
                       className="schedule-card"
                       style={fontBaseStyle}
                     >
@@ -2671,20 +2955,16 @@ export default function App() {
                               className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#97a3c5]"
                               style={fontBodyMediumStyle}
                             >
-                              {a.startTime} — {a.endTime}
+                              {appointment.startTime} — {appointment.endTime}
                             </span>
                             <span
                               className={cn(
                                 "inline-flex rounded-full px-2.5 py-1 text-[11px]",
-                                getStatusPillClass(a.status)
+                                getStatusPillClass(appointment.status)
                               )}
                               style={fontDisplayMediumStyle}
                             >
-                              {a.status === "Пришел"
-                                ? "Пришёл"
-                                : a.status === "Не пришел"
-                                  ? "Не пришёл"
-                                  : a.status}
+                              {formatStatusLabel(appointment.status)}
                             </span>
                           </div>
 
@@ -2692,15 +2972,15 @@ export default function App() {
                             className="mt-4 truncate text-[22px] text-white"
                             style={fontDisplayMediumStyle}
                           >
-                            {a.client}
+                            {appointment.client}
                           </p>
 
                           <div
                             className="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#8794b5]"
                             style={fontBodyMediumStyle}
                           >
-                            <span>{a.owner}</span>
-                            {a.phone ? <span>· {a.phone}</span> : null}
+                            <span>{appointment.owner}</span>
+                            {appointment.phone ? <span>· {appointment.phone}</span> : null}
                           </div>
                         </div>
 
@@ -2963,7 +3243,7 @@ export default function App() {
 
         {showAppointmentModal && (
           <div className="fixed inset-0 z-[999] bg-black/74 backdrop-blur-md" style={fontBaseStyle}>
-            <div className="absolute inset-0" onClick={() => setShowAppointmentModal(false)} />
+            <div className="absolute inset-0" onClick={closeAppointmentModal} />
 
             <div className="modal-panel absolute bottom-0 left-0 right-0 mx-auto flex h-[min(92vh,980px)] w-full max-w-[780px] flex-col rounded-t-[36px]">
               <div className="pointer-events-none absolute left-[8%] top-0 h-[180px] w-[180px] rounded-full bg-[#69e1ff]/10 blur-[78px]" />
@@ -2982,7 +3262,7 @@ export default function App() {
                     </h2>
                   </div>
 
-                  <IconButton onClick={() => setShowAppointmentModal(false)}>
+                  <IconButton onClick={closeAppointmentModal}>
                     <CloseIcon />
                   </IconButton>
                 </div>
@@ -2997,8 +3277,8 @@ export default function App() {
                         <InputWithIcon
                           icon={<UserIcon />}
                           placeholder="Имя клиента"
-                          value={appointmentClient}
-                          onChange={(e) => setAppointmentClient(e.target.value)}
+                          value={draft.client}
+                          onChange={(e) => updateDraft("client", e.target.value)}
                         />
                       </div>
 
@@ -3008,8 +3288,8 @@ export default function App() {
                           icon={<PhoneIcon />}
                           type="tel"
                           placeholder="Телефон"
-                          value={appointmentPhone}
-                          onChange={(e) => setAppointmentPhone(e.target.value)}
+                          value={draft.phone}
+                          onChange={(e) => updateDraft("phone", e.target.value)}
                         />
                       </div>
                     </div>
@@ -3019,7 +3299,10 @@ export default function App() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <FormLabel>Дата</FormLabel>
-                        <ModalDateField value={appointmentDate} onChange={setAppointmentDate} />
+                        <ModalDateField
+                          value={draft.date}
+                          onChange={(value) => updateDraft("date", value)}
+                        />
                       </div>
 
                       <div>
@@ -3029,8 +3312,8 @@ export default function App() {
                             { value: "Азат", label: "Азат" },
                             { value: "Марс", label: "Марс" },
                           ]}
-                          value={appointmentOwner}
-                          onChange={setAppointmentOwner}
+                          value={draft.owner}
+                          onChange={(value) => updateDraft("owner", value)}
                         />
                       </div>
                     </div>
@@ -3039,7 +3322,7 @@ export default function App() {
                       <div>
                         <FormLabel>Начало</FormLabel>
                         <ModalTimeField
-                          value={appointmentStartTime}
+                          value={draft.startTime}
                           onClick={() => setActiveTimePicker("start")}
                         />
                       </div>
@@ -3047,7 +3330,7 @@ export default function App() {
                       <div>
                         <FormLabel>Конец</FormLabel>
                         <ModalTimeField
-                          value={appointmentEndTime}
+                          value={draft.endTime}
                           onClick={() => setActiveTimePicker("end")}
                         />
                       </div>
@@ -3070,9 +3353,25 @@ export default function App() {
                     </div>
 
                     <div className="space-y-3">
-                      {appointmentServices.map((service) => (
+                      {draft.services.map((service, index) => (
                         <div key={service.id} className="inner-block">
-                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_130px_48px]">
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <p className="text-sm text-[#8ea0c9]" style={fontBodyMediumStyle}>
+                              Услуга {index + 1}
+                            </p>
+                            {draft.services.length > 1 ? (
+                              <button
+                                type="button"
+                                onClick={() => removeAppointmentServiceRow(service.id)}
+                                className="remove-mini-button"
+                                style={fontBaseStyle}
+                              >
+                                <CloseIcon />
+                              </button>
+                            ) : null}
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
                             <button
                               type="button"
                               onClick={() => setServicePickerRowId(service.id)}
@@ -3088,7 +3387,7 @@ export default function App() {
                             {service.type === "Запись" ? (
                               <TextInput
                                 type="number"
-                                placeholder="0"
+                                placeholder="Часы"
                                 value={
                                   service.hours === "" || service.hours === 0
                                     ? ""
@@ -3105,7 +3404,7 @@ export default function App() {
                             ) : (
                               <TextInput
                                 type="number"
-                                placeholder="0"
+                                placeholder="Сумма"
                                 value={service.amount === 0 ? "" : String(service.amount)}
                                 onChange={(e) =>
                                   updateAppointmentServiceRow(service.id, {
@@ -3116,15 +3415,6 @@ export default function App() {
                                 style={fontDisplayMediumStyle}
                               />
                             )}
-
-                            <button
-                              type="button"
-                              onClick={() => removeAppointmentServiceRow(service.id)}
-                              className="remove-mini-button"
-                              style={fontBaseStyle}
-                            >
-                              <CloseIcon />
-                            </button>
                           </div>
 
                           <div
@@ -3154,9 +3444,25 @@ export default function App() {
                     </div>
 
                     <div className="space-y-3">
-                      {appointmentPayments.map((payment) => (
+                      {draft.payments.map((payment, index) => (
                         <div key={payment.id} className="inner-block">
-                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_130px_48px]">
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <p className="text-sm text-[#8ea0c9]" style={fontBodyMediumStyle}>
+                              Оплата {index + 1}
+                            </p>
+                            {draft.payments.length > 1 ? (
+                              <button
+                                type="button"
+                                onClick={() => removeAppointmentPaymentRow(payment.id)}
+                                className="remove-mini-button"
+                                style={fontBaseStyle}
+                              >
+                                <CloseIcon />
+                              </button>
+                            ) : null}
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
                             <button
                               type="button"
                               onClick={() => setPaymentPickerRowId(payment.id)}
@@ -3171,7 +3477,7 @@ export default function App() {
 
                             <TextInput
                               type="number"
-                              placeholder="0"
+                              placeholder="Сумма"
                               value={payment.amount === 0 ? "" : String(payment.amount)}
                               onChange={(e) =>
                                 updateAppointmentPaymentRow(payment.id, {
@@ -3181,15 +3487,6 @@ export default function App() {
                               className="h-[54px] px-4 text-[16px]"
                               style={fontDisplayMediumStyle}
                             />
-
-                            <button
-                              type="button"
-                              onClick={() => removeAppointmentPaymentRow(payment.id)}
-                              className="remove-mini-button"
-                              style={fontBaseStyle}
-                            >
-                              <CloseIcon />
-                            </button>
                           </div>
                         </div>
                       ))}
@@ -3220,19 +3517,20 @@ export default function App() {
                     <SegmentedControl
                       options={[
                         { value: "Ожидание", label: "Ожидание" },
+                        { value: "Подтвердил", label: "Подтвердил" },
                         { value: "Пришел", label: "Пришёл" },
                         { value: "Не пришел", label: "Не пришёл" },
                       ]}
-                      value={appointmentStatus}
-                      onChange={setAppointmentStatus}
+                      value={draft.status}
+                      onChange={(value) => updateDraft("status", value)}
                     />
 
                     <div className="mt-4">
                       <FormLabel>Комментарий</FormLabel>
                       <TextArea
                         placeholder="Комментарий"
-                        value={appointmentNote}
-                        onChange={(e) => setAppointmentNote(e.target.value)}
+                        value={draft.note}
+                        onChange={(e) => updateDraft("note", e.target.value)}
                       />
                     </div>
                   </GlassCard>
@@ -3261,7 +3559,7 @@ export default function App() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setShowAppointmentModal(false)}
+                      onClick={closeAppointmentModal}
                       className="modal-close-button"
                       style={fontBaseStyle}
                     >
@@ -3310,11 +3608,11 @@ export default function App() {
           value={activeTimePickerValue}
           onSelect={(value) => {
             if (activeTimePicker === "start") {
-              setAppointmentStartTime(value)
+              updateDraft("startTime", value)
               return
             }
 
-            setAppointmentEndTime(value)
+            updateDraft("endTime", value)
           }}
           onClose={() => setActiveTimePicker(null)}
         />
