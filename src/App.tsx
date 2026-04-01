@@ -67,6 +67,14 @@ type Appointment = {
   payments: PaymentItem[]
 }
 
+type ShiftDay = {
+  id: EntityId
+  date: string
+  azat: boolean
+  mars: boolean
+  note: string
+}
+
 type FinancialEntry = {
   id: EntityId
   source: "operation" | "appointment"
@@ -1972,6 +1980,7 @@ export default function App() {
 
   const [legacyOperations, setLegacyOperations] = React.useState<Operation[]>([])
   const [appointments, setAppointments] = React.useState<Appointment[]>([])
+  const [shifts, setShifts] = React.useState<ShiftDay[]>([])
 
   const [monthGoals, setMonthGoals] = React.useState<MonthGoals>({
     [initialMonthKey]: DEFAULT_MONTH_GOAL,
@@ -2012,14 +2021,16 @@ export default function App() {
   }, [resetAppointmentForm])
 
   const loadData = React.useCallback(async () => {
-    const [
+     const [
       { data: operationsData, error: operationsError },
       { data: goalsData, error: goalsError },
       { data: appointmentsData, error: appointmentsError },
+      { data: shiftsData, error: shiftsError },
     ] = await Promise.all([
       supabase.from("operations").select("*").order("date", { ascending: false }),
       supabase.from("month_goals").select("*"),
       supabase.from("appointments").select("*").order("date", { ascending: false }),
+      supabase.from("shifts").select("*").order("date", { ascending: false }),
     ])
 
     if (operationsError) {
@@ -2034,6 +2045,11 @@ export default function App() {
 
     if (appointmentsError) {
       console.error("Error loading appointments", appointmentsError)
+      return
+    }
+
+        if (shiftsError) {
+      console.error("Error loading shifts", shiftsError)
       return
     }
 
@@ -2060,6 +2076,14 @@ export default function App() {
       payments: normalizePayments(item.payments),
     }))
 
+        const mappedShifts: ShiftDay[] = (shiftsData || []).map((item) => ({
+      id: item.id as EntityId,
+      date: String(item.date),
+      azat: Boolean(item.azat),
+      mars: Boolean(item.mars),
+      note: String(item.note || ""),
+    }))
+
     const goalMap: Record<string, number> = {}
     const monthSet = new Set<string>([initialMonthKey])
 
@@ -2078,8 +2102,9 @@ export default function App() {
 
     const nextMonths = Array.from(monthSet).sort().reverse()
 
-    setLegacyOperations(mappedOperations)
+  setLegacyOperations(mappedOperations)
     setAppointments(mappedAppointments)
+    setShifts(mappedShifts)
     setMonths(nextMonths)
     setMonthGoals({
       [initialMonthKey]: DEFAULT_MONTH_GOAL,
@@ -2093,24 +2118,24 @@ export default function App() {
   React.useEffect(() => {
     void loadData()
 
-    const channel = supabase
-      .channel("all-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "operations" },
-        () => void loadData()
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "month_goals" },
-        () => void loadData()
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "appointments" },
-        () => void loadData()
-      )
-      .subscribe()
+   const channel = supabase
+  .channel("studio-finance-realtime")
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "operations" },
+    () => void loadData()
+  )
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "appointments" },
+    () => void loadData()
+  )
+  .on(
+    "postgres_changes",
+    { event: "*", schema: "public", table: "shifts" },
+    () => void loadData()
+  )
+  .subscribe()
 
     return () => {
       void supabase.removeChannel(channel)
@@ -2318,6 +2343,10 @@ export default function App() {
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
   }, [appointments, selectedDate])
 
+    const selectedDateShift = React.useMemo(() => {
+    return shifts.find((item) => item.date === selectedDate)
+  }, [shifts, selectedDate])
+
   const currentAppointmentServicesTotal = React.useMemo(() => {
     return draft.services.reduce((sum, row) => sum + normalizeServiceRow(row).amount, 0)
   }, [draft.services])
@@ -2337,6 +2366,65 @@ export default function App() {
     closeAllPickers()
     setShowAppointmentModal(true)
   }, [closeAllPickers, selectedDate])
+
+    const toggleShift = React.useCallback(
+    async (owner: "azat" | "mars") => {
+      const existing = shifts.find((item) => item.date === selectedDate)
+
+      if (existing) {
+        const updated = {
+          azat: owner === "azat" ? !existing.azat : existing.azat,
+          mars: owner === "mars" ? !existing.mars : existing.mars,
+        }
+
+        const { error } = await supabase
+          .from("shifts")
+          .update(updated)
+          .eq("id", existing.id)
+
+        if (error) {
+          console.error("Error updating shift", error)
+          return
+        }
+
+        setShifts((prev) =>
+          prev.map((item) =>
+            String(item.id) === String(existing.id) ? { ...item, ...updated } : item
+          )
+        )
+      } else {
+        const payload = {
+          date: selectedDate,
+          azat: owner === "azat",
+          mars: owner === "mars",
+          note: "",
+        }
+
+        const { data, error } = await supabase
+          .from("shifts")
+          .insert(payload)
+          .select()
+          .single()
+
+        if (error) {
+          console.error("Error creating shift", error)
+          return
+        }
+
+        setShifts((prev) => [
+          ...prev,
+          {
+            id: data.id as EntityId,
+            date: String(data.date),
+            azat: Boolean(data.azat),
+            mars: Boolean(data.mars),
+            note: String(data.note || ""),
+          },
+        ])
+      }
+    },
+    [selectedDate, shifts]
+  )
 
   const openEditAppointmentModal = React.useCallback(
     (appointment: Appointment) => {
@@ -2959,6 +3047,49 @@ export default function App() {
                   <IconButton onClick={() => shiftSelectedDate(-1)}>
                     <ChevronLeftIcon />
                   </IconButton>
+
+              <GlassCard className="mb-4 p-4 sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+                      Кто сегодня работает
+                    </p>
+                    <p className="mt-1 text-white" style={fontDisplayMediumStyle}>
+                      {formatDisplayDate(selectedDate)}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void toggleShift("azat")}
+                      className={cn(
+                        "rounded-full px-4 py-2 text-sm transition",
+                        selectedDateShift?.azat
+                          ? "bg-sky-400/20 text-sky-200 ring-1 ring-sky-300/20"
+                          : "bg-white/[0.05] text-white"
+                      )}
+                      style={fontDisplayMediumStyle}
+                    >
+                      Азат
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void toggleShift("mars")}
+                      className={cn(
+                        "rounded-full px-4 py-2 text-sm transition",
+                        selectedDateShift?.mars
+                          ? "bg-violet-400/20 text-violet-200 ring-1 ring-violet-300/20"
+                          : "bg-white/[0.05] text-white"
+                      )}
+                      style={fontDisplayMediumStyle}
+                    >
+                      Марс
+                    </button>
+                  </div>
+                </div>
+              </GlassCard>
 
                   <div className="min-w-0 flex-1">
                     <NativeDateButton value={selectedDate} onChange={setSelectedDate} />
