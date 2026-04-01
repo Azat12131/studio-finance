@@ -1025,9 +1025,9 @@ function MonthTabs({
                 style={fontDisplayMediumStyle}
                 className={cn(
                   "rounded-full px-4 py-2.5 text-sm capitalize transition duration-200",
-                  active
-                    ? "bg-[linear-gradient(135deg,rgba(122,175,255,0.95),rgba(121,104,255,0.95))] text-white shadow-[0_10px_28px_rgba(71,112,255,0.34)]"
-                    : "border border-white/8 bg-white/[0.04] text-[#9aa5c3] hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
+                 active
+  ? "month-tab-active"
+  : "border border-white/8 bg-white/[0.04] text-[#9aa5c3] hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 {formatMonthLabel(monthKey)}

@@ -955,3 +955,20 @@ textarea:focus-visible {
   border-color: rgba(201, 146, 255, 0.16);
   color: #e6ccff;
 }
+.month-tab-active {
+  position: relative;
+  background: linear-gradient(135deg, rgba(122,175,255,0.95), rgba(121,104,255,0.95));
+  color: white;
+  border-radius: 999px;
+}
+
+.month-tab-active::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(122,175,255,0.45), rgba(121,104,255,0.45));
+  filter: blur(14px);
+  opacity: 0.6;
+  z-index: -1;
+}
