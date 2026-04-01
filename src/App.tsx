@@ -1084,13 +1084,36 @@ function RecentOperationRow({
   onOpen: (entry: FinancialEntry) => void
 }) {
   const serviceLabel = getEntryServiceLabel(entry)
-  const timeRange =
-    entry.source === "appointment" ? formatTimeRange(entry.startTime, entry.endTime) : ""
+
+  const hasSessionTime =
+    entry.source === "appointment" &&
+    entry.services.some((service) => service.type === "Запись")
+
+  const timeRange = hasSessionTime
+    ? formatTimeRange(entry.startTime, entry.endTime)
+    : ""
+
+  const isNonSessionAppointment =
+    entry.source === "appointment" &&
+    entry.services.length > 0 &&
+    entry.services.every((service) => service.type !== "Запись")
 
   return (
-    <button onClick={() => onOpen(entry)} className="finance-row group" style={fontBaseStyle}>
+    <button
+      onClick={() => onOpen(entry)}
+      className={cn(
+        "finance-row group",
+        isNonSessionAppointment && "finance-row-service"
+      )}
+      style={fontBaseStyle}
+    >
       <div className="flex min-w-0 items-center gap-4">
-        <div className="finance-row-icon">
+        <div
+          className={cn(
+            "finance-row-icon",
+            isNonSessionAppointment && "finance-row-icon-service"
+          )}
+        >
           {entry.source === "appointment" ? <CalendarIcon /> : <ReceiptIcon />}
         </div>
 
@@ -1101,7 +1124,12 @@ function RecentOperationRow({
             </p>
 
             <span
-              className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#9aa5c3]"
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-[11px]",
+                isNonSessionAppointment
+                  ? "border-fuchsia-400/20 bg-fuchsia-400/10 text-fuchsia-200"
+                  : "border-white/8 bg-white/[0.05] text-[#9aa5c3]"
+              )}
               style={fontBodyMediumStyle}
             >
               {entry.owner}
@@ -1129,7 +1157,13 @@ function RecentOperationRow({
         <p className="text-[17px] text-white" style={fontDisplayMediumStyle}>
           {formatMoney(getPaymentsTotal(entry))}
         </p>
-        <p className="mt-1 text-xs text-[#7380a2]" style={fontBodyMediumStyle}>
+        <p
+          className={cn(
+            "mt-1 text-xs",
+            isNonSessionAppointment ? "text-fuchsia-300/80" : "text-[#7380a2]"
+          )}
+          style={fontBodyMediumStyle}
+        >
           {serviceLabel}
         </p>
       </div>
