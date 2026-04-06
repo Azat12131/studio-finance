@@ -1,14 +1,7 @@
-import type {
-  Owner,
-  ServiceType,
-  PaymentType,
-  AppointmentStatus,
-} from "../types/app"
+import type { PaymentType, ServiceType } from "../types/app"
 
 export const RENT_GOAL = 20000
 export const DEFAULT_MONTH_GOAL = 50000
-
-export const ownerOptions: Owner[] = ["Азат", "Марс"]
 
 export const serviceOptions: ServiceType[] = [
   "Запись",
@@ -20,9 +13,4 @@ export const serviceOptions: ServiceType[] = [
 
 export const paymentOptions: PaymentType[] = ["Нал", "Карта"]
 
-export const appointmentStatusOptions: AppointmentStatus[] = [
-  "Ожидание",
-  "Подтвердил",
-  "Пришел",
-  "Не пришел",
-]
+export const timeMinutePresets = ["00", "15", "30", "45"] as const

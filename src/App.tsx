@@ -1,5 +1,6 @@
 import { supabase } from "./supabase"
 import React from "react"
+import type { Session } from "@supabase/supabase-js"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,6 +18,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 type EntityId = string | number
 type Owner = "Азат" | "Марс"
 type PaymentType = "Нал" | "Карта"
+type UserRole = "admin" | "viewer"
 
 type ServiceType =
   | "Запись"
@@ -1033,9 +1035,9 @@ function MonthTabs({
                 style={fontDisplayMediumStyle}
                 className={cn(
                   "rounded-full px-4 py-2.5 text-sm capitalize transition duration-200",
-                 active
-  ? "month-tab-active"
-  : "border border-white/8 bg-white/[0.04] text-[#9aa5c3] hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
+                  active
+                    ? "month-tab-active"
+                    : "border border-white/8 bg-white/[0.04] text-[#9aa5c3] hover:border-white/12 hover:bg-white/[0.06] hover:text-white"
                 )}
               >
                 {formatMonthLabel(monthKey)}
@@ -1097,9 +1099,7 @@ function RecentOperationRow({
     entry.source === "appointment" &&
     entry.services.some((service) => service.type === "Запись")
 
-  const timeRange = hasSessionTime
-    ? formatTimeRange(entry.startTime, entry.endTime)
-    : ""
+  const timeRange = hasSessionTime ? formatTimeRange(entry.startTime, entry.endTime) : ""
 
   const isNonSessionAppointment =
     entry.source === "appointment" &&
@@ -1109,10 +1109,7 @@ function RecentOperationRow({
   return (
     <button
       onClick={() => onOpen(entry)}
-      className={cn(
-        "finance-row group",
-        isNonSessionAppointment && "finance-row-service"
-      )}
+      className={cn("finance-row group", isNonSessionAppointment && "finance-row-service")}
       style={fontBaseStyle}
     >
       <div className="flex min-w-0 items-center gap-4">
@@ -1239,9 +1236,11 @@ function useNativeDatePicker() {
 function ModalDateField({
   value,
   onChange,
+  disabled = false,
 }: {
   value: string
   onChange: (value: string) => void
+  disabled?: boolean
 }) {
   const { inputRef, open } = useNativeDatePicker()
 
@@ -1260,7 +1259,8 @@ function ModalDateField({
         value={formatHumanDate(value)}
         placeholder="Дата"
         icon={<CalendarIcon />}
-        onClick={open}
+        onClick={disabled ? undefined : open}
+        className={disabled ? "opacity-60" : ""}
       />
     </>
   )
@@ -1299,16 +1299,19 @@ function NativeDateButton({
 function ModalTimeField({
   value,
   onClick,
+  disabled = false,
 }: {
   value: string
   onClick: () => void
+  disabled?: boolean
 }) {
   return (
     <CompactField
       value={value || "Время"}
       placeholder="Время"
       icon={<ClockIcon />}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      className={disabled ? "opacity-60" : ""}
     />
   )
 }
@@ -1634,13 +1637,20 @@ function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  disabled = false,
 }: {
   options: readonly { value: T; label: string }[]
   value: T
   onChange: (value: T) => void
+  disabled?: boolean
 }) {
   return (
-    <div className="rounded-[20px] border border-white/8 bg-white/[0.04] p-1.5 backdrop-blur-xl">
+    <div
+      className={cn(
+        "rounded-[20px] border border-white/8 bg-white/[0.04] p-1.5 backdrop-blur-xl",
+        disabled && "pointer-events-none opacity-60"
+      )}
+    >
       <div
         style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}
         className="grid gap-1.5"
@@ -1851,12 +1861,20 @@ function SidebarNav({
   onAdd,
   onCreateMonth,
   logo,
+  isAdmin,
+  email,
+  role,
+  onSignOut,
 }: {
   activeTab: AppTab
   onChange: (tab: AppTab) => void
   onAdd: () => void
   onCreateMonth: () => void
   logo: string
+  isAdmin: boolean
+  email: string
+  role: UserRole | null
+  onSignOut: () => void
 }) {
   const items: Array<{ key: AppTab; label: string; icon: React.ReactNode }> = [
     { key: "dashboard", label: "Главная", icon: <HomeIcon /> },
@@ -1904,19 +1922,37 @@ function SidebarNav({
           })}
         </div>
 
-        <div className="mt-8 grid gap-3">
-          <PrimaryButton onClick={onAdd} className="h-[50px] w-full justify-center">
-            <PlusIcon />
-            Новая запись
-          </PrimaryButton>
+        {isAdmin ? (
+          <div className="mt-8 grid gap-3">
+            <PrimaryButton onClick={onAdd} className="h-[50px] w-full justify-center">
+              <PlusIcon />
+              Новая запись
+            </PrimaryButton>
 
-          <GhostButton onClick={onCreateMonth} className="h-[50px] w-full justify-center">
-            <PlusIcon />
-            Новый месяц
-          </GhostButton>
-        </div>
+            <GhostButton onClick={onCreateMonth} className="h-[50px] w-full justify-center">
+              <PlusIcon />
+              Новый месяц
+            </GhostButton>
+          </div>
+        ) : null}
 
-        <div className="mt-auto">
+        <div className="mt-auto space-y-4">
+          <div className="sidebar-footer">
+            <p className="text-[11px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+              Аккаунт
+            </p>
+            <p className="mt-2 break-all text-sm text-white" style={fontBodyMediumStyle}>
+              {email}
+            </p>
+            <p className="mt-1 text-xs text-[#99a4c2]" style={fontBodyMediumStyle}>
+              {role === "admin" ? "Администратор" : "Просмотр"}
+            </p>
+
+            <GhostButton onClick={onSignOut} className="mt-4 h-[46px] w-full justify-center">
+              Выйти
+            </GhostButton>
+          </div>
+
           <div className="sidebar-footer">
             <p className="text-[11px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
               Focus mode
@@ -1937,11 +1973,13 @@ function BottomNav({
   onChange,
   onAdd,
   hidden = false,
+  isAdmin,
 }: {
   activeTab: AppTab
   onChange: (tab: AppTab) => void
   onAdd: () => void
   hidden?: boolean
+  isAdmin: boolean
 }) {
   if (hidden) return null
 
@@ -1959,9 +1997,13 @@ function BottomNav({
           <CalendarIcon />
         </button>
 
-        <button onClick={onAdd} className="mobile-nav-add">
-          <PlusIcon />
-        </button>
+        {isAdmin ? (
+          <button onClick={onAdd} className="mobile-nav-add">
+            <PlusIcon />
+          </button>
+        ) : (
+          <div className="flex h-[56px] w-[56px] items-center justify-center" />
+        )}
 
         <button className={itemClass("operations")} onClick={() => onChange("operations")}>
           <ReceiptIcon />
@@ -1977,6 +2019,13 @@ function BottomNav({
 
 export default function App() {
   const initialMonthKey = React.useMemo(() => getInitialMonthKey(), [])
+
+  const [session, setSession] = React.useState<Session | null>(null)
+  const [authLoading, setAuthLoading] = React.useState(true)
+  const [userRole, setUserRole] = React.useState<UserRole | null>(null)
+  const [loginEmail, setLoginEmail] = React.useState("")
+  const [loginPassword, setLoginPassword] = React.useState("")
+  const [loginLoading, setLoginLoading] = React.useState(false)
 
   const [legacyOperations, setLegacyOperations] = React.useState<Operation[]>([])
   const [appointments, setAppointments] = React.useState<Appointment[]>([])
@@ -2000,6 +2049,111 @@ export default function App() {
   const [servicePickerRowId, setServicePickerRowId] = React.useState<number | null>(null)
   const [paymentPickerRowId, setPaymentPickerRowId] = React.useState<number | null>(null)
 
+  const isAuthenticated = Boolean(session)
+  const isAdmin = userRole === "admin"
+
+  const requireAdmin = React.useCallback((message = "Недостаточно прав") => {
+    if (!isAdmin) {
+      alert(message)
+      return false
+    }
+    return true
+  }, [isAdmin])
+
+  const loadUserRole = React.useCallback(async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single()
+
+    if (error) {
+      console.error("Error loading user role", error)
+      setUserRole(null)
+      return
+    }
+
+    setUserRole((data?.role as UserRole) || "viewer")
+  }, [])
+
+  React.useEffect(() => {
+    let mounted = true
+
+    const initAuth = async () => {
+      const { data, error } = await supabase.auth.getSession()
+
+      if (error) {
+        console.error("Error getting session", error)
+      }
+
+      if (!mounted) return
+
+      const nextSession = data.session
+      setSession(nextSession)
+
+      if (nextSession?.user?.id) {
+        await loadUserRole(nextSession.user.id)
+      } else {
+        setUserRole(null)
+      }
+
+      if (mounted) {
+        setAuthLoading(false)
+      }
+    }
+
+    void initAuth()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+      setSession(nextSession)
+
+      if (nextSession?.user?.id) {
+        await loadUserRole(nextSession.user.id)
+      } else {
+        setUserRole(null)
+      }
+
+      setAuthLoading(false)
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [loadUserRole])
+
+  const signIn = React.useCallback(async () => {
+    if (!loginEmail.trim() || !loginPassword.trim()) {
+      alert("Введи email и пароль")
+      return
+    }
+
+    setLoginLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail.trim(),
+      password: loginPassword,
+    })
+
+    setLoginLoading(false)
+
+    if (error) {
+      console.error("Login error", error)
+      alert(`Ошибка входа: ${error.message}`)
+    }
+  }, [loginEmail, loginPassword])
+
+  const signOut = React.useCallback(async () => {
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      console.error("Sign out error", error)
+      alert(`Ошибка выхода: ${error.message}`)
+    }
+  }, [])
+
   const closeAllPickers = React.useCallback(() => {
     setActiveTimePicker(null)
     setServicePickerRowId(null)
@@ -2021,7 +2175,7 @@ export default function App() {
   }, [resetAppointmentForm])
 
   const loadData = React.useCallback(async () => {
-     const [
+    const [
       { data: operationsData, error: operationsError },
       { data: goalsData, error: goalsError },
       { data: appointmentsData, error: appointmentsError },
@@ -2048,7 +2202,7 @@ export default function App() {
       return
     }
 
-        if (shiftsError) {
+    if (shiftsError) {
       console.error("Error loading shifts", shiftsError)
       return
     }
@@ -2076,7 +2230,7 @@ export default function App() {
       payments: normalizePayments(item.payments),
     }))
 
-        const mappedShifts: ShiftDay[] = (shiftsData || []).map((item) => ({
+    const mappedShifts: ShiftDay[] = (shiftsData || []).map((item) => ({
       id: item.id as EntityId,
       date: String(item.date),
       azat: Boolean(item.azat),
@@ -2102,7 +2256,7 @@ export default function App() {
 
     const nextMonths = Array.from(monthSet).sort().reverse()
 
-  setLegacyOperations(mappedOperations)
+    setLegacyOperations(mappedOperations)
     setAppointments(mappedAppointments)
     setShifts(mappedShifts)
     setMonths(nextMonths)
@@ -2110,37 +2264,42 @@ export default function App() {
       [initialMonthKey]: DEFAULT_MONTH_GOAL,
       ...goalMap,
     })
-    setSelectedMonth((prev) =>
-      nextMonths.includes(prev) ? prev : nextMonths[0] || initialMonthKey
-    )
+    setSelectedMonth((prev) => (nextMonths.includes(prev) ? prev : nextMonths[0] || initialMonthKey))
   }, [initialMonthKey])
 
   React.useEffect(() => {
+    if (!session) return
+
     void loadData()
 
-   const channel = supabase
-  .channel("studio-finance-realtime")
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public", table: "operations" },
-    () => void loadData()
-  )
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public", table: "appointments" },
-    () => void loadData()
-  )
-  .on(
-    "postgres_changes",
-    { event: "*", schema: "public", table: "shifts" },
-    () => void loadData()
-  )
-  .subscribe()
+    const channel = supabase
+      .channel("studio-finance-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "operations" },
+        () => void loadData()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments" },
+        () => void loadData()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "shifts" },
+        () => void loadData()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "month_goals" },
+        () => void loadData()
+      )
+      .subscribe()
 
     return () => {
       void supabase.removeChannel(channel)
     }
-  }, [loadData])
+  }, [loadData, session])
 
   const normalizedMonths = React.useMemo(() => {
     const all = new Set<string>(months)
@@ -2343,7 +2502,7 @@ export default function App() {
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
   }, [appointments, selectedDate])
 
-    const selectedDateShift = React.useMemo(() => {
+  const selectedDateShift = React.useMemo(() => {
     return shifts.find((item) => item.date === selectedDate)
   }, [shifts, selectedDate])
 
@@ -2361,14 +2520,17 @@ export default function App() {
   )
 
   const openCreateAppointmentModal = React.useCallback(() => {
+    if (!requireAdmin("Недостаточно прав для создания записи")) return
     setEditingAppointmentId(null)
     setDraft(buildDefaultAppointmentDraft(selectedDate))
     closeAllPickers()
     setShowAppointmentModal(true)
-  }, [closeAllPickers, selectedDate])
+  }, [closeAllPickers, requireAdmin, selectedDate])
 
-    const toggleShift = React.useCallback(
+  const toggleShift = React.useCallback(
     async (owner: "azat" | "mars") => {
+      if (!requireAdmin("Недостаточно прав для изменения смен")) return
+
       const existing = shifts.find((item) => item.date === selectedDate)
 
       if (existing) {
@@ -2384,6 +2546,7 @@ export default function App() {
 
         if (error) {
           console.error("Error updating shift", error)
+          alert(`Не удалось обновить смену: ${error.message}`)
           return
         }
 
@@ -2400,14 +2563,11 @@ export default function App() {
           note: "",
         }
 
-        const { data, error } = await supabase
-          .from("shifts")
-          .insert(payload)
-          .select()
-          .single()
+        const { data, error } = await supabase.from("shifts").insert(payload).select().single()
 
         if (error) {
           console.error("Error creating shift", error)
+          alert(`Не удалось создать смену: ${error.message}`)
           return
         }
 
@@ -2423,17 +2583,18 @@ export default function App() {
         ])
       }
     },
-    [selectedDate, shifts]
+    [requireAdmin, selectedDate, shifts]
   )
 
   const openEditAppointmentModal = React.useCallback(
     (appointment: Appointment) => {
+      if (!requireAdmin("Недостаточно прав для редактирования")) return
       setEditingAppointmentId(appointment.id)
       setDraft(appointmentToDraft(appointment))
       closeAllPickers()
       setShowAppointmentModal(true)
     },
-    [closeAllPickers]
+    [closeAllPickers, requireAdmin]
   )
 
   const updateDraft = React.useCallback(
@@ -2444,6 +2605,8 @@ export default function App() {
   )
 
   const deleteLegacyOperation = React.useCallback(async (id: EntityId) => {
+    if (!requireAdmin("Недостаточно прав для удаления операции")) return
+
     const { error } = await supabase.from("operations").delete().eq("id", id)
 
     if (error) {
@@ -2453,7 +2616,7 @@ export default function App() {
     }
 
     setLegacyOperations((prev) => prev.filter((item) => String(item.id) !== String(id)))
-  }, [])
+  }, [requireAdmin])
 
   const openFinancialEntry = React.useCallback(
     (entry: FinancialEntry) => {
@@ -2463,6 +2626,8 @@ export default function App() {
         return
       }
 
+      if (!isAdmin) return
+
       const confirmed = window.confirm(
         `Удалить операцию "${entry.client}" от ${formatDisplayDate(entry.date)}?`
       )
@@ -2471,18 +2636,21 @@ export default function App() {
 
       void deleteLegacyOperation(entry.id)
     },
-    [appointments, openEditAppointmentModal, deleteLegacyOperation]
+    [appointments, deleteLegacyOperation, isAdmin, openEditAppointmentModal]
   )
 
   const addAppointmentServiceRow = React.useCallback(() => {
+    if (!isAdmin) return
     setDraft((prev) => ({
       ...prev,
       services: [...prev.services, makeServiceRow()],
     }))
-  }, [])
+  }, [isAdmin])
 
   const updateAppointmentServiceRow = React.useCallback(
     (id: number, patch: Partial<ServiceItem>) => {
+      if (!isAdmin) return
+
       setDraft((prev) => ({
         ...prev,
         services: prev.services.map((row) => {
@@ -2507,17 +2675,20 @@ export default function App() {
         }),
       }))
     },
-    []
+    [isAdmin]
   )
 
   const removeAppointmentServiceRow = React.useCallback((id: number) => {
+    if (!isAdmin) return
     setDraft((prev) => ({
       ...prev,
       services: prev.services.filter((row) => row.id !== id),
     }))
-  }, [])
+  }, [isAdmin])
 
   const addAppointmentPaymentRow = React.useCallback((type: PaymentType) => {
+    if (!isAdmin) return
+
     setDraft((prev) => {
       const currentPaid = prev.payments.reduce(
         (sum, row) => sum + normalizePaymentRow(row).amount,
@@ -2540,10 +2711,12 @@ export default function App() {
         ],
       }
     })
-  }, [])
+  }, [isAdmin])
 
   const updateAppointmentPaymentRow = React.useCallback(
     (id: number, patch: Partial<PaymentItem>) => {
+      if (!isAdmin) return
+
       setDraft((prev) => ({
         ...prev,
         payments: prev.payments.map((row) => {
@@ -2552,18 +2725,23 @@ export default function App() {
         }),
       }))
     },
-    []
+    [isAdmin]
   )
 
   const removeAppointmentPaymentRow = React.useCallback((id: number) => {
+    if (!isAdmin) return
     setDraft((prev) => ({
       ...prev,
       payments: prev.payments.filter((row) => row.id !== id),
     }))
-  }, [])
+  }, [isAdmin])
 
   const ensureMonthExists = React.useCallback(
     async (monthKey: string) => {
+      if (!requireAdmin("Недостаточно прав для изменения месяцев")) {
+        throw new Error("Not enough permissions")
+      }
+
       const { error } = await supabase.from("month_goals").upsert({
         month_key: monthKey,
         goal: monthGoals[monthKey] ?? DEFAULT_MONTH_GOAL,
@@ -2574,10 +2752,12 @@ export default function App() {
         throw error
       }
     },
-    [monthGoals]
+    [monthGoals, requireAdmin]
   )
 
   const saveAppointment = React.useCallback(async () => {
+    if (!requireAdmin("Недостаточно прав для сохранения записи")) return
+
     if (!draft.date) {
       alert("Выбери дату.")
       return
@@ -2648,7 +2828,7 @@ export default function App() {
 
       if (error) {
         console.error("Error updating appointment", error)
-        alert("Не удалось обновить запись")
+        alert(`Не удалось обновить запись: ${error.message}`)
         return
       }
 
@@ -2672,11 +2852,7 @@ export default function App() {
         )
       )
     } else {
-      const { data, error } = await supabase
-        .from("appointments")
-        .insert(payload)
-        .select()
-        .single()
+      const { data, error } = await supabase.from("appointments").insert(payload).select().single()
 
       if (error) {
         console.error("Error creating appointment", error)
@@ -2715,10 +2891,12 @@ export default function App() {
     setSelectedDate(draft.date)
     setShowAppointmentModal(false)
     resetAppointmentForm(draft.date)
-  }, [draft, editingAppointmentId, ensureMonthExists, resetAppointmentForm])
+  }, [draft, editingAppointmentId, ensureMonthExists, requireAdmin, resetAppointmentForm])
 
   const deleteAppointment = React.useCallback(
     async (id: EntityId) => {
+      if (!requireAdmin("Недостаточно прав для удаления записи")) return
+
       const { error } = await supabase.from("appointments").delete().eq("id", id)
 
       if (error) {
@@ -2731,10 +2909,12 @@ export default function App() {
       setShowAppointmentModal(false)
       resetAppointmentForm()
     },
-    [resetAppointmentForm]
+    [requireAdmin, resetAppointmentForm]
   )
 
   const createNewMonth = React.useCallback(async () => {
+    if (!requireAdmin("Недостаточно прав для создания месяца")) return
+
     const typed = prompt("Введи новый месяц в формате ГГГГ-ММ, например 2026-04")
     if (!typed) return
 
@@ -2764,9 +2944,11 @@ export default function App() {
     }))
 
     setSelectedMonth(trimmed)
-  }, [ensureMonthExists])
+  }, [ensureMonthExists, requireAdmin])
 
   const deleteSelectedMonth = React.useCallback(async () => {
+    if (!requireAdmin("Недостаточно прав для удаления месяца")) return
+
     if (normalizedMonths.length <= 1) {
       alert("Нельзя удалить последний месяц.")
       return
@@ -2828,7 +3010,7 @@ export default function App() {
       return copy
     })
     setSelectedMonth(nextMonths[0] || getInitialMonthKey())
-  }, [normalizedMonths, selectedMonth])
+  }, [normalizedMonths, requireAdmin, selectedMonth])
 
   const shiftSelectedDate = React.useCallback(
     (direction: -1 | 1) => {
@@ -2847,7 +3029,108 @@ export default function App() {
 
   const activeTimePickerValue =
     activeTimePicker === "start" ? draft.startTime : draft.endTime
-      return (
+      if (authLoading) {
+    return (
+      <div
+        className="min-h-screen bg-[#050811] text-white flex items-center justify-center"
+        style={fontBaseStyle}
+      >
+        <div className="text-center">
+          <p className="text-[28px] text-white" style={fontDisplayTitleStyle}>
+            Studio CRM
+          </p>
+          <p className="mt-2 text-sm text-[#8f98b3]" style={fontBodyMediumStyle}>
+            Загрузка...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div
+        className="min-h-screen overflow-x-hidden bg-[#050811] text-white"
+        style={fontBaseStyle}
+      >
+        <div className="app-background" />
+        <div className="app-orb app-orb-a" />
+        <div className="app-orb app-orb-b" />
+        <div className="app-orb app-orb-c" />
+
+        <div className="relative z-[1] flex min-h-screen items-center justify-center px-4">
+          <div className="w-full max-w-[430px]">
+            <GlassCard glow className="p-6 sm:p-7">
+              <div className="flex items-center gap-4">
+                <div className="logo-shell">
+                  <div className="pointer-events-none absolute inset-0 rounded-[22px] bg-[radial-gradient(circle_at_30%_25%,rgba(125,227,255,0.24),transparent_35%),radial-gradient(circle_at_70%_75%,rgba(112,92,255,0.22),transparent_40%)]" />
+                  <img
+                    src={logoWhite}
+                    alt="logo"
+                    className="relative h-6 w-auto object-contain opacity-95"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-[16px] text-white" style={fontDisplayMediumStyle}>
+                    Studio CRM
+                  </p>
+                  <p className="mt-1 text-xs text-[#7f8aa8]" style={fontBodyMediumStyle}>
+                    Авторизация
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <p className="text-[11px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+                  Вход
+                </p>
+                <h1 className="mt-2 text-[32px] text-white" style={fontDisplayTitleStyle}>
+                  Добро пожаловать
+                </h1>
+                <p className="mt-2 text-sm text-[#8f98b3]" style={fontBodyMediumStyle}>
+                  Войди по email и паролю, чтобы открыть панель студии.
+                </p>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <TextInput
+                  type="email"
+                  placeholder="Email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="h-[56px] px-4"
+                />
+
+                <TextInput
+                  type="password"
+                  placeholder="Пароль"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="h-[56px] px-4"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !loginLoading) {
+                      void signIn()
+                    }
+                  }}
+                />
+
+                <PrimaryButton
+                  onClick={() => void signIn()}
+                  disabled={loginLoading}
+                  className="h-[56px] w-full justify-center"
+                >
+                  {loginLoading ? "Входим..." : "Войти"}
+                </PrimaryButton>
+              </div>
+            </GlassCard>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
     <div
       className="min-h-screen overflow-x-hidden bg-[#050811] text-white"
       style={fontBaseStyle}
@@ -2864,6 +3147,10 @@ export default function App() {
           onAdd={openCreateAppointmentModal}
           onCreateMonth={createNewMonth}
           logo={logoWhite}
+          isAdmin={isAdmin}
+          email={session?.user?.email || ""}
+          role={userRole}
+          onSignOut={() => void signOut()}
         />
 
         <main className="main-shell min-w-0 flex-1 px-4 pb-32 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10">
@@ -2873,13 +3160,15 @@ export default function App() {
                 title="Главная"
                 subtitle="Центр управления студией: доход, план, лидеры месяца и ключевые точки роста."
                 action={
-                  <PrimaryButton
-                    onClick={openCreateAppointmentModal}
-                    className="hidden sm:inline-flex"
-                  >
-                    <PlusIcon />
-                    Новая запись
-                  </PrimaryButton>
+                  isAdmin ? (
+                    <PrimaryButton
+                      onClick={openCreateAppointmentModal}
+                      className="hidden sm:inline-flex"
+                    >
+                      <PlusIcon />
+                      Новая запись
+                    </PrimaryButton>
+                  ) : undefined
                 }
               />
 
@@ -3035,10 +3324,12 @@ export default function App() {
                 title="График"
                 subtitle="Записи на выбранную дату с быстрым переходом в карточку клиента."
                 action={
-                  <PrimaryButton onClick={openCreateAppointmentModal}>
-                    <PlusIcon />
-                    Запись
-                  </PrimaryButton>
+                  isAdmin ? (
+                    <PrimaryButton onClick={openCreateAppointmentModal}>
+                      <PlusIcon />
+                      Запись
+                    </PrimaryButton>
+                  ) : undefined
                 }
               />
 
@@ -3047,6 +3338,16 @@ export default function App() {
                   <IconButton onClick={() => shiftSelectedDate(-1)}>
                     <ChevronLeftIcon />
                   </IconButton>
+
+                  <div className="min-w-0 flex-1">
+                    <NativeDateButton value={selectedDate} onChange={setSelectedDate} />
+                  </div>
+
+                  <IconButton onClick={() => shiftSelectedDate(1)}>
+                    <ChevronRightIcon />
+                  </IconButton>
+                </div>
+              </GlassCard>
 
               <GlassCard className="mb-4 p-4 sm:p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -3062,9 +3363,10 @@ export default function App() {
                   <div className="flex gap-2">
                     <button
                       type="button"
+                      disabled={!isAdmin}
                       onClick={() => void toggleShift("azat")}
                       className={cn(
-                        "rounded-full px-4 py-2 text-sm transition",
+                        "rounded-full px-4 py-2 text-sm transition disabled:opacity-60",
                         selectedDateShift?.azat
                           ? "bg-sky-400/20 text-sky-200 ring-1 ring-sky-300/20"
                           : "bg-white/[0.05] text-white"
@@ -3076,9 +3378,10 @@ export default function App() {
 
                     <button
                       type="button"
+                      disabled={!isAdmin}
                       onClick={() => void toggleShift("mars")}
                       className={cn(
-                        "rounded-full px-4 py-2 text-sm transition",
+                        "rounded-full px-4 py-2 text-sm transition disabled:opacity-60",
                         selectedDateShift?.mars
                           ? "bg-violet-400/20 text-violet-200 ring-1 ring-violet-300/20"
                           : "bg-white/[0.05] text-white"
@@ -3091,16 +3394,6 @@ export default function App() {
                 </div>
               </GlassCard>
 
-                  <div className="min-w-0 flex-1">
-                    <NativeDateButton value={selectedDate} onChange={setSelectedDate} />
-                  </div>
-
-                  <IconButton onClick={() => shiftSelectedDate(1)}>
-                    <ChevronRightIcon />
-                  </IconButton>
-                </div>
-              </GlassCard>
-
               <div className="space-y-3">
                 {selectedDateAppointments.map((appointment) => {
                   const total = getServicesTotal(appointment)
@@ -3109,8 +3402,11 @@ export default function App() {
                   return (
                     <button
                       key={String(appointment.id)}
-                      onClick={() => openEditAppointmentModal(appointment)}
-                      className="schedule-card"
+                      onClick={() => {
+                        if (!isAdmin) return
+                        openEditAppointmentModal(appointment)
+                      }}
+                      className={cn("schedule-card", !isAdmin && "cursor-default")}
                       style={fontBaseStyle}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -3168,7 +3464,9 @@ export default function App() {
                       На эту дату записей нет
                     </p>
                     <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
-                      Добавь новую запись через кнопку сверху или через центральную кнопку внизу.
+                      {isAdmin
+                        ? "Добавь новую запись через кнопку сверху или через центральную кнопку внизу."
+                        : "На выбранную дату данных пока нет."}
                     </p>
                   </GlassCard>
                 )}
@@ -3335,66 +3633,80 @@ export default function App() {
                 subtitle="Управление целями, месяцами и системными действиями."
               />
 
-              <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
-                <GlassCard className="p-5 sm:p-6">
-                  <FormLabel>Цель месяца</FormLabel>
-                  <TextInput
-                    type="number"
-                    value={monthGoal}
-                    onChange={async (e) => {
-                      const numeric = Number(e.target.value)
-                      const nextGoal = numeric > 0 ? numeric : 0
+              {isAdmin ? (
+                <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
+                  <GlassCard className="p-5 sm:p-6">
+                    <FormLabel>Цель месяца</FormLabel>
+                    <TextInput
+                      type="number"
+                      value={monthGoal}
+                      onChange={async (e) => {
+                        if (!requireAdmin("Недостаточно прав для изменения цели")) return
 
-                      setMonthGoals((prev) => ({
-                        ...prev,
-                        [selectedMonth]: nextGoal,
-                      }))
+                        const numeric = Number(e.target.value)
+                        const nextGoal = numeric > 0 ? numeric : 0
 
-                      const { error } = await supabase.from("month_goals").upsert({
-                        month_key: selectedMonth,
-                        goal: nextGoal,
-                      })
+                        setMonthGoals((prev) => ({
+                          ...prev,
+                          [selectedMonth]: nextGoal,
+                        }))
 
-                      if (error) {
-                        console.error("Error saving month goal", error)
-                      }
-                    }}
-                  />
-                  <p className="mt-3 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
-                    Актуальная цель для {formatMonthLabel(selectedMonth)}.
-                  </p>
-                </GlassCard>
+                        const { error } = await supabase.from("month_goals").upsert({
+                          month_key: selectedMonth,
+                          goal: nextGoal,
+                        })
 
-                <GlassCard className="p-5 sm:p-6">
-                  <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
-                    Месяцы
-                  </p>
-                  <p className="mt-2 text-[22px] text-white" style={fontDisplayMediumStyle}>
-                    Управление месяцами
+                        if (error) {
+                          console.error("Error saving month goal", error)
+                          alert(`Не удалось сохранить цель: ${error.message}`)
+                        }
+                      }}
+                    />
+                    <p className="mt-3 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+                      Актуальная цель для {formatMonthLabel(selectedMonth)}.
+                    </p>
+                  </GlassCard>
+
+                  <GlassCard className="p-5 sm:p-6">
+                    <p className="text-[12px] uppercase text-[#7b88aa]" style={fontCapsStyle}>
+                      Месяцы
+                    </p>
+                    <p className="mt-2 text-[22px] text-white" style={fontDisplayMediumStyle}>
+                      Управление месяцами
+                    </p>
+                    <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
+                      Создание нового месяца и удаление текущего выбранного месяца.
+                    </p>
+
+                    <div className="mt-5 grid gap-3">
+                      <GhostButton
+                        onClick={createNewMonth}
+                        className="h-[50px] w-full justify-center"
+                      >
+                        <PlusIcon />
+                        Новый месяц
+                      </GhostButton>
+
+                      <button
+                        onClick={() => void deleteSelectedMonth()}
+                        className="danger-button"
+                        style={fontDisplayMediumStyle}
+                      >
+                        Удалить месяц
+                      </button>
+                    </div>
+                  </GlassCard>
+                </div>
+              ) : (
+                <GlassCard className="p-6">
+                  <p className="text-[18px] text-white" style={fontDisplayMediumStyle}>
+                    Недостаточно прав
                   </p>
                   <p className="mt-2 text-sm text-[#8b97b5]" style={fontBodyMediumStyle}>
-                    Создание нового месяца и удаление текущего выбранного месяца.
+                    Изменять настройки могут только администраторы.
                   </p>
-
-                  <div className="mt-5 grid gap-3">
-                    <GhostButton
-                      onClick={createNewMonth}
-                      className="h-[50px] w-full justify-center"
-                    >
-                      <PlusIcon />
-                      Новый месяц
-                    </GhostButton>
-
-                    <button
-                      onClick={deleteSelectedMonth}
-                      className="danger-button"
-                      style={fontDisplayMediumStyle}
-                    >
-                      Удалить месяц
-                    </button>
-                  </div>
                 </GlassCard>
-              </div>
+              )}
             </>
           )}
         </main>
@@ -3404,6 +3716,7 @@ export default function App() {
           onChange={setActiveTab}
           onAdd={openCreateAppointmentModal}
           hidden={showAppointmentModal}
+          isAdmin={isAdmin}
         />
 
         {showAppointmentModal && (
@@ -3444,6 +3757,7 @@ export default function App() {
                           placeholder="Имя клиента"
                           value={draft.client}
                           onChange={(e) => updateDraft("client", e.target.value)}
+                          disabled={!isAdmin}
                         />
                       </div>
 
@@ -3455,6 +3769,7 @@ export default function App() {
                           placeholder="Телефон"
                           value={draft.phone}
                           onChange={(e) => updateDraft("phone", e.target.value)}
+                          disabled={!isAdmin}
                         />
                       </div>
                     </div>
@@ -3467,6 +3782,7 @@ export default function App() {
                         <ModalDateField
                           value={draft.date}
                           onChange={(value) => updateDraft("date", value)}
+                          disabled={!isAdmin}
                         />
                       </div>
 
@@ -3479,6 +3795,7 @@ export default function App() {
                           ]}
                           value={draft.owner}
                           onChange={(value) => updateDraft("owner", value)}
+                          disabled={!isAdmin}
                         />
                       </div>
                     </div>
@@ -3489,6 +3806,7 @@ export default function App() {
                         <ModalTimeField
                           value={draft.startTime}
                           onClick={() => setActiveTimePicker("start")}
+                          disabled={!isAdmin}
                         />
                       </div>
 
@@ -3497,6 +3815,7 @@ export default function App() {
                         <ModalTimeField
                           value={draft.endTime}
                           onClick={() => setActiveTimePicker("end")}
+                          disabled={!isAdmin}
                         />
                       </div>
                     </div>
@@ -3512,9 +3831,11 @@ export default function App() {
                           Состав и стоимость записи
                         </p>
                       </div>
-                      <IconButton onClick={addAppointmentServiceRow}>
-                        <PlusIcon />
-                      </IconButton>
+                      {isAdmin ? (
+                        <IconButton onClick={addAppointmentServiceRow}>
+                          <PlusIcon />
+                        </IconButton>
+                      ) : null}
                     </div>
 
                     <div className="space-y-3">
@@ -3524,7 +3845,7 @@ export default function App() {
                             <p className="text-sm text-[#8ea0c9]" style={fontBodyMediumStyle}>
                               Услуга {index + 1}
                             </p>
-                            {draft.services.length > 1 ? (
+                            {isAdmin && draft.services.length > 1 ? (
                               <button
                                 type="button"
                                 onClick={() => removeAppointmentServiceRow(service.id)}
@@ -3539,11 +3860,21 @@ export default function App() {
                           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
                             <button
                               type="button"
-                              onClick={() => setServicePickerRowId(service.id)}
-                              className="field-input flex h-[54px] min-w-0 items-center justify-between px-4"
+                              onClick={() => {
+                                if (!isAdmin) return
+                                setServicePickerRowId(service.id)
+                              }}
+                              className={cn(
+                                "field-input flex h-[54px] min-w-0 items-center justify-between px-4",
+                                !isAdmin && "opacity-60"
+                              )}
                               style={fontBaseStyle}
+                              disabled={!isAdmin}
                             >
-                              <span className="truncate text-[15px] text-white" style={fontBodyMediumStyle}>
+                              <span
+                                className="truncate text-[15px] text-white"
+                                style={fontBodyMediumStyle}
+                              >
                                 {service.type}
                               </span>
                               <span className="ml-3 shrink-0 text-[#7b88aa]">↕</span>
@@ -3565,6 +3896,7 @@ export default function App() {
                                 }
                                 className="h-[54px] px-4 text-[16px]"
                                 style={fontDisplayMediumStyle}
+                                disabled={!isAdmin}
                               />
                             ) : (
                               <TextInput
@@ -3578,6 +3910,7 @@ export default function App() {
                                 }
                                 className="h-[54px] px-4 text-[16px]"
                                 style={fontDisplayMediumStyle}
+                                disabled={!isAdmin}
                               />
                             )}
                           </div>
@@ -3615,7 +3948,7 @@ export default function App() {
                             <p className="text-sm text-[#8ea0c9]" style={fontBodyMediumStyle}>
                               Оплата {index + 1}
                             </p>
-                            {draft.payments.length > 1 ? (
+                            {isAdmin && draft.payments.length > 1 ? (
                               <button
                                 type="button"
                                 onClick={() => removeAppointmentPaymentRow(payment.id)}
@@ -3630,11 +3963,21 @@ export default function App() {
                           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_140px]">
                             <button
                               type="button"
-                              onClick={() => setPaymentPickerRowId(payment.id)}
-                              className="field-input flex h-[54px] min-w-0 items-center justify-between px-4"
+                              onClick={() => {
+                                if (!isAdmin) return
+                                setPaymentPickerRowId(payment.id)
+                              }}
+                              className={cn(
+                                "field-input flex h-[54px] min-w-0 items-center justify-between px-4",
+                                !isAdmin && "opacity-60"
+                              )}
                               style={fontBaseStyle}
+                              disabled={!isAdmin}
                             >
-                              <span className="truncate text-[15px] text-white" style={fontBodyMediumStyle}>
+                              <span
+                                className="truncate text-[15px] text-white"
+                                style={fontBodyMediumStyle}
+                              >
                                 {payment.type}
                               </span>
                               <span className="ml-3 shrink-0 text-[#7b88aa]">↕</span>
@@ -3651,30 +3994,33 @@ export default function App() {
                               }
                               className="h-[54px] px-4 text-[16px]"
                               style={fontDisplayMediumStyle}
+                              disabled={!isAdmin}
                             />
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      <GhostButton
-                        type="button"
-                        onClick={() => addAppointmentPaymentRow("Нал")}
-                        className="justify-center"
-                      >
-                        <PlusIcon />
-                        Нал
-                      </GhostButton>
-                      <GhostButton
-                        type="button"
-                        onClick={() => addAppointmentPaymentRow("Карта")}
-                        className="justify-center"
-                      >
-                        <PlusIcon />
-                        Карта
-                      </GhostButton>
-                    </div>
+                    {isAdmin ? (
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <GhostButton
+                          type="button"
+                          onClick={() => addAppointmentPaymentRow("Нал")}
+                          className="justify-center"
+                        >
+                          <PlusIcon />
+                          Нал
+                        </GhostButton>
+                        <GhostButton
+                          type="button"
+                          onClick={() => addAppointmentPaymentRow("Карта")}
+                          className="justify-center"
+                        >
+                          <PlusIcon />
+                          Карта
+                        </GhostButton>
+                      </div>
+                    ) : null}
                   </GlassCard>
 
                   <GlassCard className="p-4 sm:p-5">
@@ -3688,6 +4034,7 @@ export default function App() {
                       ]}
                       value={draft.status}
                       onChange={(value) => updateDraft("status", value)}
+                      disabled={!isAdmin}
                     />
 
                     <div className="mt-4">
@@ -3696,6 +4043,7 @@ export default function App() {
                         placeholder="Комментарий"
                         value={draft.note}
                         onChange={(e) => updateDraft("note", e.target.value)}
+                        disabled={!isAdmin}
                       />
                     </div>
                   </GlassCard>
@@ -3704,18 +4052,28 @@ export default function App() {
 
               <div className="relative z-[1] border-t border-white/8 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-4 sm:px-6">
                 <div className="grid grid-cols-[minmax(0,1fr)_56px] gap-3">
-                  <PrimaryButton
-                    type="button"
-                    onClick={saveAppointment}
-                    className="h-[58px] justify-center"
-                  >
-                    Сохранить запись
-                  </PrimaryButton>
+                  {isAdmin ? (
+                    <PrimaryButton
+                      type="button"
+                      onClick={() => void saveAppointment()}
+                      className="h-[58px] justify-center"
+                    >
+                      Сохранить запись
+                    </PrimaryButton>
+                  ) : (
+                    <GhostButton
+                      type="button"
+                      onClick={closeAppointmentModal}
+                      className="h-[58px] justify-center"
+                    >
+                      Закрыть
+                    </GhostButton>
+                  )}
 
-                  {editingAppointmentId !== null ? (
+                  {editingAppointmentId !== null && isAdmin ? (
                     <button
                       type="button"
-                      onClick={() => deleteAppointment(editingAppointmentId)}
+                      onClick={() => void deleteAppointment(editingAppointmentId)}
                       className="remove-large-button"
                       style={fontBaseStyle}
                     >

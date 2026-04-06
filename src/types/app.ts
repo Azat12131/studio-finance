@@ -1,3 +1,5 @@
+export type EntityId = string | number
+
 export type Owner = "Азат" | "Марс"
 export type PaymentType = "Нал" | "Карта"
 
@@ -28,7 +30,7 @@ export type PaymentItem = {
 }
 
 export type Operation = {
-  id: number
+  id: EntityId
   date: string
   client: string
   owner: Owner
@@ -37,7 +39,7 @@ export type Operation = {
 }
 
 export type Appointment = {
-  id: number
+  id: EntityId
   date: string
   startTime: string
   endTime: string
@@ -50,10 +52,20 @@ export type Appointment = {
   payments: PaymentItem[]
 }
 
+export type ShiftDay = {
+  id: EntityId
+  date: string
+  azat: boolean
+  mars: boolean
+  note: string
+}
+
 export type FinancialEntry = {
-  id: number
+  id: EntityId
   source: "operation" | "appointment"
   date: string
+  startTime?: string
+  endTime?: string
   client: string
   owner: Owner
   services: ServiceItem[]
@@ -61,4 +73,25 @@ export type FinancialEntry = {
 }
 
 export type MonthGoals = Record<string, number>
-export type AppTab = "dashboard" | "schedule" | "operations" | "analytics" | "settings"
+
+export type AppTab =
+  | "dashboard"
+  | "schedule"
+  | "operations"
+  | "analytics"
+  | "settings"
+
+export type TimePickerTarget = "start" | "end" | null
+
+export type AppointmentDraft = {
+  client: string
+  phone: string
+  owner: Owner
+  status: AppointmentStatus
+  date: string
+  startTime: string
+  endTime: string
+  note: string
+  services: ServiceItem[]
+  payments: PaymentItem[]
+}
