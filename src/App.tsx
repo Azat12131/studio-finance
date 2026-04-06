@@ -2076,10 +2076,11 @@ export default function App() {
     setUserRole((data?.role as UserRole) || "viewer")
   }, [])
 
-  React.useEffect(() => {
-    let mounted = true
+React.useEffect(() => {
+  let mounted = true
 
-    const initAuth = async () => {
+  const initAuth = async () => {
+    try {
       const { data, error } = await supabase.auth.getSession()
 
       if (error) {
@@ -2088,41 +2089,62 @@ export default function App() {
 
       if (!mounted) return
 
-      const nextSession = data.session
+      const nextSession = data.session ?? null
       setSession(nextSession)
 
       if (nextSession?.user?.id) {
-        await loadUserRole(nextSession.user.id)
+        try {
+          await loadUserRole(nextSession.user.id)
+        } catch (roleError) {
+          console.error("Error loading role during init", roleError)
+          if (mounted) setUserRole(null)
+        }
       } else {
         setUserRole(null)
       }
-
+    } catch (error) {
+      console.error("Auth init failed", error)
+      if (mounted) {
+        setSession(null)
+        setUserRole(null)
+      }
+    } finally {
       if (mounted) {
         setAuthLoading(false)
       }
     }
+  }
 
-    void initAuth()
+  void initAuth()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-      setSession(nextSession)
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    if (!mounted) return
 
-      if (nextSession?.user?.id) {
-        await loadUserRole(nextSession.user.id)
-      } else {
-        setUserRole(null)
-      }
+    setSession(nextSession)
 
-      setAuthLoading(false)
-    })
+    if (nextSession?.user?.id) {
+      setTimeout(() => {
+        if (!mounted || !nextSession.user?.id) return
 
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
+        void loadUserRole(nextSession.user.id).catch((error) => {
+          console.error("Error loading user role after auth change", error)
+          if (mounted) setUserRole(null)
+        })
+      }, 0)
+    } else {
+      setUserRole(null)
     }
-  }, [loadUserRole])
+
+    setAuthLoading(false)
+  })
+
+  return () => {
+    mounted = false
+    subscription.unsubscribe()
+  }
+}, [loadUserRole])
 
   const signIn = React.useCallback(async () => {
     if (!loginEmail.trim() || !loginPassword.trim()) {
@@ -3027,25 +3049,26 @@ export default function App() {
   const activePaymentPickerValue =
     draft.payments.find((row) => row.id === paymentPickerRowId)?.type ?? "Нал"
 
-  const activeTimePickerValue =
-    activeTimePicker === "start" ? draft.startTime : draft.endTime
-      if (authLoading) {
-    return (
-      <div
-        className="min-h-screen bg-[#050811] text-white flex items-center justify-center"
-        style={fontBaseStyle}
-      >
-        <div className="text-center">
-          <p className="text-[28px] text-white" style={fontDisplayTitleStyle}>
-            Studio CRM
-          </p>
-          <p className="mt-2 text-sm text-[#8f98b3]" style={fontBodyMediumStyle}>
-            Загрузка...
-          </p>
-        </div>
+ const activeTimePickerValue =
+  activeTimePicker === "start" ? draft.startTime : draft.endTime
+
+if (authLoading) {
+  return (
+    <div
+      className="min-h-screen bg-[#050811] text-white flex items-center justify-center"
+      style={fontBaseStyle}
+    >
+      <div className="text-center">
+        <p className="text-[28px] text-white" style={fontDisplayTitleStyle}>
+          Studio CRM
+        </p>
+        <p className="mt-2 text-sm text-[#8f98b3]" style={fontBodyMediumStyle}>
+          Загрузка...
+        </p>
       </div>
-    )
-  }
+    </div>
+  )
+}
 
   if (!isAuthenticated) {
     return (
